@@ -4,15 +4,21 @@ trait Verifier {
   def apply(request: OAuth1Request, tokenSecret: String, consumerSecret: String): Boolean
 }
 
+trait NonceValidator {
+  def apply(nonce: String): Boolean
+}
+object NoopNonceValidator extends NonceValidator {
+  def apply(nonce: String): Boolean = true
+}
+
 object Verifier {
   val NO_TIMESTAMP_CHECK = -1
-  val NO_NONCE_VALIDATION = (nonce: String) => true
-  def apply(): Verifier = new StandardVerifier(NO_TIMESTAMP_CHECK, NO_NONCE_VALIDATION)
-  def apply(maxTimestampAge: Int) = new StandardVerifier(maxTimestampAge, NO_NONCE_VALIDATION)
-  def appl(maxTimestampAge: Int, validateNonce: (String) => Boolean) =
+  def apply(): Verifier = new StandardVerifier(NO_TIMESTAMP_CHECK, NoopNonceValidator)
+  def apply(maxTimestampAge: Int) = new StandardVerifier(maxTimestampAge, NoopNonceValidator)
+  def appl(maxTimestampAge: Int, validateNonce: NonceValidator) =
     new StandardVerifier(maxTimestampAge, validateNonce)
 }
 
-class StandardVerifier(maxTimestampAge: Int, validateNonce: (String) => Boolean) extends Verifier {
+class StandardVerifier(maxTimestampAge: Int, validateNonce: NonceValidator) extends Verifier {
   def apply(request: OAuth1Request, tokenSecret: String, consumerSecret: String) = false
 }

@@ -1,13 +1,8 @@
 package com.twitter.joauth
+
 import com.twitter.joauth.keyvalue._
 import javax.servlet.http.HttpServletRequest
 import java.io.ByteArrayOutputStream
-
-class UnpackerException(val message: String, t: Throwable) extends Exception(message, t) {
-  def this(message: String) = this(message, null)
-}
-class UnknownAuthType(message: String) extends UnpackerException(message)
-class MalformedRequest(message: String) extends UnpackerException(message)
 
 trait UriSchemeGetter extends ((HttpServletRequest) => String)
 trait PathGetter extends ((HttpServletRequest) => String)
@@ -32,6 +27,7 @@ object Unpacker {
     new StandardUnpacker(
       StandardUriSchemeGetter,
       StandardPathGetter,
+      Normalizer(),
       new StandardKeyValueParser("&", "="),
       new StandardKeyValueParser("\\s*,\\s*", "\\s*=\\s*"))
 
@@ -41,15 +37,17 @@ object Unpacker {
     new StandardUnpacker(
       getScheme,
       getPath,
+      StandardNormalizer,
       new StandardKeyValueParser("&", "="),
       new StandardKeyValueParser("\\s*,\\s*", "\\s*=\\s*"))
 
   def apply(
       getScheme: UriSchemeGetter,
       getPath: PathGetter,
+      normalizer: Normalizer,
       queryParser: KeyValueParser,
       headerParser: KeyValueParser): StandardUnpacker =
-    new StandardUnpacker(getScheme, getPath, queryParser, headerParser)
+    new StandardUnpacker(getScheme, getPath, normalizer, queryParser, headerParser)
 }
 
 object StandardUnpacker {
@@ -63,6 +61,7 @@ object StandardUnpacker {
 class StandardUnpacker(
     getScheme: UriSchemeGetter,
     getPath: PathGetter,
+    normalizer: Normalizer,
     queryParser: KeyValueParser,
     headerParser: KeyValueParser) extends Unpacker {
   import StandardUnpacker._
@@ -76,7 +75,7 @@ class StandardUnpacker(
       val (params, oAuthParams) = parseRequest(request, kvHandlers)
 
       if (oAuthParams.areAllOAuth1FieldsSet) {
-        getOAuth1RequestBuilder(request, params, oAuthParams).build
+        getOAuth1Request(request, params, oAuthParams)
       } else if (oAuthParams.isOnlyOAuthTokenSet) {
         getOAuth2Request(request, oAuthParams.token)
       } else throw new UnknownAuthType("could not determine the authentication type")
@@ -87,18 +86,20 @@ class StandardUnpacker(
     }
   }
   
-  def getOAuth1RequestBuilder(
+  def getOAuth1Request(
     request: HttpServletRequest,
     params: List[(String, String)],
-    oAuthParams: OAuthParams): OAuth1RequestBuilder = {
-      val builder = new OAuth1RequestBuilder(params, oAuthParams)
-      builder.scheme = getScheme(request).toUpperCase
-      builder.verb = request.getMethod.toUpperCase
-      builder.host = request.getServerName
-      builder.port = request.getServerPort
-      builder.path = getPath(request)
-      builder
-    }
+    oAuthParams: OAuthParams): OAuth1Request = {
+      OAuth1Request(
+        getScheme(request).toUpperCase,
+        request.getServerName,
+        request.getServerPort,
+        request.getMethod.toUpperCase,
+        getPath(request),
+        params, 
+        oAuthParams,
+        normalizer)
+  }
 
   @throws(classOf[MalformedRequest])
   def getOAuth2Request(

@@ -84,7 +84,7 @@ class UnpackerSpec extends Specification with Mockito {
       getTestName("produce correct authresult", testCase.testName, oAuthInParams, oAuthInHeader, useNamespacedPath, paramsInPost) in {
         val request = testCase.httpServletRequest(oAuthInParams, oAuthInHeader, useNamespacedPath, paramsInPost)
         val (params, oAuthParams) = unpacker.parseRequest(request, Seq(kvHandler))
-        unpacker.getOAuth1RequestBuilder(request, params, oAuthParams).build must be_==(testCase.oAuth1Request(paramsInPost))
+        unpacker.getOAuth1Request(request, params, oAuthParams) must be_==(testCase.oAuth1Request(paramsInPost))
       }
       // Unpack Request
       val request = testCase.httpServletRequest(oAuthInParams, oAuthInHeader, useNamespacedPath, paramsInPost)
