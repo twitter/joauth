@@ -5,11 +5,12 @@ import javax.servlet.http.HttpServletRequest
 import java.io.ByteArrayOutputStream
 
 trait UriSchemeGetter extends ((HttpServletRequest) => String)
-trait PathGetter extends ((HttpServletRequest) => String)
 
 object StandardUriSchemeGetter extends UriSchemeGetter {
   def apply(request: HttpServletRequest): String = request.getScheme
 }
+
+trait PathGetter extends ((HttpServletRequest) => String)
 
 object StandardPathGetter extends PathGetter {
   def apply(request: HttpServletRequest): String = request.getPathInfo
@@ -20,6 +21,12 @@ trait Unpacker {
   def apply(
       request: HttpServletRequest,
       kvHandlers: Seq[KeyValueHandler]): OAuthRequest
+}
+
+class ConstUnpacker(result: OAuthRequest) extends Unpacker {
+  def apply(
+      request: HttpServletRequest,
+      kvHandlers: Seq[KeyValueHandler]): OAuthRequest = result
 }
 
 object Unpacker {

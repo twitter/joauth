@@ -2,7 +2,6 @@ package com.twitter.joauth.testhelpers
 
 import scala.util.Random
 import java.io.StringBufferInputStream
-import com.twitter.joauth.ParamHelper
 import java.net.URLEncoder
 
 object MockRequestFactory {
