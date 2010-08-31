@@ -1,5 +1,6 @@
 package com.twitter.joauth
 
+import com.twitter.joauth.keyvalue.KeyValueHandler
 import java.net.URLDecoder
 
 class OAuthParams extends KeyValueHandler {

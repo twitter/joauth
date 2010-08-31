@@ -1,6 +1,7 @@
 package com.twitter.joauth
 
 import com.twitter.joauth.testhelpers.{MockRequestFactory, OAuth1TestCase, OAuth1TestCases}
+import com.twitter.joauth.keyvalue.{KeyValueHandler, UrlEncodingNormalizingTransformer}
 import javax.servlet.http.HttpServletRequest
 import org.specs.mock.Mockito
 import org.specs.Specification

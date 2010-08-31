@@ -1,4 +1,4 @@
-package com.twitter.joauth
+package com.twitter.joauth.keyvalue
 
 trait KeyValueParser extends ((String, Seq[KeyValueHandler]) => Unit)
 

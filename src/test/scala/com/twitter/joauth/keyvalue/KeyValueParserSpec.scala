@@ -1,4 +1,4 @@
-package com.twitter.joauth
+package com.twitter.joauth.keyvalue
 
 import org.specs.mock.Mockito
 import org.specs.Specification

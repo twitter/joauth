@@ -1,14 +1,8 @@
-package com.twitter.joauth
+package com.twitter.joauth.keyvalue
 
 import collection.mutable.{HashMap, ArrayBuffer}
 
 trait KeyValueHandler extends ((String, String) => Unit)
-trait KeyValueFilter extends ((String, String) => Boolean)
-trait Transformer extends ((String) => String)
-
-object TrimTransformer extends Transformer {
-  def apply(str: String) = str.trim
-}
 
 class DuplicateKeyValueHandler extends KeyValueHandler {
   private val buffer = new ArrayBuffer[(String, String)]
@@ -64,53 +58,3 @@ class ValueTransformingKeyValueHandler(
 
 class UrlEncodingNormalizingKeyValueHandler(underlying: KeyValueHandler)
     extends ValueTransformingKeyValueHandler(underlying, UrlEncodingNormalizingTransformer)
-
-/* filter, then normalize, call underlying */
-class NotOAuthKeyValueHandler(underlying: KeyValueHandler)
-  extends FilteredKeyValueHandler(new UrlEncodingNormalizingKeyValueHandler(underlying), NotOAuthFieldFilter)
-
-/* trim, filter, normalize, call underlying */
-class OAuthKeyValueHandler(underlying: KeyValueHandler)
-  extends TrimmingKeyValueHandler(new FilteredKeyValueHandler(new UrlEncodingNormalizingKeyValueHandler(underlying), OAuthFieldFilter))
-
-/* trim, filter, transform key, call underlying */
-class OAuth2HeaderKeyValueHandler(underlying: KeyValueHandler)
-  extends TrimmingKeyValueHandler(
-    new FilteredKeyValueHandler(
-      new KeyTransformingKeyValueHandler(underlying, OAuth2KeyTransformer),
-      OAuth2FieldFilter))
-
-object OAuthFieldFilter extends KeyValueFilter {
-  def apply(k: String, v: String): Boolean = OAuthUtils.isOAuthField(k) && v != ""
-}
-
-object NotOAuthFieldFilter extends KeyValueFilter {
-  def apply(k: String, v: String): Boolean = !OAuthUtils.isOAuthField(k)
-}
-
-object OAuth2FieldFilter extends KeyValueFilter {
-  def apply(k: String, v: String): Boolean = k == OAuthUtils.OAUTH2_HEADER_TOKEN && v != ""
-}
-
-object OAuth2KeyTransformer extends Transformer {
-  def apply(str: String): String = if (str == OAuthUtils.OAUTH2_HEADER_TOKEN) OAuthUtils.OAUTH_TOKEN else str
-}
-
-object UrlEncodingNormalizingTransformer extends Transformer {
-  def apply(s: String) = {
-    val normalized = new StringBuffer()
-    var percented = 0
-    s.foreach {char =>
-      if (percented > 0) {
-        normalized.append(Character.toUpperCase(char))
-        percented -= 1
-      } else if (char == '%') {
-        percented = 2
-        normalized.append(char)
-      } else {
-        normalized.append(char)
-      }
-    }
-    normalized.toString
-  }
-}

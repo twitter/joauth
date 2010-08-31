@@ -1,5 +1,5 @@
 package com.twitter.joauth
-
+import com.twitter.joauth.keyvalue._
 import javax.servlet.http.HttpServletRequest
 import java.io.ByteArrayOutputStream
 
