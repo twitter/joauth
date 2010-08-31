@@ -39,7 +39,9 @@ class FilteredKeyValueHandler(
 }
 
 class TransformingKeyValueHandler(
-    underlying: KeyValueHandler, keyTransform: Transformer, valueTransform: Transformer) extends KeyValueHandler {
+    underlying: KeyValueHandler, 
+    keyTransform: Transformer, 
+    valueTransform: Transformer) extends KeyValueHandler {
   override def apply(k: String, v: String): Unit = underlying(keyTransform(k), valueTransform(v))
 }
 

@@ -35,7 +35,7 @@ case class OAuth1TestCase(
     signature(paramsInPost),
     OAuthUtils.HMAC_SHA1,
     OAuthUtils.ONE_DOT_OH,
-    if (paramsInPost) normalizedRequestPost else normalizedRequestGet)
+    normalizedRequest(paramsInPost))
   
   def oAuthParams(paramsInPost: Boolean) = {
     val params = new OAuthParams
@@ -49,7 +49,9 @@ case class OAuth1TestCase(
     params
   }
   
-  private def signature(paramsInPost: Boolean) = {
+  def normalizedRequest(paramsInPost: Boolean) = if (paramsInPost) normalizedRequestPost else normalizedRequestGet
+  
+  def signature(paramsInPost: Boolean) = {
     val signature = if (paramsInPost) signaturePost else signatureGet
     if (urlEncodeParams) signature
     // if it came in already encoded, we need to decode it here
@@ -108,8 +110,8 @@ object OAuth1TestCases {
         null
       ),
       OAuth1TestCase(
-        "http/3000/no params",
-        "http",
+        "https/3000/no params",
+        "https",
         "photos.example.net",
         3000,
         "/photos",
@@ -119,12 +121,12 @@ object OAuth1TestCases {
         "pfkkdhi9sl3r4s00",
         "dpf43f3p2l4k3l03",
         "kd94hf93k423kf44",
-        "tugth6M2ZGzXaiWphr2yizLdsPk=",
-        "7O0+g+fcV4pIN90GPAPB6oiIleI=",
+        "cNyhVC7tajr/NWci0TwPeiIEmok=",
+        "wJZODyZosZZpQoi3V64vKAmJnkQ=",
         "kllo9940pd9333jh",
         1191242096,
-        "GET&http%3A%2F%2Fphotos.example.net%3A3000%2Fphotos&oauth_consumer_key%3Ddpf43f3p2l4k3l03%26oauth_nonce%3Dkllo9940pd9333jh%26oauth_signature_method%3DHMAC-SHA1%26oauth_timestamp%3D1191242096%26oauth_token%3Dnnch734d00sl2jdk%26oauth_version%3D1.0",
-        "POST&http%3A%2F%2Fphotos.example.net%3A3000%2Fphotos&oauth_consumer_key%3Ddpf43f3p2l4k3l03%26oauth_nonce%3Dkllo9940pd9333jh%26oauth_signature_method%3DHMAC-SHA1%26oauth_timestamp%3D1191242096%26oauth_token%3Dnnch734d00sl2jdk%26oauth_version%3D1.0",
+        "GET&https%3A%2F%2Fphotos.example.net%3A3000%2Fphotos&oauth_consumer_key%3Ddpf43f3p2l4k3l03%26oauth_nonce%3Dkllo9940pd9333jh%26oauth_signature_method%3DHMAC-SHA1%26oauth_timestamp%3D1191242096%26oauth_token%3Dnnch734d00sl2jdk%26oauth_version%3D1.0",
+        "POST&https%3A%2F%2Fphotos.example.net%3A3000%2Fphotos&oauth_consumer_key%3Ddpf43f3p2l4k3l03%26oauth_nonce%3Dkllo9940pd9333jh%26oauth_signature_method%3DHMAC-SHA1%26oauth_timestamp%3D1191242096%26oauth_token%3Dnnch734d00sl2jdk%26oauth_version%3D1.0",
         true,
         null
       ),
