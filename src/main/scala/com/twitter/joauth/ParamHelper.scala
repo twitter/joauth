@@ -30,6 +30,6 @@ object ParamHelper {
   def toQueryString(params: Map[String, String], urlEncode: Boolean): String = 
     if (urlEncode) toUrlEncodedQueryString(params) else toQueryString(params)
 
-  def toQueryString(params: List[(String, String)], urlEncode: Boolean): String = 
+  def toQueryString(params: List[(String, String)], urlEncode: Boolean): String =
     if (urlEncode) toUrlEncodedQueryString(params) else toQueryString(params)
 }

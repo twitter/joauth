@@ -8,8 +8,8 @@ import java.net.URLEncoder
 object MockRequestFactory {
   val random = new Random()
   
-  def oAuth1Header(token: String, clientKey: String, signature: String, nonce: String, timestamp: String): String = {
-    val encodedSignature = if (signature == null) null else URLEncoder.encode(signature)
+  def oAuth1Header(token: String, clientKey: String, signature: String, nonce: String, timestamp: String, urlEncodeSig: Boolean): String = {
+    val encodedSignature = if (signature == null || !urlEncodeSig) signature else URLEncoder.encode(signature)
     "OAuth " + (oAuth1ParameterMap(token, clientKey, encodedSignature, nonce, timestamp).flatMap { (e) =>
       if (e._2 == null) None
       else Some(getRandomWhitespace + e._1 + getRandomWhitespace + "=" + getRandomWhitespace + quote(e._2) + getRandomWhitespace)
@@ -55,7 +55,7 @@ object MockRequestFactory {
   }
 
   def oAuth1RequestInHeader(token: String, clientKey: String, signature: String, nonce: String, timestamp: String) =
-    requestWithAuthHeader(oAuth1Header(token, clientKey, signature, nonce, timestamp))
+    requestWithAuthHeader(oAuth1Header(token, clientKey, signature, nonce, timestamp, true))
 
   def oAuth1RequestInParams(token: String, clientKey: String, signature: String, nonce: String, timestamp: String) = {
     val req = new MockServletRequest
