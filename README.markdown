@@ -32,16 +32,13 @@ There are "Standard" and "Const" implementations of the Unpacker, Normalizer, Si
 
 ## Usage
 
-## Basic Usage
+### Basic Usage
 
-Create an unpacker:
+Create an unpacker, and use it to unpack the HttpServletRequest. The Unpacker will either return an OAuth1Request or OAuth2Request object or throw an UnpackerException. 
 
     import com.twitter.joauth.Unpacker
-    
-    val unpack = Unpacker()
-    
-Use the unpacker to unpack the HttpServletRequest. The Unpacker will either return an OAuth1Request or OAuth2Request object or throw an UnpackerException. 
 
+    val unpack = Unpacker()
     try {
       unpack(request) match {
         case req: OAuth1Request => handleOAuth1(req)
@@ -51,7 +48,9 @@ Use the unpacker to unpack the HttpServletRequest. The Unpacker will either retu
     } catch {
       case e:UnpackerException => // handle or rethrow
       case _ => // handle or rethrow
-    } 
+    }
+    
+*WARNING*: The StandardUnpacker will call the HttpRequest.getReader method if the method of the request is POST and the Content-Type is "application/x-www-form-urlencoded." If you need to read the POST yourself, this will cause you problems, since getReader can only be called once. There are two solutions: (1) Write an HttpServletWrapper to buffer the POST data and allow multiple calls to getReader, and pass the HttpServletWrapper into the Unpacker. (2) Pass a KeyValueHandler into the unpacker call (See "Getting Parameter Key/Values" below for more), which will let you get the parameters in the POST as a side effect of unpacking.
       
 Once the request is unpacked, the credentials need to be validated. For an OAuth2Request, the OAuth Access Token must be retrieved and validated by your authentication service. For an OAuth1Request the Access Token, the Consumer Key, and their respective secrets must be retrieved, and then passed to the Verifier for validation. 
 
@@ -65,4 +64,49 @@ Once the request is unpacked, the credentials need to be validated. For an OAuth
       case VerifierResult.OK => //success!
     }
 
+That's it!
+
+### Advanced Usage
+
+#### Overriding Path and Scheme
     
+If you're building an internal authentication service, it may serve multiple endpoints, and need to calculate signatures for all of them. it may also live on a server hosting multiple services on the same port, in which case you'll need a specific endpoint for your authentication service, while simultaneously needing to validate requests as if they had their original endpoints. You can accommodate this by passing in a method for extracting the path from the HttpServletRequest, via the PathGetter trait. 
+
+For example, if you have an authentication service that responded to the /auth endpoint, and you are authenticating requests to an external server serving the /foo endpoint, the path of the request the authentication service receives is /auth/foo. This won't do, because the signature of the request depends on the path being /foo. We can construct a PathGetter that strips /auth out of the path.
+
+    import com.twitter.joauth.PathGetter
+
+    class MyPathGetter extends PathGetter {
+      def apply(request: HttpServletRequest): String = {
+        request.getPathInfo.match {
+          case "^/auth/(/*)$".r(realPath) => realPath
+          case => // up to you whether to return path or throw here, depends on your circumstances
+        }
+      }
+    }
+
+If you're running a high throughput authentication service, you might want to avoid using SSL, and listen only for HTTP. Unfortunately, the URI Scheme is part of the signature as well, so you need a way to force the Unpacker to treat the request as HTTPS, even though it isn't. One approach would be for your authentication service to take a custom header to indicate the scheme of the originating request. You can then use the UrlSchemeGetter trait to pull this header out of the request.
+
+    import com.twitter.joauth.UriSchemeGetter
+    
+    classs MySchemeGetter extends UrlSchemeGetter {
+      def apply(request; HttpServletRequest): String = {
+        val header = request.getHeader("X-My-Scheme-Header")
+        if (header == null) request.getScheme
+        else header.toUpperCase
+      }
+    }
+
+You can now construct your unpacker with your Getters.
+
+    val unpack = Unpacker(new MySchemeGetter, new MyPathGetter)
+    
+if you only want to pass in one or the other, you can use the StandardSchemeGetter and StandardPathGetter classes when calling the two-argument Unpacker.apply.
+
+#### Getting Parameter Key/Values
+
+
+
+#### Other Unpacker Tricks
+
+You can pass in a custom Normalizer or custom parameter and header KeyValueParsers to the Unpacker apply method if you really want to, but you're on your own.

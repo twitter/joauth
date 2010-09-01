@@ -6,13 +6,13 @@ import java.io.ByteArrayOutputStream
 
 trait UriSchemeGetter extends ((HttpServletRequest) => String)
 
-object StandardUriSchemeGetter extends UriSchemeGetter {
+class StandardUriSchemeGetter extends UriSchemeGetter {
   def apply(request: HttpServletRequest): String = request.getScheme
 }
 
 trait PathGetter extends ((HttpServletRequest) => String)
 
-object StandardPathGetter extends PathGetter {
+class StandardPathGetter extends PathGetter {
   def apply(request: HttpServletRequest): String = request.getPathInfo
 }
 
@@ -33,8 +33,8 @@ class ConstUnpacker(result: OAuthRequest) extends Unpacker {
 object Unpacker {
   def apply(): StandardUnpacker = 
     new StandardUnpacker(
-      StandardUriSchemeGetter,
-      StandardPathGetter,
+      new StandardUriSchemeGetter,
+      new StandardPathGetter,
       Normalizer(),
       new StandardKeyValueParser("&", "="),
       new StandardKeyValueParser("\\s*,\\s*", "\\s*=\\s*"))
