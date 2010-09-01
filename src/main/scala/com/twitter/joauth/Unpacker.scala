@@ -92,7 +92,8 @@ class StandardUnpacker(
       case t:Throwable => throw new UnpackerException("could not unpack request: " + t, t)
     }
   }
-  
+
+  @throws(classOf[MalformedRequest])
   def getOAuth1Request(
     request: HttpServletRequest,
     params: List[(String, String)],
