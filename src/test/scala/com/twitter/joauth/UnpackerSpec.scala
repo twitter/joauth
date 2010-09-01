@@ -20,29 +20,29 @@ class UnpackerSpec extends Specification with Mockito {
     "unpack request with token in header HTTPS" in {
       val request = MockRequestFactory.oAuth2RequestInHeader("a");
       request.scheme = "HTTPS"
-      unpacker(request, Seq(kvHandler)) must be_==(OAuth2Request("a"))
+      unpacker(request) must be_==(OAuth2Request("a"))
     }
     "unpack request with token in params HTTPS" in {
       val request = MockRequestFactory.oAuth2RequestInParams("a")
       request.scheme = "https"
-      unpacker(request, Seq(kvHandler)) must be_==(OAuth2Request("a"))
+      unpacker(request) must be_==(OAuth2Request("a"))
     }
     "unpack request with token in params HTTPS in POST" in {
       val request = MockRequestFactory.postRequest(MockRequestFactory.oAuth2RequestInParams("a"))
       request.scheme = "https"
-      unpacker(request, Seq(kvHandler)) must be_==(OAuth2Request("a"))
+      unpacker(request) must be_==(OAuth2Request("a"))
     }
     "unpack as unknown request with token in params HTTP" in {
-      unpacker(MockRequestFactory.oAuth2RequestInParams("a"), Seq(kvHandler)) must throwA[MalformedRequest]
+      unpacker(MockRequestFactory.oAuth2RequestInParams("a")) must throwA[MalformedRequest]
     }
     "unpack as unknown request with token in header HTTP" in {
-      unpacker(MockRequestFactory.oAuth2RequestInHeader("a"), Seq(kvHandler)) must throwA[MalformedRequest]
+      unpacker(MockRequestFactory.oAuth2RequestInHeader("a")) must throwA[MalformedRequest]
     }
     "respect getScheme override with token in params HTTP" in {
-      overriddenUnpacker(MockRequestFactory.oAuth2RequestInParams("a"), Seq(kvHandler)) must be_==(OAuth2Request("a"))
+      overriddenUnpacker(MockRequestFactory.oAuth2RequestInParams("a")) must be_==(OAuth2Request("a"))
     }
     "respect getScheme override with token in header HTTP" in {
-      overriddenUnpacker(MockRequestFactory.oAuth2RequestInHeader("a"), Seq(kvHandler)) must be_==(OAuth2Request("a"))
+      overriddenUnpacker(MockRequestFactory.oAuth2RequestInHeader("a")) must be_==(OAuth2Request("a"))
     }
   }
 
@@ -96,7 +96,7 @@ class UnpackerSpec extends Specification with Mockito {
       getTestName("throw exception", testCase.testName, oAuthInParams, oAuthInHeader, useNamespacedPath, paramsInPost) in {
         try {
           val request = testCase.httpServletRequest(oAuthInParams, oAuthInHeader, useNamespacedPath, paramsInPost)
-          unpacker(request, Seq(kvHandler))
+          unpacker(request)
           fail("should have thrown")
         } catch {
           case e => e.toString must be_==(testCase.exception.toString)

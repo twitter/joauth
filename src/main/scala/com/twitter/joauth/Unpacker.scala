@@ -18,6 +18,7 @@ object StandardPathGetter extends PathGetter {
 
 trait Unpacker {
   @throws(classOf[UnpackerException])
+  def apply(request: HttpServletRequest): OAuthRequest = apply(request, Seq())
   def apply(
       request: HttpServletRequest,
       kvHandlers: Seq[KeyValueHandler]): OAuthRequest
