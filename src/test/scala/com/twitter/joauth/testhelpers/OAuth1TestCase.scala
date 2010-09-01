@@ -33,8 +33,8 @@ case class OAuth1TestCase(
     nonce,
     timestamp,
     signature(paramsInPost),
-    OAuthUtils.HMAC_SHA1,
-    OAuthUtils.ONE_DOT_OH,
+    OAuthParams.HMAC_SHA1,
+    OAuthParams.ONE_DOT_OH,
     normalizedRequest(paramsInPost))
   
   def oAuthParams(paramsInPost: Boolean) = {
@@ -44,8 +44,8 @@ case class OAuth1TestCase(
     params.nonce = nonce
     params.timestamp = timestamp
     params.signature = signature(paramsInPost)
-    params.signatureMethod = OAuthUtils.HMAC_SHA1
-    params.version = OAuthUtils.ONE_DOT_OH
+    params.signatureMethod = OAuthParams.HMAC_SHA1
+    params.version = OAuthParams.ONE_DOT_OH
     params
   }
   

@@ -7,7 +7,9 @@ object TrimTransformer extends Transformer {
 }
 
 object OAuth2KeyTransformer extends Transformer {
-  def apply(str: String): String = if (str == OAuthUtils.OAUTH2_HEADER_TOKEN) OAuthUtils.OAUTH_TOKEN else str
+  def apply(str: String): String = 
+    if (str == OAuthParams.OAUTH2_HEADER_TOKEN) OAuthParams.OAUTH_TOKEN 
+    else str
 }
 
 object UrlEncodingNormalizingTransformer extends Transformer {

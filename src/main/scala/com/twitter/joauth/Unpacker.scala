@@ -123,7 +123,8 @@ class StandardUnpacker(
 
     val oAuthParams = new OAuthParams
     val filteredOAuthKvHandler = new OAuthKeyValueHandler(oAuthParams)
-    val handlerSeq = Seq(filteredKvHandler, filteredOAuthKvHandler) ++ kvHandlers.map(h => new NotOAuthKeyValueHandler(h))
+    val handlerSeq = Seq(filteredKvHandler, filteredOAuthKvHandler) ++ 
+      kvHandlers.map(h => new NotOAuthKeyValueHandler(h))
 
     queryParser(request.getQueryString, handlerSeq)
 
@@ -136,8 +137,9 @@ class StandardUnpacker(
     request.getHeader("Authorization") match {
       case AUTH_HEADER_REGEX(authType, authString) => {
         val headerHandler = authType.toLowerCase match {
-          case OAuthUtils.OAUTH2_HEADER_AUTHTYPE => Some(new OAuth2HeaderKeyValueHandler(filteredOAuthKvHandler))
-          case OAuthUtils.OAUTH1_HEADER_AUTHTYPE => Some(filteredOAuthKvHandler)
+          case OAuthParams.OAUTH2_HEADER_AUTHTYPE => 
+            Some(new OAuth2HeaderKeyValueHandler(filteredOAuthKvHandler))
+          case OAuthParams.OAUTH1_HEADER_AUTHTYPE => Some(filteredOAuthKvHandler)
           case _ => None
         }
         headerHandler match {
