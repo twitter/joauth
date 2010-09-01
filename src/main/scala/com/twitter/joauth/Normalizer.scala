@@ -1,6 +1,7 @@
 package com.twitter.joauth
 
 import java.net.URLEncoder
+import java.util.Date
 
 trait Normalizer {
   def apply(
@@ -31,13 +32,12 @@ object Normalizer {
 object StandardNormalizer extends StandardNormalizer
 
 class StandardNormalizer extends Normalizer {
-  val URL_BASE = "%s://%s%s%s"
-  val NORMALIZED_BASE = "%s&%s&%s"
   val HTTP = "HTTP"
   val HTTPS = "HTTPS"
   val AND = "&"
   val COLON = ":"
-  val EQ_BASE = "%s=%s"
+  val EQ = "="
+  val COLON_SLASH_SLASH = "://"
 
   def apply(
     scheme: String, 
@@ -50,13 +50,9 @@ class StandardNormalizer extends Normalizer {
     // parameters are already URLEncoded, so we leave them alone
     val sigParams = params ::: oAuthParams.toListNoSignature
     val normalizedParams =
-      sigParams.map(t => EQ_BASE.format(t._1, t._2)).sort(_ < _).mkString(AND)
-    val requestURL = URL_BASE.format(
-      scheme, host, getPortString(port, scheme), path).toLowerCase
-    NORMALIZED_BASE.format(
-      verb.toUpperCase,
-      URLEncoder.encode(requestURL),
-      URLEncoder.encode(normalizedParams))
+      sigParams.map(p => p._1+EQ+p._2).sort(_ < _).mkString(AND)
+    val requestUrl = (scheme+COLON_SLASH_SLASH+host+getPortString(port,scheme)+path).toLowerCase
+    verb.toUpperCase+AND+URLEncoder.encode(requestUrl)+AND+URLEncoder.encode(normalizedParams)
   }
 
   def getPortString(port: Int, scheme: String): String = {
