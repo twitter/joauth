@@ -14,7 +14,7 @@ object OAuth2KeyTransformer extends Transformer {
 
 object UrlEncodingNormalizingTransformer extends Transformer {
   def apply(s: String) = {
-    val normalized = new StringBuffer()
+    val normalized = new StringBuilder()
     var percented = 0
     s.foreach {char =>
       if (percented > 0) {

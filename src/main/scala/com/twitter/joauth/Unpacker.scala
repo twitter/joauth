@@ -9,12 +9,14 @@ trait UriSchemeGetter extends ((HttpServletRequest) => String)
 class StandardUriSchemeGetter extends UriSchemeGetter {
   def apply(request: HttpServletRequest): String = request.getScheme
 }
+object StandardUriSchemeGetter extends StandardUriSchemeGetter
 
 trait PathGetter extends ((HttpServletRequest) => String)
 
 class StandardPathGetter extends PathGetter {
   def apply(request: HttpServletRequest): String = request.getPathInfo
 }
+object StandardPathGetter extends StandardPathGetter
 
 trait Unpacker {
   @throws(classOf[UnpackerException])
@@ -31,30 +33,17 @@ class ConstUnpacker(result: OAuthRequest) extends Unpacker {
 }
 
 object Unpacker {
-  def apply(): StandardUnpacker = 
-    new StandardUnpacker(
-      new StandardUriSchemeGetter,
-      new StandardPathGetter,
-      Normalizer(),
-      new StandardKeyValueParser("&", "="),
-      new StandardKeyValueParser("\\s*,\\s*", "\\s*=\\s*"))
+  def apply(): Unpacker = StandardUnpacker()
 
-  def apply(
-    getScheme: UriSchemeGetter,
-    getPath: PathGetter): StandardUnpacker = 
-    new StandardUnpacker(
-      getScheme,
-      getPath,
-      Normalizer(),
-      new StandardKeyValueParser("&", "="),
-      new StandardKeyValueParser("\\s*,\\s*", "\\s*=\\s*"))
+  def apply(getScheme: UriSchemeGetter, getPath: PathGetter): Unpacker =
+    StandardUnpacker(getScheme, getPath)
 
   def apply(
       getScheme: UriSchemeGetter,
       getPath: PathGetter,
       normalizer: Normalizer,
       queryParser: KeyValueParser,
-      headerParser: KeyValueParser): StandardUnpacker =
+      headerParser: KeyValueParser): Unpacker =
     new StandardUnpacker(getScheme, getPath, normalizer, queryParser, headerParser)
 }
 
@@ -64,6 +53,23 @@ object StandardUnpacker {
   val WWW_FORM_URLENCODED = "application/x-www-form-urlencoded"
   val AUTHORIZATION = "Authorization"
   val HTTPS = "HTTPS"
+  val UTF_8 = "UTF-8"
+
+  def apply(): StandardUnpacker = new StandardUnpacker(
+    StandardUriSchemeGetter,
+    StandardPathGetter,
+    Normalizer(),
+    QueryKeyValueParser,
+    HeaderKeyValueParser)
+
+  def apply(
+    getScheme: UriSchemeGetter,
+    getPath: PathGetter): StandardUnpacker = new StandardUnpacker(
+      getScheme,
+      getPath,
+      Normalizer(),
+      QueryKeyValueParser,
+      HeaderKeyValueParser)
 }
 
 class StandardUnpacker(
@@ -118,8 +124,6 @@ class StandardUnpacker(
   }
 
   def parseRequest(request: HttpServletRequest, kvHandlers: Seq[KeyValueHandler]) = {
-    val queryParser = new StandardKeyValueParser("&", "=")
-
     val kvHandler = new DuplicateKeyValueHandler
     val filteredKvHandler = new NotOAuthKeyValueHandler(kvHandler)
 
@@ -136,7 +140,7 @@ class StandardUnpacker(
       queryParser(getPostData(request), handlerSeq)
     }
 
-    request.getHeader("Authorization") match {
+    request.getHeader(AUTHORIZATION) match {
       case AUTH_HEADER_REGEX(authType, authString) => {
         val headerHandler = authType.toLowerCase match {
           case OAuthParams.OAUTH2_HEADER_AUTHTYPE => 
@@ -164,6 +168,11 @@ class StandardUnpacker(
     val buf = new Array[Byte](4 * 1024)
     var letti = is.read(buf)
     var totalBytesRead = 0
+    
+    val characterEncoding = request.getCharacterEncoding() match {
+      case null => UTF_8
+      case encoding => encoding
+    }
 
     while (letti > 0) {
       stream.write(buf, 0, letti)
@@ -173,7 +182,7 @@ class StandardUnpacker(
         throw new IllegalStateException("more bytes in input stream than content-length specified")
       }
     }
-    val result = new String(stream.toByteArray())
+    val result = new String(stream.toByteArray(), characterEncoding)
     result
   }
 }

@@ -59,7 +59,7 @@ class OAuthParams extends KeyValueHandler {
     }
   }
 
-  override def toString(): String =
+  override def toString: String =
     "%s=%s,%s=%s,%s=%s,%s=%s,%s=%s,%s=%s".format(
     OAUTH_TOKEN, token,
     OAUTH_CONSUMER_KEY, consumerKey,
@@ -69,7 +69,7 @@ class OAuthParams extends KeyValueHandler {
     OAUTH_SIGNATURE_METHOD, signatureMethod,
     OAUTH_VERSION, version)
 
-  def toListNoSignature(): List[(String, String)] =  
+  def toListNoSignature: List[(String, String)] =  
     List(
       (OAUTH_TOKEN, token),
       (OAUTH_CONSUMER_KEY, consumerKey),
@@ -78,7 +78,7 @@ class OAuthParams extends KeyValueHandler {
       (OAUTH_SIGNATURE_METHOD, signatureMethod),
       (OAUTH_VERSION, version))
     
-  def isOnlyOAuthTokenSet(): Boolean =
+  def isOnlyOAuthTokenSet: Boolean =
     token != null &&
         consumerKey == null &&
         nonce == null &&
@@ -87,7 +87,7 @@ class OAuthParams extends KeyValueHandler {
         signatureMethod == null &&
         version == null
 
-  def areAllOAuth1FieldsSet(): Boolean =
+  def areAllOAuth1FieldsSet: Boolean =
     token != null &&
         consumerKey != null &&
         nonce != null &&

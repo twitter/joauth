@@ -8,6 +8,9 @@ class ConstKeyValueParser(pairs: List[(String, String)]) extends KeyValueParser 
   }
 }
 
+object HeaderKeyValueParser extends StandardKeyValueParser("\\s*,\\s*", "\\s*=\\s*")
+object QueryKeyValueParser extends StandardKeyValueParser("&", "=")
+
 class StandardKeyValueParser(delimiter: String, kvDelimiter: String) extends KeyValueParser {
   def apply(str: String, handlers: Seq[KeyValueHandler]): Unit = {
     if (str == null || str.length == 0) return

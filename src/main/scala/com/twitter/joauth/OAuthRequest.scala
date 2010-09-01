@@ -5,7 +5,7 @@ trait OAuthRequest {
 }
 
 case class OAuth1Request(
-  override val token: String,
+  token: String,
   consumerKey: String,
   nonce: String,
   timestamp: Long,
@@ -14,7 +14,7 @@ case class OAuth1Request(
   version: String,
   normalizedRequest: String) extends OAuthRequest
 
-case class OAuth2Request(override val token: String) extends OAuthRequest
+case class OAuth2Request(token: String) extends OAuthRequest
 
 object OAuth1Request {
   def nullException(name: String) = new MalformedRequest("no value for %s".format(name))

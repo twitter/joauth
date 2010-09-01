@@ -19,6 +19,18 @@ Copyright 2010 Twitter, Inc. See included LICENSE file.
 
 The Github source repository is [here](http://github.com/9len/joauth/). Patches and contributions are welcome.
 
+Dependencies: scala-json, Configgy, Netty. These dependencies are managed by the build system.
+
+## Building
+
+Dependencies: servlet-api, commons-codec, specs & mockito-all for tests. These dependencies are managed by the build system.
+
+Use sbt (simple-build-tool) to build:
+
+    % sbt clean update package-dist
+
+The finished jar will be in `dist/`.
+
 ## Understanding the Implementation
 
 JOAuth consists of five traits, each of which is invoked with an apply method.
@@ -51,7 +63,7 @@ Create an unpacker, and use it to unpack the HttpServletRequest. The Unpacker wi
       case _ => // handle or rethrow
     }
     
-**WARNING**: The StandardUnpacker will call the HttpRequest.getReader method if the method of the request is POST and the Content-Type is "application/x-www-form-urlencoded." *If you need to read the POST yourself, this will cause you problems, since getReader can only be called once.* There are two solutions: (1) Write an HttpServletWrapper to buffer the POST data and allow multiple calls to getReader, and pass the HttpServletWrapper into the Unpacker. (2) Pass a KeyValueHandler into the unpacker call (See "Getting Parameter Key/Values" below for more), which will let you get the parameters in the POST as a side effect of unpacking.
+**WARNING**: The StandardUnpacker will call the HttpRequest.getInputStream method if the method of the request is POST and the Content-Type is "application/x-www-form-urlencoded." *If you need to read the POST yourself, this will cause you problems, since getInputStream/getReader can only be called once.* There are two solutions: (1) Write an HttpServletWrapper to buffer the POST data and allow multiple calls to getInputStream, and pass the HttpServletWrapper into the Unpacker. (2) Pass a KeyValueHandler into the unpacker call (See "Getting Parameter Key/Values" below for more), which will let you get the parameters in the POST as a side effect of unpacking.
       
 Once the request is unpacked, the credentials need to be validated. For an OAuth2Request, the OAuth Access Token must be retrieved and validated by your authentication service. For an OAuth1Request the Access Token, the Consumer Key, and their respective secrets must be retrieved, and then passed to the Verifier for validation. 
 
@@ -146,7 +158,7 @@ For example, suppose you want to get all values of a single parameter, and you w
     val unpackedRequest = unpack(request, Seq(wrappedHandler))
     doSomethingWith(handler.toList)
     
-Obviously it would be a little easier to just call request.getParameterValues("SpecialKey") in this example, but we hope it's not hard to see that passing custom KeyValueHandlers into the unpacker can be a powerful tool. In particular, they're an easy way to get access to POST data after the Unpacker has ruined your HttpServletRequest by calling getReader. 
+Obviously it would be a little easier to just call request.getParameterValues("SpecialKey") in this example, but we hope it's not hard to see that passing custom KeyValueHandlers into the unpacker can be a powerful tool. In particular, they're an easy way to get access to POST data after the Unpacker has ruined your HttpServletRequest by calling getInputStream. 
 
 KeyValueHandlers are used in the JOAuth source code to collect OAuth and non-OAuth parameters from the GET, POST and Authorization header.
 
@@ -165,3 +177,25 @@ You can use the Normalizer and Signer to sign OAuth 1.0a requests.
     val signedRequest = sign(normalizedRequest, tokenSecret, consumerSecret)
     
 The parameters are passed as a List[(String, String)], and the OAuth params are passed in an OAuthParams instance.
+
+## Running Tests
+
+The tests are completely self contained, and can be run using sbt:
+
+    % sbt test
+
+## Reporting problems
+
+The Github issue tracker is [here](http://github.com/9len/joauth/issues).
+
+## Contributors
+
+* Jeremy Cloud
+* Tina Huang
+* Steve Jenson
+* Nick Kallen
+* John Kalucki
+* Raffi Krikorian
+* Mark McBride
+* Marcel Molina
+* Glen Sanford

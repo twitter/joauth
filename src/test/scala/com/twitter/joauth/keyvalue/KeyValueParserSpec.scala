@@ -16,7 +16,7 @@ class KeyValueParserSpec extends Specification with Mockito {
   }
 
   "StandardKeyValueParser" should {
-    val parser = new StandardKeyValueParser("&", "=")
+    val parser = QueryKeyValueParser
     "not blow up on null string" in {
       parser(null, Seq(handler))
       handler.apply(any[String], any[String]) was notCalled

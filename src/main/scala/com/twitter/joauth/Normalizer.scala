@@ -25,8 +25,10 @@ class ConstNormalizer(const: String) extends Normalizer {
 }
 
 object Normalizer {
-  def apply(): Normalizer = new StandardNormalizer
+  def apply(): Normalizer = StandardNormalizer
 }
+
+object StandardNormalizer extends StandardNormalizer
 
 class StandardNormalizer extends Normalizer {
   val URL_BASE = "%s://%s%s%s"
@@ -58,9 +60,10 @@ class StandardNormalizer extends Normalizer {
   }
 
   def getPortString(port: Int, scheme: String): String = {
-    val schemeUpper: String = scheme.toUpperCase
-    val stripPort =
-      (port == 80 && schemeUpper == HTTP) || (port == 443 && schemeUpper == HTTPS)
-    if (stripPort) "" else COLON + port
+    (port, scheme.toUpperCase) match {
+      case (80, HTTP) => ""
+      case (443, HTTPS) => ""
+      case _ => COLON + port
+    }
   }
 }

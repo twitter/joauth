@@ -4,7 +4,7 @@ import com.twitter.joauth.testhelpers.OAuth1TestCases
 import org.specs.Specification
 
 class NormalizerSpec extends Specification {
-  val normalize = new StandardNormalizer
+  val normalize = StandardNormalizer
   "Get Port String" should {
     "skip port for  80/HTTP" in { normalize.getPortString(80, "http") must be_==("") }
     "return port for 80/HTTPS" in { normalize.getPortString(80, "https") must be_==(":80") }
