@@ -26,14 +26,4 @@ object OAuthUtils {
         field == OAUTH_SIGNATURE_METHOD ||
         field == OAUTH_VERSION
   }
-  
-  def areAllOAuth1FieldsPresent(fields: Map[String, String]): Boolean = {
-    fields.contains(OAUTH_TOKEN) &&
-        fields.contains(OAUTH_CONSUMER_KEY) &&
-        fields.contains(OAUTH_SIGNATURE) &&
-        fields.contains(OAUTH_NONCE) &&
-        fields.contains(OAUTH_TIMESTAMP) &&
-        fields.contains(OAUTH_SIGNATURE_METHOD) &&
-        fields.contains(OAUTH_VERSION)
-  }
 }

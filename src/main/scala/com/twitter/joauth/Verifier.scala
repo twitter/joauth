@@ -30,12 +30,12 @@ object Verifier {
   def apply(maxTimestampAge: Int) = new StandardVerifier(Signer(), maxTimestampAge, NoopNonceValidator)
   def apply(maxTimestampAge: Int, validateNonce: NonceValidator) =
     new StandardVerifier(Signer(), maxTimestampAge, validateNonce)
-  def apply(signer: Signer, maxTimestampAge: Int, validateNonce: NonceValidator) =
-    new StandardVerifier(signer, maxTimestampAge, validateNonce)
+  def apply(sign: Signer, maxTimestampAge: Int, validateNonce: NonceValidator) =
+    new StandardVerifier(sign, maxTimestampAge, validateNonce)
 }
 
 class StandardVerifier(
-  signer: Signer, maxTimestampAgeMins: Int, validateNonce: NonceValidator) extends Verifier {
+  sign: Signer, maxTimestampAgeMins: Int, validateNonce: NonceValidator) extends Verifier {
     
   val maxTimestampAgeMs = maxTimestampAgeMins * 60000
 
@@ -54,6 +54,6 @@ class StandardVerifier(
     request: OAuth1Request,
     tokenSecret: String,
     consumerSecret: String): Boolean = {
-    request.signature == signer(request.normalizedRequest, tokenSecret, consumerSecret)
+    request.signature == sign(request.normalizedRequest, tokenSecret, consumerSecret)
   }
 }

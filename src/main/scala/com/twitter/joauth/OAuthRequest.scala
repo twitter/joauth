@@ -18,11 +18,6 @@ case class OAuth2Request(override val token: String) extends OAuthRequest
 
 object OAuth1Request {
   def nullException(name: String) = new MalformedRequest("no value for %s".format(name))
-  var scheme: String = null
-  var host: String = null
-  var port: Int = -1
-  var verb: String = null
-  var path: String = null
 
   @throws(classOf[MalformedRequest])
   def apply(
@@ -33,7 +28,7 @@ object OAuth1Request {
     path: String,
     params: List[(String, String)], 
     oAuthParams: OAuthParams,
-    normalizer: Normalizer): OAuth1Request = {
+    normalize: Normalizer): OAuth1Request = {
     if (scheme == null) throw nullException("scheme")
     else if (host == null) throw nullException("host")
     else if (port < 0) throw nullException("port")
@@ -51,6 +46,6 @@ object OAuth1Request {
       oAuthParams.signature,
       oAuthParams.signatureMethod,
       oAuthParams.version,
-      normalizer(scheme, host, port, verb, path, params, oAuthParams))
+      normalize(scheme, host, port, verb, path, params, oAuthParams))
   }
 }
