@@ -25,11 +25,6 @@ class ConstVerifier(result: VerifierResult) extends Verifier {
 object Verifier {
   val NO_TIMESTAMP_CHECK = -1
   
-  val OK = 0
-  val BAD_TIMESTAMP = 1
-  val BAD_NONCE = 2
-  val BAD_SIGNATURE = 3
-  
   def apply(): Verifier = new StandardVerifier(Signer(), NO_TIMESTAMP_CHECK, NoopNonceValidator)
   def apply(maxTimestampAge: Int) = new StandardVerifier(Signer(), maxTimestampAge, NoopNonceValidator)
   def apply(maxTimestampAge: Int, validateNonce: NonceValidator) =
@@ -40,7 +35,7 @@ object Verifier {
 
 class StandardVerifier(
   sign: Signer, maxTimestampAgeMins: Int, validateNonce: NonceValidator) extends Verifier {
-    
+  
   val maxTimestampAgeMs = maxTimestampAgeMins * 60000
 
   def apply(request: OAuth1Request, tokenSecret: String, consumerSecret: String): VerifierResult = {
@@ -49,11 +44,11 @@ class StandardVerifier(
     else if (!validateSignature(request, tokenSecret, consumerSecret)) VerifierResult.BAD_SIGNATURE
     else VerifierResult.OK
   }
-  
+
   def validateTimestamp(timestamp: Long): Boolean = {
-    timestamp >= (new Date).getTime - maxTimestampAgeMs
+    (maxTimestampAgeMs < 0) || (timestamp >= (new Date).getTime - maxTimestampAgeMs)
   }
-  
+
   def validateSignature(
     request: OAuth1Request,
     tokenSecret: String,

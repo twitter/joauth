@@ -11,9 +11,9 @@ class VerifierSpec extends Specification with Mockito {
 
   // 10 minutes ago
   val oldTimestamp = (new Date).getTime - (10 * 60 * 1000)
-  
+
   val verify = new StandardVerifier(signer, 5, checkNonce)
-  
+
   "validateTimestamp" should {
     "return false for timestamp that is too old" in {
       verify.validateTimestamp(oldTimestamp) must beFalse

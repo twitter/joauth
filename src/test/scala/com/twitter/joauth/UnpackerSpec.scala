@@ -8,7 +8,7 @@ import org.specs.Specification
 
 class UnpackerSpec extends Specification with Mockito {
   "Unpacked for OAuth2 Request" should {
-  
+
     val unpacker = Unpacker()
     val kvHandler = mock[KeyValueHandler]
     val overriddenUnpacker = Unpacker(
@@ -49,7 +49,7 @@ class UnpackerSpec extends Specification with Mockito {
   def getTestName(testName: String, testCaseName: String, oAuthInParams: Boolean, oAuthInHeader: Boolean, useNamespacedPath: Boolean, paramsInPost: Boolean) = 
     "%s for %s oAuthInParams:%s, oAuthInHeader: %s, useNamespacedPath: %s, paramsInPost:%s".format(
       testName, testCaseName, oAuthInParams, oAuthInHeader, useNamespacedPath, paramsInPost)
-      
+
   def doOAuth1Tests(testCase: OAuth1TestCase, oAuthInParams: Boolean, oAuthInHeader: Boolean, useNamespacedPath: Boolean, paramsInPost: Boolean) = {
     val getPath = if (useNamespacedPath) new PathGetter {
       def apply(request: HttpServletRequest) = {

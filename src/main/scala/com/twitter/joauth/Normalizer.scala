@@ -56,7 +56,7 @@ class StandardNormalizer extends Normalizer {
       URLEncoder.encode(requestURL),
       URLEncoder.encode(normalizedParams))
   }
-  
+
   def getPortString(port: Int, scheme: String): String = {
     val schemeUpper: String = scheme.toUpperCase
     val stripPort =

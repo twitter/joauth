@@ -36,7 +36,7 @@ case class OAuth1TestCase(
     OAuthParams.HMAC_SHA1,
     OAuthParams.ONE_DOT_OH,
     normalizedRequest(paramsInPost))
-  
+
   def oAuthParams(paramsInPost: Boolean) = {
     val params = new OAuthParams
     params.token = token
@@ -48,9 +48,9 @@ case class OAuth1TestCase(
     params.version = OAuthParams.ONE_DOT_OH
     params
   }
-  
+
   def normalizedRequest(paramsInPost: Boolean) = if (paramsInPost) normalizedRequestPost else normalizedRequestGet
-  
+
   def signature(paramsInPost: Boolean) = {
     val signature = if (paramsInPost) signaturePost else signatureGet
     if (urlEncodeParams) signature

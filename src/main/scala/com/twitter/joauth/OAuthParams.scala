@@ -19,7 +19,7 @@ object OAuthParams {
 
   val OAUTH1_HEADER_AUTHTYPE = "oauth"
   val OAUTH2_HEADER_AUTHTYPE = OAUTH2_HEADER_TOKEN
-  
+
   def isOAuthParam(field: String): Boolean = {
     field == OAUTH_TOKEN ||
         field == OAUTH_CONSUMER_KEY ||
@@ -33,7 +33,7 @@ object OAuthParams {
 
 class OAuthParams extends KeyValueHandler {
   import OAuthParams._
-  
+
   var token: String = null
   var consumerKey: String = null
   var nonce: String = null
@@ -77,7 +77,7 @@ class OAuthParams extends KeyValueHandler {
       (OAUTH_TIMESTAMP, timestamp.toString),
       (OAUTH_SIGNATURE_METHOD, signatureMethod),
       (OAUTH_VERSION, version))
-      
+    
   def isOnlyOAuthTokenSet(): Boolean =
     token != null &&
         consumerKey == null &&
