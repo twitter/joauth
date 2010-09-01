@@ -47,14 +47,20 @@ class StandardNormalizer extends Normalizer {
     oAuthParams: OAuthParams): String = {
     // parameters are already URLEncoded, so we leave them alone
     val sigParams = params ::: oAuthParams.toListNoSignature
-    val normalizedParams = sigParams.map(t => EQ_BASE.format(t._1, t._2)).sort(_ < _).mkString(AND)
-    val requestURL = URL_BASE.format(scheme, host, getPortString(port, scheme), path).toLowerCase
-    NORMALIZED_BASE.format(verb.toUpperCase, URLEncoder.encode(requestURL), URLEncoder.encode(normalizedParams))
+    val normalizedParams =
+      sigParams.map(t => EQ_BASE.format(t._1, t._2)).sort(_ < _).mkString(AND)
+    val requestURL = URL_BASE.format(
+      scheme, host, getPortString(port, scheme), path).toLowerCase
+    NORMALIZED_BASE.format(
+      verb.toUpperCase,
+      URLEncoder.encode(requestURL),
+      URLEncoder.encode(normalizedParams))
   }
   
   def getPortString(port: Int, scheme: String): String = {
     val schemeUpper: String = scheme.toUpperCase
-    val stripPort = (port == 80 && schemeUpper == HTTP) || (port == 443 && schemeUpper == HTTPS)
+    val stripPort =
+      (port == 80 && schemeUpper == HTTP) || (port == 443 && schemeUpper == HTTPS)
     if (stripPort) "" else COLON + port
   }
 }

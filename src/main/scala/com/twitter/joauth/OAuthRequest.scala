@@ -35,9 +35,11 @@ object OAuth1Request {
     else if (verb == null) throw nullException("verb")
     else if (path == null) throw nullException("path")
     else if (oAuthParams.signatureMethod != OAuthParams.HMAC_SHA1)
-    throw new MalformedRequest("unsupported signature method: %s".format(oAuthParams.signatureMethod))
+    throw new MalformedRequest(
+      "unsupported signature method: %s".format(oAuthParams.signatureMethod))
     else if (oAuthParams.version != OAuthParams.ONE_DOT_OH)
-    throw new MalformedRequest("unsupported oauth version: %s".format(oAuthParams.version))
+    throw new MalformedRequest(
+      "unsupported oauth version: %s".format(oAuthParams.version))
     else new OAuth1Request(
       oAuthParams.token,
       oAuthParams.consumerKey,
