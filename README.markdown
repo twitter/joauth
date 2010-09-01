@@ -152,3 +152,15 @@ KeyValueHandlers are used in the JOAuth source code to collect OAuth and non-OAu
 #### Other Unpacker Tricks
 
 You can pass in a custom Normalizer or custom parameter and header KeyValueParsers to the Unpacker apply method if you really want to, but you're on your own.
+
+#### Using Normalizer and Signer
+
+You can use the Normalizer and Signer to sign OAuth 1.0a requests.
+
+    val normalize = Normalizer()
+    val sign = Signer()
+    
+    val normalizedRequest = normalize(normalize(scheme, host, port, verb, path, params, oAuthParams)
+    val signedRequest = sign(normalizedRequest, tokenSecret, consumerSecret)
+    
+The parameters are passed as a List[(String, String)], and the OAuth params are passed in an OAuthParams instance.
