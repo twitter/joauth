@@ -1,6 +1,6 @@
 # JOAuth
 
-A library for authenticating HttpServletRequests using OAuth
+A Scala/JVM library for authenticating HttpServletRequests using OAuth
 
 ## License
 
@@ -15,8 +15,9 @@ Copyright 2010 Twitter, Inc. See included LICENSE file.
 * Overridable callback to verify nonce
 * Configurable timestamp checking
 * Correctly works around various weird URLEncoder bugs in the JVM
+* Written in Scala, but should work pretty well with Java
 
-The Github source repository is [here](http://github.com/9len/joauth/). Patches and contributions are  welcome.
+The Github source repository is [here](http://github.com/9len/joauth/). Patches and contributions are welcome.
 
 ## Understanding the Implementation
 
