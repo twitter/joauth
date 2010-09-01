@@ -13,7 +13,8 @@ class DuplicateKeyValueHandler extends KeyValueHandler {
 class SingleKeyValueHandler extends KeyValueHandler {
   private val kv = new HashMap[String, String]
   override def apply(k: String, v: String): Unit = kv += k -> v
-  def toMap = Map(kv.toList:_*)
+  def toMap = Map(kv.toList: _*)
+  def toList = kv.toList
 }
 
 object QuotedSingleKeyValueHandler {
@@ -34,7 +35,7 @@ class PrintlnKeyValueHandler(prefix: String) extends KeyValueHandler {
 }
 
 class FilteredKeyValueHandler(
-    underlying: KeyValueHandler, isValid: KeyValueFilter) extends KeyValueHandler{
+    underlying: KeyValueHandler, isValid: KeyValueFilter) extends KeyValueHandler {
   override def apply(k: String, v: String): Unit = if (isValid(k, v)) underlying(k, v)
 }
 

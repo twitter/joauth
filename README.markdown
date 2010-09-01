@@ -105,7 +105,49 @@ if you only want to pass in one or the other, you can use the StandardSchemeGett
 
 #### Getting Parameter Key/Values
 
+There are two apply methods in the Unpacker trait. The one-argument version takes an HttpRequestServlet, and the two-argument version takes an HttpRequestServlet and a Seq[KeyValueHandler]. A KeyValueHandler is a simple trait that the Unpacker uses as a callback for every Key/Value pair encountered in either the query string or POST data (if the Content-Type is application/x-www-form-urlencoded). If there are duplicate keys, the KeyValueHandler will get invoked for each.
 
+The JOAuth library provides a few basic KeyValueHandlers, and it's easy to add your own. For example, suppose you want to get a list of key/values, including duplicates, from the request you're unpacking. You can do this by passing a DuplicateKeyValueHandler to the unpacker.
+
+    val unpack = Unpacker()
+    val handler = new DuplicateKeyValueHandler
+    val unpackedRequest = unpack(request, Seq(handler))
+    doSomethingWith(handler.toList)
+
+The DuplicateKeyValueHandler is invoked for each key/value pair encountered, and a List[(String, String)] can be extracted afterwards.
+
+You can also construct your own KeyValueHandlers, and there are a few useful KeyValueHandlers already defined. There's a FilteredKeyValueHandler, which wraps an underlying KeyValueHandler so that it is invoked only when certain key/values are encountered. There's a TransformingKeyValueHandler, which wraps an underlying KeyValueHandler such that either the key or value or both are transformed before the underlying handler is invoked.
+
+For example, suppose you want to get all values of a single parameter, and you want it UrlDecoded first.
+
+    class ValuesOnlyKeyValueHandler extends KeyValueHandler {
+      val buffer = new ArrayBuffer[String]
+      def apply(k: String, v: String) = buffer += v
+      def toList = buffer.toList
+    }
+    
+    object UrlDecodingTransformer extends Transformer {
+      def apply(str: String) = URLDecoder.decode(str)
+    }
+    
+    object MyFilter extends KeyValueFilter {
+      def apply(k: String, v: String) = k == "SpecialKey"
+    }
+    
+    class UrlDecodedMyValueOnlyKeyValueHandler(underlying: KeyValueHandler)
+      extends FilteredKeyValueHandler(
+        MyFilter,
+        new TransformingKeyValueHandler(UrlDecodingTransformer, underlying)
+    
+    val unpack = Unpacker()
+    val handler = new ValuesOnlyKeyValueHandler
+    val wrappedHandler = UrlDecodedMyValueOnlyKeyValueHandler(handler)
+    val unpackedRequest = unpack(request, Seq(wrappedHandler))
+    doSomethingWith(handler.toList)
+    
+Obviously it would be a little easier to just call request.getParameterValues("SpecialKey") in this example, but we hope it's not hard to see that passing custom KeyValueHandlers into the unpacker can be a powerful tool. In particular, they're an easy way to get access to POST data after the Unpacker has ruined your HttpServletRequest by calling getReader. 
+
+KeyValueHandlers are used in the JOAuth source code to collect OAuth and non-OAuth parameters from the GET, POST and Authorization header.
 
 #### Other Unpacker Tricks
 
