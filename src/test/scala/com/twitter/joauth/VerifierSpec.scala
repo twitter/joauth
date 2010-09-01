@@ -12,14 +12,14 @@ class VerifierSpec extends Specification with Mockito {
   // 10 minutes ago
   val oldTimestamp = (new Date).getTime - (10 * 60 * 1000)
   
-  val verifier = new StandardVerifier(signer, 5, checkNonce)
+  val verify = new StandardVerifier(signer, 5, checkNonce)
   
   "validateTimestamp" should {
     "return false for timestamp that is too old" in {
-      verifier.validateTimestamp(oldTimestamp) must beFalse
+      verify.validateTimestamp(oldTimestamp) must beFalse
     }
     "return true for timestamp that is new enough" in {
-      verifier.validateTimestamp((new Date).getTime) must beTrue
+      verify.validateTimestamp((new Date).getTime) must beTrue
     }
   }
   "validateSignature" should {
@@ -27,26 +27,26 @@ class VerifierSpec extends Specification with Mockito {
       doReturn("foo").when(signer).apply("bar", "readsecret", "writesecret")
       doReturn("foo").when(request).signature
       doReturn("bar").when(request).normalizedRequest
-      verifier.validateSignature(request, "readsecret", "writesecret") must beTrue
+      verify.validateSignature(request, "readsecret", "writesecret") must beTrue
     }
     "return false for bad signature" in {
       doReturn("foo").when(signer).apply("bar", "readsecret", "writesecret")
       doReturn("baz").when(request).signature
       doReturn("bar").when(request).normalizedRequest
-      verifier.validateSignature(request, "readsecret", "writesecret") must beFalse
+      verify.validateSignature(request, "readsecret", "writesecret") must beFalse
     }
   }
   "Verifier" should {
     "return BAD_NONCE for bad nonce" in {
       doReturn("nonce").when(request).nonce
       doReturn(false).when(checkNonce).apply("nonce")
-      verifier(request, "readsecret", "writesecret") must be_==(Verifier.BAD_NONCE)
+      verify(request, "readsecret", "writesecret") must be_==(VerifierResult.BAD_NONCE)
     }
     "return BAD_TIMESTAMP for bad timestamp" in {
       doReturn("nonce").when(request).nonce
       doReturn(oldTimestamp).when(request).timestamp
       doReturn(true).when(checkNonce).apply("nonce")
-      verifier(request, "readsecret", "writesecret") must be_==(Verifier.BAD_TIMESTAMP)
+      verify(request, "readsecret", "writesecret") must be_==(VerifierResult.BAD_TIMESTAMP)
     }
     "return BAD_SIGNATURE for bad signature" in {
       doReturn("foo").when(signer).apply("bar", "readsecret", "writesecret")
@@ -55,7 +55,7 @@ class VerifierSpec extends Specification with Mockito {
       doReturn("bar").when(request).normalizedRequest
       doReturn((new Date).getTime).when(request).timestamp
       doReturn(true).when(checkNonce).apply("nonce")
-      verifier(request, "readsecret", "writesecret") must be_==(Verifier.BAD_SIGNATURE)
+      verify(request, "readsecret", "writesecret") must be_==(VerifierResult.BAD_SIGNATURE)
     }
     "return OK for good request" in {
       doReturn("foo").when(signer).apply("bar", "readsecret", "writesecret")
@@ -64,7 +64,7 @@ class VerifierSpec extends Specification with Mockito {
       doReturn("bar").when(request).normalizedRequest
       doReturn((new Date).getTime).when(request).timestamp
       doReturn(true).when(checkNonce).apply("nonce")
-      verifier(request, "readsecret", "writesecret") must be_==(Verifier.OK)
+      verify(request, "readsecret", "writesecret") must be_==(VerifierResult.OK)
     }
   }
 }

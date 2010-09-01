@@ -13,10 +13,10 @@ class ConstSigner(const: String) extends Signer {
 }
 
 object Signer {
-  def apply(): Signer = StandardSigner
+  def apply(): Signer = new StandardSigner
 }
 
-object StandardSigner extends Signer {
+class StandardSigner extends Signer {
   val HMACSHA1 = "HmacSHA1"
   val KEY_BASE = "%s&%s"
   def apply(str: String, tokenSecret: String, consumerSecret: String) = {

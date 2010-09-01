@@ -10,12 +10,16 @@ object NoopNonceValidator extends NonceValidator {
   def apply(nonce: String): Boolean = true
 }
 
-trait Verifier {
-  def apply(request: OAuth1Request, tokenSecret: String, consumerSecret: String): Int
+class ConstNonceValidator(result: Boolean) extends NonceValidator {
+  def apply(nonce: String): Boolean = result
 }
 
-class ConstVerifier(result: Int) extends Verifier {
-  def apply(request: OAuth1Request, tokenSecret: String, consumerSecret: String): Int = result
+trait Verifier {
+  def apply(request: OAuth1Request, tokenSecret: String, consumerSecret: String): VerifierResult
+}
+
+class ConstVerifier(result: VerifierResult) extends Verifier {
+  def apply(request: OAuth1Request, tokenSecret: String, consumerSecret: String): VerifierResult = result
 }
 
 object Verifier {
@@ -39,11 +43,11 @@ class StandardVerifier(
     
   val maxTimestampAgeMs = maxTimestampAgeMins * 60000
 
-  def apply(request: OAuth1Request, tokenSecret: String, consumerSecret: String): Int = {
-    if (!validateNonce(request.nonce)) Verifier.BAD_NONCE
-    else if (!validateTimestamp(request.timestamp)) Verifier.BAD_TIMESTAMP
-    else if (!validateSignature(request, tokenSecret, consumerSecret)) Verifier.BAD_SIGNATURE
-    else Verifier.OK
+  def apply(request: OAuth1Request, tokenSecret: String, consumerSecret: String): VerifierResult = {
+    if (!validateNonce(request.nonce)) VerifierResult.BAD_NONCE
+    else if (!validateTimestamp(request.timestamp)) VerifierResult.BAD_TIMESTAMP
+    else if (!validateSignature(request, tokenSecret, consumerSecret)) VerifierResult.BAD_SIGNATURE
+    else VerifierResult.OK
   }
   
   def validateTimestamp(timestamp: Long): Boolean = {

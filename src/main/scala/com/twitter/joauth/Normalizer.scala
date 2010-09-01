@@ -25,10 +25,10 @@ class ConstNormalizer(const: String) extends Normalizer {
 }
 
 object Normalizer {
-  def apply(): Normalizer = StandardNormalizer
+  def apply(): Normalizer = new StandardNormalizer
 }
 
-object StandardNormalizer extends Normalizer {
+class StandardNormalizer extends Normalizer {
   val URL_BASE = "%s://%s%s%s"
   val NORMALIZED_BASE = "%s&%s&%s"
   val HTTP = "HTTP"

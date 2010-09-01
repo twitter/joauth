@@ -44,7 +44,7 @@ object Unpacker {
     new StandardUnpacker(
       getScheme,
       getPath,
-      StandardNormalizer,
+      Normalizer(),
       new StandardKeyValueParser("&", "="),
       new StandardKeyValueParser("\\s*,\\s*", "\\s*=\\s*"))
 
