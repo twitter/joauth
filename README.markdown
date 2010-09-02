@@ -11,8 +11,7 @@ Copyright 2010 Twitter, Inc. See included LICENSE file.
 * Supports OAuth 1.0a and 2.0
 * Unpacks HttpServletRequests, extracts and verifies OAuth parameters from headers, GET, and POST
 * Incidentally parses Non-OAuth GET and POST parameters and makes them accessible via a callback
-* Overridable callbacks to obtain scheme and path from the request
-* Overridable callback to verify nonce
+* Custom callbacks to obtain scheme and path from the request in a non-standard way
 * Configurable timestamp checking
 * Correctly works around various weird URLEncoder bugs in the JVM
 * Written in Scala, but should work pretty well with Java
@@ -20,6 +19,12 @@ Copyright 2010 Twitter, Inc. See included LICENSE file.
 The Github source repository is [here](http://github.com/9len/joauth/). Patches and contributions are welcome.
 
 Dependencies: scala-json, Configgy, Netty. These dependencies are managed by the build system.
+
+## Non-Features
+
+* It's not a full OAuth solution; There's nothing here about creating request tokens, access token/secret pairs, or consumer key/secret pairs. This library is primarily for verifying (and potentially signing) requests.
+* There's no framework for looking up access token/secret pairs and consumer key/secret pairs from a backing store. You're on your own there.
+* There's no Nonce-validation, though there's support for adding your own.
 
 ## Building
 
@@ -89,7 +94,7 @@ For example, if you have an authentication service that responded to the /auth e
 
     import com.twitter.joauth.PathGetter
 
-    class MyPathGetter extends PathGetter {
+    object MyPathGetter extends PathGetter {
       def apply(request: HttpServletRequest): String = {
         request.getPathInfo.match {
           case "^/auth/(/*)$".r(realPath) => realPath
@@ -102,7 +107,7 @@ If you're running a high throughput authentication service, you might want to av
 
     import com.twitter.joauth.UriSchemeGetter
     
-    classs MySchemeGetter extends UrlSchemeGetter {
+    object MySchemeGetter extends UrlSchemeGetter {
       def apply(request; HttpServletRequest): String = {
         val header = request.getHeader("X-My-Scheme-Header")
         if (header == null) request.getScheme
