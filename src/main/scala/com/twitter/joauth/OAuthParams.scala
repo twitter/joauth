@@ -15,6 +15,11 @@ package com.twitter.joauth
 import com.twitter.joauth.keyvalue.KeyValueHandler
 import java.net.URLDecoder
 
+/**
+ * pull all the OAuth parameter string constants into one place,
+ * add a convenience method for determining if a string is an
+ * OAuth 1.0 fieldname.
+ */
 object OAuthParams {
   val OAUTH_TOKEN = "oauth_token"
   val OAUTH_CONSUMER_KEY = "oauth_consumer_key"
@@ -43,6 +48,13 @@ object OAuthParams {
   }
 }
 
+/**
+ * OAuthParams is mostly just a container for OAuth 1.0a parameters.
+ * It's a KeyValueHandler so that it can be easily populated by a
+ * KeyValueParser. There are convenience methods for determining
+ * if it has all parameters set, just the token set, and for obtaining
+ * a list of the params for use in producing the normalized request.
+ */
 class OAuthParams extends KeyValueHandler {
   import OAuthParams._
 
@@ -71,6 +83,8 @@ class OAuthParams extends KeyValueHandler {
     }
   }
 
+  // we use String.format here, because we're probably not that worried about
+  // effeciency when printing the class for debugging
   override def toString: String =
     "%s=%s,%s=%s,%s=%s,%s=%s,%s=%s,%s=%s".format(
     OAUTH_TOKEN, token,

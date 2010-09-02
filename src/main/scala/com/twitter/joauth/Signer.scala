@@ -16,29 +16,46 @@ import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
 import org.apache.commons.codec.binary.Base64
 
+/**
+ * A Signer takes a string, a token secret and a consumer secret, and produces a signed string
+ */
 trait Signer {
   def apply(str: String, tokenSecret: String, consumerSecret: String): String
 }
 
+/**
+ * For testing. Always returns the same string
+ */
 class ConstSigner(const: String) extends Signer {
   def apply(str: String, tokenSecret: String, consumerSecret: String) = const
 }
 
+/**
+ * A convenience factory for a StandardSigner
+ */
 object Signer {
   def apply(): Signer = StandardSigner
 }
 
-object StandardSigner extends StandardSigner
-
-class StandardSigner extends Signer {
+/**
+ * a singleton of the StandardSigner class
+ */
+object StandardSigner extends StandardSigner {
   val HMACSHA1 = "HmacSHA1"
-  val KEY_BASE = "%s&%s"
+}
+
+/**
+ * the standard implmenentation of the Signer trait. Though stateless and threadsafe,
+ * this is a class rather than an object to allow easy access from Java. Scala codebases
+ * should use the corresponding StandardSigner object instead.
+ */
+class StandardSigner extends Signer {
   def apply(str: String, tokenSecret: String, consumerSecret: String) = {
-    val key = KEY_BASE.format(consumerSecret, tokenSecret)
-    val signingKey = new SecretKeySpec(key.getBytes, HMACSHA1)
+    val key = consumerSecret+StandardNormalizer.AND+tokenSecret
+    val signingKey = new SecretKeySpec(key.getBytes, StandardSigner.HMACSHA1)
 
     // TODO: consider synchronizing this, apparently Mac may not be threadsafe
-    val mac = Mac.getInstance(HMACSHA1)
+    val mac = Mac.getInstance(StandardSigner.HMACSHA1)
     mac.init(signingKey)
     val rawHmac = mac.doFinal(str.getBytes)
     new String(Base64.encodeBase64(rawHmac))

@@ -22,16 +22,21 @@ class VerifierSpec extends Specification with Mockito {
   val request = mock[OAuth1Request]
 
   // 10 minutes ago
-  val oldTimestamp = (new Date).getTime - (10 * 60 * 1000)
+  val now = (new Date).getTime
+  val longAgo = now - (10 * 60 * 1000)
+  val farAhead = now + (10 * 60 * 1000)
 
   val verify = new StandardVerifier(signer, 5, checkNonce)
 
   "validateTimestamp" should {
     "return false for timestamp that is too old" in {
-      verify.validateTimestamp(oldTimestamp) must beFalse
+      verify.validateTimestamp(longAgo) must beFalse
     }
     "return true for timestamp that is new enough" in {
       verify.validateTimestamp((new Date).getTime) must beTrue
+    }
+    "return true for timestamp that too new" in {
+      verify.validateTimestamp(farAhead) must beFalse
     }
   }
   "validateSignature" should {
@@ -56,7 +61,7 @@ class VerifierSpec extends Specification with Mockito {
     }
     "return BAD_TIMESTAMP for bad timestamp" in {
       doReturn("nonce").when(request).nonce
-      doReturn(oldTimestamp).when(request).timestamp
+      doReturn(longAgo).when(request).timestamp
       doReturn(true).when(checkNonce).apply("nonce")
       verify(request, "readsecret", "writesecret") must be_==(VerifierResult.BAD_TIMESTAMP)
     }
@@ -65,7 +70,7 @@ class VerifierSpec extends Specification with Mockito {
       doReturn("nonce").when(request).nonce
       doReturn("baz").when(request).signature
       doReturn("bar").when(request).normalizedRequest
-      doReturn((new Date).getTime).when(request).timestamp
+      doReturn(now).when(request).timestamp
       doReturn(true).when(checkNonce).apply("nonce")
       verify(request, "readsecret", "writesecret") must be_==(VerifierResult.BAD_SIGNATURE)
     }
@@ -74,7 +79,7 @@ class VerifierSpec extends Specification with Mockito {
       doReturn("nonce").when(request).nonce
       doReturn("foo").when(request).signature
       doReturn("bar").when(request).normalizedRequest
-      doReturn((new Date).getTime).when(request).timestamp
+      doReturn(now).when(request).timestamp
       doReturn(true).when(checkNonce).apply("nonce")
       verify(request, "readsecret", "writesecret") must be_==(VerifierResult.OK)
     }

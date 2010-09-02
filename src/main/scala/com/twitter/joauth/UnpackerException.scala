@@ -12,10 +12,19 @@
 
 package com.twitter.joauth
 
+/**
+ * If Unpacker encounters an unexpected exception, it will wrap it in an UnpackerException
+ */
 class UnpackerException(val message: String, t: Throwable) extends Exception(message, t) {
   def this(message: String) = this(message, null)
 }
 
+/**
+ * thrown if it's unclear what auth type is being attempted
+ */
 class UnknownAuthType(message: String) extends UnpackerException(message)
 
+/**
+ * thrown if intent is clear, but the request is malformed
+ */
 class MalformedRequest(message: String) extends UnpackerException(message)

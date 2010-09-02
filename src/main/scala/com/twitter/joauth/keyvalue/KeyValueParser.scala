@@ -38,8 +38,8 @@ object HeaderKeyValueParser extends StandardKeyValueParser("\\s*,\\s*", "\\s*=\\
 object QueryKeyValueParser extends StandardKeyValueParser("&", "=")
 
 /**
- * StandardKeyValueParser is a KeyValueParser that splits a string on a delimiter, 
- * and then splits each pair with the kvDelimiter. both delimiters can be java-style 
+ * StandardKeyValueParser is a KeyValueParser that splits a string on a delimiter,
+ * and then splits each pair with the kvDelimiter. both delimiters can be java-style
  * regular expressions.
  */
 class StandardKeyValueParser(delimiter: String, kvDelimiter: String) extends KeyValueParser {

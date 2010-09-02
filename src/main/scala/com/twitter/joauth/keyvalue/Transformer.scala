@@ -13,7 +13,8 @@
 package com.twitter.joauth.keyvalue
 
 /**
- * The Transformer trait describes the transformation function from a string to a derived string
+ * The Transformer trait describes the transformation function
+ * from a string to a derived string
  */
 trait Transformer extends ((String) => String)
 
@@ -25,9 +26,10 @@ object TrimTransformer extends Transformer {
 }
 
 /**
- * The OAuth2KeyTransformer trims the "token" to "oauth_token", which is handy 
- * when passing an OAuth2 Authorization header into the same KeyValueHandler you're 
- * parsing the query string into
+ * The OAuth2KeyTransformer trims the "token" to "oauth_token",
+ * which is handy when passing an OAuth2 Authorization header
+ * into the same KeyValueHandler into which you're parsing the
+ * query string
  */
 object OAuth2KeyTransformer extends Transformer {
   def apply(str: String): String = 
@@ -36,8 +38,9 @@ object OAuth2KeyTransformer extends Transformer {
 }
 
 /**
- * The UrlEncodingNormalizingTransformer capitializes all of the URLEncoded entities in a string. 
- * It will do strange things to a string that is not actually URLEncoded.
+ * The UrlEncodingNormalizingTransformer capitializes all of the
+ * URLEncoded entities in a string. It will do strange things to
+ * a string that is not actually URLEncoded.
  */
 object UrlEncodingNormalizingTransformer extends Transformer {
   def apply(s: String) = {

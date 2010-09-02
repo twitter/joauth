@@ -14,26 +14,24 @@ package com.twitter.joauth
 
 import java.util.Date
 
-trait NonceValidator {
-  def apply(nonce: String): Boolean
-}
-
-object NoopNonceValidator extends NonceValidator {
-  def apply(nonce: String): Boolean = true
-}
-
-class ConstNonceValidator(result: Boolean) extends NonceValidator {
-  def apply(nonce: String): Boolean = result
-}
-
+/**
+ * A Validator takes an OAuth1 request, a token secret, and a consumer secret,
+ * and validates the request. It returns a Java enum for compatability
+ */
 trait Verifier {
   def apply(request: OAuth1Request, tokenSecret: String, consumerSecret: String): VerifierResult
 }
 
+/**
+ * for testing. always returns the same result.
+ */
 class ConstVerifier(result: VerifierResult) extends Verifier {
   def apply(request: OAuth1Request, tokenSecret: String, consumerSecret: String): VerifierResult = result
 }
 
+/**
+ * a factory with various convenience constructors for a StandardVerifier
+ */
 object Verifier {
   val NO_TIMESTAMP_CHECK = -1
   
@@ -45,10 +43,14 @@ object Verifier {
     new StandardVerifier(sign, maxTimestampAge, validateNonce)
 }
 
+/**
+ * The standard implementation of a Verifier. Constructed with a Signer, the maximum clock float
+ * allowed for a timestamp, and a NonceValidator.
+ */
 class StandardVerifier(
-  sign: Signer, maxTimestampAgeMins: Int, validateNonce: NonceValidator) extends Verifier {
-  
-  val maxTimestampAgeMs = maxTimestampAgeMins * 60000
+  sign: Signer, maxClockFloatMins: Int, validateNonce: NonceValidator) extends Verifier {
+
+  val maxClockFloatMs = maxClockFloatMins * 60000
 
   def apply(request: OAuth1Request, tokenSecret: String, consumerSecret: String): VerifierResult = {
     if (!validateNonce(request.nonce)) VerifierResult.BAD_NONCE
@@ -58,7 +60,9 @@ class StandardVerifier(
   }
 
   def validateTimestamp(timestamp: Long): Boolean = {
-    (maxTimestampAgeMs < 0) || (timestamp >= (new Date).getTime - maxTimestampAgeMs)
+    val now = (new Date).getTime
+    (maxClockFloatMs < 0) ||
+      ((timestamp >= now - maxClockFloatMs) && (timestamp <= now + maxClockFloatMs))
   }
 
   def validateSignature(

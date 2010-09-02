@@ -12,10 +12,19 @@
 
 package com.twitter.joauth
 
+/**
+ * Both OAuth 1.0a and 2.0 requests have access tokens,
+ * so it's convenient to combine them into a single trait
+ */
 trait OAuthRequest {
   def token: String
 }
 
+/**
+ * models an OAuth 1.0a request. Rather than passing the
+ * scheme, host, port, etc around, we pre-calculate the normalized request,
+ * since that's all we need for signature validation anyway.
+ */
 case class OAuth1Request(
   token: String,
   consumerKey: String,
@@ -26,10 +35,18 @@ case class OAuth1Request(
   version: String,
   normalizedRequest: String) extends OAuthRequest
 
+/**
+ * models an OAuth 2.0 request. Just a wrapper for the token, really.
+ */
 case class OAuth2Request(token: String) extends OAuthRequest
 
+/**
+ * The companion object's apply method produces an OAuth1Request instance by
+ * passing the request details into a Normalizer to produce the normalized
+ * request. Will throw a MalformedRequest if any required parameter is unset.
+ */
 object OAuth1Request {
-  def nullException(name: String) = new MalformedRequest("no value for %s".format(name))
+  def nullException(name: String) = new MalformedRequest("no value for "+name)
 
   @throws(classOf[MalformedRequest])
   def apply(
@@ -41,17 +58,22 @@ object OAuth1Request {
     params: List[(String, String)], 
     oAuthParams: OAuthParams,
     normalize: Normalizer): OAuth1Request = {
+
     if (scheme == null) throw nullException("scheme")
     else if (host == null) throw nullException("host")
     else if (port < 0) throw nullException("port")
     else if (verb == null) throw nullException("verb")
     else if (path == null) throw nullException("path")
-    else if (oAuthParams.signatureMethod != OAuthParams.HMAC_SHA1)
-    throw new MalformedRequest(
-      "unsupported signature method: %s".format(oAuthParams.signatureMethod))
-    else if (oAuthParams.version != OAuthParams.ONE_DOT_OH)
-    throw new MalformedRequest(
-      "unsupported oauth version: %s".format(oAuthParams.version))
+    else if (oAuthParams.signatureMethod != OAuthParams.HMAC_SHA1) {
+      throw new MalformedRequest("unsupported signature method: "+oAuthParams.signatureMethod)
+    }
+    else if (oAuthParams.version != OAuthParams.ONE_DOT_OH) {
+      throw new MalformedRequest("unsupported oauth version: "+oAuthParams.version)
+    }
+
+    // we don't check the validity of the OAuthParams object, because it must be
+    // fully populated in order for the factory to even be called, and we'd like
+    // to save the expense of iterating over all the fields again
     else new OAuth1Request(
       oAuthParams.token,
       oAuthParams.consumerKey,

@@ -15,13 +15,13 @@ package com.twitter.joauth.keyvalue
 import collection.mutable.{HashMap, ArrayBuffer}
 
 /**
- * KeyValueHandler is a trait for a callback with a key and a value. 
+ * KeyValueHandler is a trait for a callback with a key and a value.
  * What you do with the key and value are up to you.
  */
 trait KeyValueHandler extends ((String, String) => Unit)
 
 /**
- * DuplicateKeyValueHandler produces a List[(String, String)] of key 
+ * DuplicateKeyValueHandler produces a List[(String, String)] of key
  * value pairs, allowing duplicate values for keys.
  */
 class DuplicateKeyValueHandler extends KeyValueHandler {
@@ -31,7 +31,7 @@ class DuplicateKeyValueHandler extends KeyValueHandler {
 }
 
 /**
- * SingleKeyValueHandler produces either a List[(String, String)] 
+ * SingleKeyValueHandler produces either a List[(String, String)]
  * or a Map[String, String] of key/value pairs, and will override
  * duplicate values for keys, using the last value encountered
  */
@@ -43,11 +43,11 @@ class SingleKeyValueHandler extends KeyValueHandler {
 }
 
 /**
- * The QuotedValueKeyValueHandler passes only quoted strings to its 
- * underlying KeyValueHandler, removing the quotes along the way. 
- * Unquoted strings are blackholed. Note that this could have been 
- * implemented as a composition of a FilteringKeyValueHandler and a 
- * TransformingKeyValueHandler, but it was easier to do the filter 
+ * The QuotedValueKeyValueHandler passes only quoted strings to its
+ * underlying KeyValueHandler, removing the quotes along the way.
+ * Unquoted strings are blackholed. Note that this could have been
+ * implemented as a composition of a FilteringKeyValueHandler and a
+ * TransformingKeyValueHandler, but it was easier to do the filter
  * and transform in a single pass
  */
 object QuotedSingleKeyValueHandler {
@@ -64,7 +64,7 @@ class QuotedValueKeyValueHandler(underlying: KeyValueHandler) extends KeyValueHa
 }
 
 /**
- * PrintlnKeyValueHandler is very nice for debugging! 
+ * PrintlnKeyValueHandler is very nice for debugging!
  * Pass it in to the Unpacker to see what's going on.
  */
 class PrintlnKeyValueHandler(prefix: String) extends KeyValueHandler {
@@ -82,8 +82,8 @@ class FilteredKeyValueHandler(
 }
 
 /**
- * TransformingKeyValueHandler applies the Transformers to 
- * their respective key and value before passing along to the 
+ * TransformingKeyValueHandler applies the Transformers to
+ * their respective key and value before passing along to the
  * underlying KeyValueHandler
  */
 class TransformingKeyValueHandler(
@@ -94,14 +94,14 @@ class TransformingKeyValueHandler(
 }
 
 /**
- * TrimmingKeyValueHandler trims the key and value before 
+ * TrimmingKeyValueHandler trims the key and value before
  * passing them to the underlying KeyValueHandler
  */
 class TrimmingKeyValueHandler(underlying: KeyValueHandler)
     extends TransformingKeyValueHandler(underlying, TrimTransformer, TrimTransformer)
 
 /**
- * KeyTransformingKeyValueHandler applies a Transformer to the key 
+ * KeyTransformingKeyValueHandler applies a Transformer to the key
  * before passing the key value pair to the underlying KeyValueHandler
  */
 class KeyTransformingKeyValueHandler(
@@ -110,7 +110,7 @@ class KeyTransformingKeyValueHandler(
 }
 
 /**
- * ValueTransformingKeyValueHandler applies a Transformer to the value 
+ * ValueTransformingKeyValueHandler applies a Transformer to the value
  * before passing the key value pair to the underlying KeyValueHandler
  */
 class ValueTransformingKeyValueHandler(
@@ -119,7 +119,7 @@ class ValueTransformingKeyValueHandler(
 }
 
 /**
- * UrlEncodingNormalizingKeyValueHandler normalizes URLEncoded 
+ * UrlEncodingNormalizingKeyValueHandler normalizes URLEncoded
  * keys and values, to properly capitalize them
  */
 class UrlEncodingNormalizingKeyValueHandler(underlying: KeyValueHandler)

@@ -12,8 +12,8 @@
 
 package com.twitter.joauth.keyvalue
 
-import org.specs.Specification
 import org.specs.mock.Mockito
+import org.specs.Specification
 
 class KeyValueHandlerSpec extends Specification with Mockito {
   "SingleKeyValueHandler" should {
