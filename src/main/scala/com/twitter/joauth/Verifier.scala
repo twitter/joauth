@@ -36,11 +36,11 @@ object Verifier {
   val NO_TIMESTAMP_CHECK = -1
   
   def apply(): Verifier = new StandardVerifier(Signer(), NO_TIMESTAMP_CHECK, NoopNonceValidator)
-  def apply(maxTimestampAge: Int) = new StandardVerifier(Signer(), maxTimestampAge, NoopNonceValidator)
-  def apply(maxTimestampAge: Int, validateNonce: NonceValidator) =
-    new StandardVerifier(Signer(), maxTimestampAge, validateNonce)
-  def apply(sign: Signer, maxTimestampAge: Int, validateNonce: NonceValidator) =
-    new StandardVerifier(sign, maxTimestampAge, validateNonce)
+  def apply(maxClockFloat: Int) = new StandardVerifier(Signer(), maxClockFloat, NoopNonceValidator)
+  def apply(maxClockFloat: Int, validateNonce: NonceValidator) =
+    new StandardVerifier(Signer(), maxClockFloat, validateNonce)
+  def apply(sign: Signer, maxClockFloat: Int, validateNonce: NonceValidator) =
+    new StandardVerifier(sign, maxClockFloat, validateNonce)
 }
 
 /**
