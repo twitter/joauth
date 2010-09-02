@@ -70,6 +70,10 @@ trait Unpacker {
   @throws(classOf[UnpackerException])
   def apply(
       request: HttpServletRequest,
+      kvHandler: KeyValueHandler): OAuthRequest = apply(request, Seq(kvHandler))
+  @throws(classOf[UnpackerException])
+  def apply(
+      request: HttpServletRequest,
       kvHandlers: Seq[KeyValueHandler]): OAuthRequest
 }
 
