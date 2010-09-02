@@ -18,7 +18,9 @@ Copyright 2010 Twitter, Inc. See included LICENSE file.
 
 The Github source repository is [here](http://github.com/9len/joauth/). Patches and contributions are welcome.
 
-Dependencies: scala-json, Configgy, Netty. These dependencies are managed by the build system.
+## Dependencies
+
+servlet-api, commons-codec, (specs & mockito-all to run the tests). These dependencies are managed by the build system.
 
 ## Non-Features
 
@@ -27,8 +29,6 @@ Dependencies: scala-json, Configgy, Netty. These dependencies are managed by the
 * There's no Nonce-validation, though there's support for adding your own.
 
 ## Building
-
-Dependencies: servlet-api, commons-codec, specs & mockito-all for tests. These dependencies are managed by the build system.
 
 Use sbt (simple-build-tool) to build:
 
