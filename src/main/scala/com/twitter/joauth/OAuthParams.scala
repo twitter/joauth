@@ -31,6 +31,7 @@ object OAuthParams {
 
   val HMAC_SHA1 = "HMAC-SHA1"
   val ONE_DOT_OH = "1.0"
+  val ONE_DOT_OH_A = "1.0a"
 
   val OAUTH2_HEADER_TOKEN = "token"
 
@@ -64,7 +65,10 @@ class OAuthParams extends KeyValueHandler {
   var timestamp: Int = -1
   var signature: String = null
   var signatureMethod: String = null
-  var version: String = null
+  private var versionOrNull: String = null
+  
+  def version = if (versionOrNull == null) ONE_DOT_OH else versionOrNull
+  def version_=(v: String) { versionOrNull = v }
 
   def apply(k: String, v: String): Unit = {
     k match {
@@ -78,7 +82,7 @@ class OAuthParams extends KeyValueHandler {
       }
       case OAUTH_SIGNATURE => signature = URLDecoder.decode(v)
       case OAUTH_SIGNATURE_METHOD => signatureMethod = v
-      case OAUTH_VERSION => version = v
+      case OAUTH_VERSION => versionOrNull = v
       case _ => // ignore
     }
   }
@@ -111,7 +115,7 @@ class OAuthParams extends KeyValueHandler {
         timestamp < 0 &&
         signature == null &&
         signatureMethod == null &&
-        version == null
+        versionOrNull == null
 
   def areAllOAuth1FieldsSet: Boolean =
     token != null &&
@@ -119,6 +123,5 @@ class OAuthParams extends KeyValueHandler {
         nonce != null &&
         timestamp >= 0 &&
         signature != null &&
-        signatureMethod != null &&
-        version != null
+        signatureMethod != null
 }
