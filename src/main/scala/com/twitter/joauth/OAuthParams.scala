@@ -28,6 +28,7 @@ object OAuthParams {
   val OAUTH_TIMESTAMP = "oauth_timestamp"
   val OAUTH_SIGNATURE_METHOD = "oauth_signature_method"
   val OAUTH_VERSION = "oauth_version"
+  val UNSET = "(unset)"
 
   val HMAC_SHA1 = "HMAC-SHA1"
   val ONE_DOT_OH = "1.0"
@@ -65,10 +66,7 @@ class OAuthParams extends KeyValueHandler {
   var timestamp: Int = -1
   var signature: String = null
   var signatureMethod: String = null
-  private var versionOrNull: String = null
-  
-  def version = if (versionOrNull == null) ONE_DOT_OH else versionOrNull
-  def version_=(v: String) { versionOrNull = v }
+  var version: String = null
 
   def apply(k: String, v: String): Unit = {
     k match {
@@ -82,7 +80,7 @@ class OAuthParams extends KeyValueHandler {
       }
       case OAUTH_SIGNATURE => signature = URLDecoder.decode(v)
       case OAUTH_SIGNATURE_METHOD => signatureMethod = v
-      case OAUTH_VERSION => versionOrNull = v
+      case OAUTH_VERSION => version = v
       case _ => // ignore
     }
   }
@@ -90,23 +88,25 @@ class OAuthParams extends KeyValueHandler {
   // we use String.format here, because we're probably not that worried about
   // effeciency when printing the class for debugging
   override def toString: String =
-    "%s=%s,%s=%s,%s=%s,%s=%s,%s=%s,%s=%s".format(
-    OAUTH_TOKEN, token,
-    OAUTH_CONSUMER_KEY, consumerKey,
-    OAUTH_NONCE, nonce,
+    "%s=%s,%s=%s,%s=%s,%s=%s,%s=%s,%s=%s,%s=%s".format(
+    OAUTH_TOKEN, valueOrUnset(token),
+    OAUTH_CONSUMER_KEY, valueOrUnset(consumerKey),
+    OAUTH_NONCE, valueOrUnset(nonce),
     OAUTH_TIMESTAMP, timestamp,
-    OAUTH_SIGNATURE, signature,
-    OAUTH_SIGNATURE_METHOD, signatureMethod,
-    OAUTH_VERSION, version)
+    OAUTH_SIGNATURE, valueOrUnset(signature),
+    OAUTH_SIGNATURE_METHOD, valueOrUnset(signatureMethod),
+    OAUTH_VERSION, valueOrUnset(version))
 
-  def toListNoSignature: List[(String, String)] =  
+  def valueOrUnset(value: String) = if (value == null) UNSET else value
+
+  def toListNoSignature: List[(String, String)] =
     List(
       (OAUTH_TOKEN, token),
       (OAUTH_CONSUMER_KEY, consumerKey),
       (OAUTH_NONCE, nonce),
       (OAUTH_TIMESTAMP, timestamp.toString),
-      (OAUTH_SIGNATURE_METHOD, signatureMethod),
-      (OAUTH_VERSION, version))
+      (OAUTH_SIGNATURE_METHOD, signatureMethod)) ::: 
+      (if (version == null) Nil else List((OAUTH_VERSION, version)))
     
   def isOnlyOAuthTokenSet: Boolean =
     token != null &&
@@ -115,7 +115,8 @@ class OAuthParams extends KeyValueHandler {
         timestamp < 0 &&
         signature == null &&
         signatureMethod == null &&
-        versionOrNull == null
+        // version is optional, but its inclusion indicates an oAuth1 request
+        version == null
 
   def areAllOAuth1FieldsSet: Boolean =
     token != null &&
@@ -124,4 +125,5 @@ class OAuthParams extends KeyValueHandler {
         timestamp >= 0 &&
         signature != null &&
         signatureMethod != null
+        // version is optional, so not included here
 }

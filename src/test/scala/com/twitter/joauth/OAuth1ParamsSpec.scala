@@ -1,10 +1,10 @@
 // Copyright 2010 Twitter, Inc.
-// 
+//
 // Licensed under the Apache License, Version 2.0 (the "License"); you may not use this
 // file except in compliance with the License. You may obtain a copy of the License at
-// 
+//
 //     http://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 // Unless required by applicable law or agreed to in writing, software distributed
 // under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
 // CONDITIONS OF ANY KIND, either express or implied. See the License for the
@@ -30,7 +30,7 @@ class OAuth1ParamsSpec extends Specification {
       params.token must be_==("foo")
       params.areAllOAuth1FieldsSet must beFalse
       params.isOnlyOAuthTokenSet must beTrue
-      params.version must be_==("1.0")
+      params.version must beNull
       params("oauth_version", "7")
       params.version must be_==("7")
       params.areAllOAuth1FieldsSet must beFalse
@@ -64,8 +64,8 @@ class OAuth1ParamsSpec extends Specification {
       params.isOnlyOAuthTokenSet must beFalse
 
       params.signature must beNull
-      params("oauth_signature", "%3D")
-      params.signature must be_==("=")
+      params("oauth_signature", "a%3Db")
+      params.signature must be_==("a=b")
       params.areAllOAuth1FieldsSet must beFalse
       params.isOnlyOAuthTokenSet must beFalse
 
@@ -75,12 +75,16 @@ class OAuth1ParamsSpec extends Specification {
       params.areAllOAuth1FieldsSet must beTrue
       params.isOnlyOAuthTokenSet must beFalse
 
+      params.toString must be_==("oauth_token=1,oauth_consumer_key=2,oauth_nonce=3,oauth_timestamp=4,oauth_signature=a=b,oauth_signature_method=6,oauth_version=(unset)")
+
       // version defaults to 1.0
-      params.version must be_==("1.0")
+      params.version must beNull
       params("oauth_version", "7")
       params.version must be_==("7")
       params.areAllOAuth1FieldsSet must beTrue
       params.isOnlyOAuthTokenSet must beFalse
+
+      params.toString must be_==("oauth_token=1,oauth_consumer_key=2,oauth_nonce=3,oauth_timestamp=4,oauth_signature=a=b,oauth_signature_method=6,oauth_version=7")
     }
   }
 }

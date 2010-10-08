@@ -46,7 +46,42 @@ case class OAuth2Request(token: String) extends OAuthRequest
  * request. Will throw a MalformedRequest if any required parameter is unset.
  */
 object OAuth1Request {
-  def nullException(name: String) = new MalformedRequest("no value for "+name)
+  val NO_VALUE_FOR = "no value for "
+  val SCHEME = "scheme"
+  val HOST = "host"
+  val PORT = "port"
+  val VERB = "verb"
+  val PATH = "path"
+  val UNSUPPORTED_METHOD = "unsupported signature method: "
+  val UNSUPPORTED_VERSION = "unsupported oauth version: "
+
+  def nullException(name: String) = new MalformedRequest(NO_VALUE_FOR+name)
+
+  @throws(classOf[MalformedRequest])
+  def verify(
+    scheme: String,
+    host: String,
+    port: Int,
+    verb: String,
+    path: String,
+    oAuthParams: OAuthParams) {
+      if (scheme == null) throw nullException(SCHEME)
+      else if (host == null) throw nullException(HOST)
+      else if (port < 0) throw nullException(PORT)
+      else if (verb == null) throw nullException(VERB)
+      else if (path == null) throw nullException(PATH)
+      else if (oAuthParams.signatureMethod != OAuthParams.HMAC_SHA1) {
+        throw new MalformedRequest(UNSUPPORTED_METHOD+oAuthParams.signatureMethod)
+      }
+      else if (oAuthParams.version != null &&
+          oAuthParams.version != OAuthParams.ONE_DOT_OH &&
+          oAuthParams.version != OAuthParams.ONE_DOT_OH_A) {
+        throw new MalformedRequest(UNSUPPORTED_VERSION+oAuthParams.version)
+      }
+      // we don't check the validity of the OAuthParams object, because it must be
+      // fully populated in order for the factory to even be called, and we'd like
+      // to save the expense of iterating over all the fields again
+    }
 
   @throws(classOf[MalformedRequest])
   def apply(
@@ -59,22 +94,9 @@ object OAuth1Request {
     oAuthParams: OAuthParams,
     normalize: Normalizer): OAuth1Request = {
 
-    if (scheme == null) throw nullException("scheme")
-    else if (host == null) throw nullException("host")
-    else if (port < 0) throw nullException("port")
-    else if (verb == null) throw nullException("verb")
-    else if (path == null) throw nullException("path")
-    else if (oAuthParams.signatureMethod != OAuthParams.HMAC_SHA1) {
-      throw new MalformedRequest("unsupported signature method: "+oAuthParams.signatureMethod)
-    }
-    else if (oAuthParams.version != OAuthParams.ONE_DOT_OH && oAuthParams.version != OAuthParams.ONE_DOT_OH_A) {
-      throw new MalformedRequest("unsupported oauth version: "+oAuthParams.version)
-    }
+    verify(scheme, host, port, verb, path, oAuthParams)
 
-    // we don't check the validity of the OAuthParams object, because it must be
-    // fully populated in order for the factory to even be called, and we'd like
-    // to save the expense of iterating over all the fields again
-    else new OAuth1Request(
+    new OAuth1Request(
       oAuthParams.token,
       oAuthParams.consumerKey,
       oAuthParams.nonce,
