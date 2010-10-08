@@ -87,7 +87,7 @@ class StandardNormalizer extends Normalizer {
     val normalizedParams = sigParams.map(p => p._1+EQ+p._2).sort(_ < _).mkString(AND)
 
     // the normalized URL is scheme://host[:port]/path, lowercased
-    val requestUrl = (scheme+COLON_SLASH_SLASH+host+getPortString(port,scheme)+path).toLowerCase
+    val requestUrl = (scheme+COLON_SLASH_SLASH+host).toLowerCase+getPortString(port,scheme)+path
 
     // the normalized string is VERB&normalizedParams&requestUrl,
     // where URL and PARAMS are UrlEncoded
