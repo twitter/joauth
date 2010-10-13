@@ -41,9 +41,9 @@ class KeyValueHandlerSpec extends Specification with Mockito {
       handler("foo", "\"baz\"")
       handler("foo", "   \"baz\"  ")
       handler("bar" ,"bar")
-      underlying.apply("foo", "baz") was called.twice
-      underlying.apply("bar", "bar") was notCalled
-      underlying.apply(any[String], any[String]) was called.twice
+      there were two(underlying).apply("foo", "baz")
+      there was no(underlying).apply("bar", "bar")
+      there were two(underlying).apply(any[String], any[String])
     }
 
   }
@@ -53,9 +53,9 @@ class KeyValueHandlerSpec extends Specification with Mockito {
     "filter non oauth1 fields" in {
       handler("  oauth_token", "foo  ")
       handler("foo", "bar")
-      underlying.apply("oauth_token", "foo") was called.once
-      underlying.apply("foo", "bar") was notCalled
-      underlying.apply(any[String], any[String]) was called.once
+      there was one(underlying).apply("oauth_token", "foo")
+      there was no(underlying).apply("foo", "bar")
+      there was one(underlying).apply(any[String], any[String])
     }
   }
   "NotOAuthKeyValueHandler" should {
@@ -64,9 +64,9 @@ class KeyValueHandlerSpec extends Specification with Mockito {
     "filter non oauth1 fields" in {
       handler("oauth_token", "foo")
       handler("  foo", "bar  ")
-      underlying.apply("oauth_token", "foo") was notCalled
-      underlying.apply("  foo", "bar  ") was called.once
-      underlying.apply(any[String], any[String]) was called.once
+      there was no(underlying).apply("oauth_token", "foo")
+      there was one(underlying).apply("  foo", "bar  ")
+      there was one(underlying).apply(any[String], any[String])
     }
   }
   "OAuth2HeaderKeyValueHandler" should {
@@ -75,9 +75,9 @@ class KeyValueHandlerSpec extends Specification with Mockito {
     "pull token from header field, replace key name" in {
       handler("  token", "foo  ")
       handler("foo", "bar")
-      underlying.apply("oauth_token", "foo") was called.once
-      underlying.apply("foo", "bar") was notCalled
-      underlying.apply(any[String], any[String]) was called.once
+      there was one(underlying).apply("oauth_token", "foo")
+      there was no(underlying).apply("foo", "bar")
+      there was one(underlying).apply(any[String], any[String])
     }
   }
 }

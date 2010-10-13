@@ -1,6 +1,6 @@
 # JOAuth
 
-A Scala/JVM library for authenticating HttpServletRequests using OAuth
+A Scala/JVM library for authenticating HTTP Requests using OAuth
 
 ## License
 
@@ -9,7 +9,8 @@ Copyright 2010 Twitter, Inc. See included LICENSE file.
 ## Features
 
 * Supports OAuth 1.0a and 2.0
-* Unpacks HttpServletRequests, extracts and verifies OAuth parameters from headers, GET, and POST
+* Uses [thrust](http://github.com/twitter/thrust).[HttpRequest](https://github.com/twitter/thrust/blob/master/thrust-core/src/main/scala/com/twitter/thrust/Request.scala), which can be used to wrap HttpServletRequests or other HTTP Request representations
+* Unpacks Requests, extracts and verifies OAuth parameters from headers, GET, and POST
 * Incidentally parses Non-OAuth GET and POST parameters and makes them accessible via a callback
 * Custom callbacks to obtain scheme and path from the request in a non-standard way
 * Configurable timestamp checking
@@ -26,7 +27,9 @@ The Github source repository is [here](http://github.com/9len/joauth/). Patches 
 
 ## Building
 
-*Dependencies*: servlet-api, commons-codec, (specs & mockito-all to run the tests). These dependencies are managed by the build system.
+**v.1.1.2 is the last version that can be built using scala 2.7.7, and now resides in the scala27 branch. v1.2 and above require scala > 2.8.0**
+
+*Dependencies*: servlet-api, commons-codec, and thrust (specs & mockito-all to run the tests). These dependencies are managed by the build system.
 
 Use sbt (simple-build-tool) to build:
 
@@ -50,7 +53,7 @@ There are "Standard" and "Const" implementations of the Unpacker, Normalizer, Si
 
 ### Basic Usage
 
-Create an unpacker, and use it to unpack the HttpServletRequest. The Unpacker will either return an OAuth1Request or OAuth2Request object or throw an UnpackerException. 
+Create an unpacker, and use it to unpack the thrust.Request. The Unpacker will either return an OAuth1Request or OAuth2Request object or throw an UnpackerException. 
 
     import com.twitter.joauth.Unpacker
 
@@ -91,9 +94,10 @@ If you're building an internal authentication service, it may serve multiple end
 For example, if you have an authentication service that responded to the /auth endpoint, and you are authenticating requests to an external server serving the /foo endpoint, the path of the request the authentication service receives is /auth/foo. This won't do, because the signature of the request depends on the path being /foo. We can construct a PathGetter that strips /auth out of the path.
 
     import com.twitter.joauth.PathGetter
+    import com.twitter.thrust.Request
 
     object MyPathGetter extends PathGetter {
-      def apply(request: HttpServletRequest): String = {
+      def apply(request: Request): String = {
         request.getPathInfo.match {
           case "^/auth/(/*)$".r(realPath) => realPath
           case => // up to you whether to return path or throw here, depends on your circumstances
@@ -104,9 +108,10 @@ For example, if you have an authentication service that responded to the /auth e
 If you're running a high throughput authentication service, you might want to avoid using SSL, and listen only for HTTP. Unfortunately, the URI Scheme is part of the signature as well, so you need a way to force the Unpacker to treat the request as HTTPS, even though it isn't. One approach would be for your authentication service to take a custom header to indicate the scheme of the originating request. You can then use the UrlSchemeGetter trait to pull this header out of the request.
 
     import com.twitter.joauth.UriSchemeGetter
+    import com.twitter.thrust.Request
     
     object MySchemeGetter extends UrlSchemeGetter {
-      def apply(request; HttpServletRequest): String = {
+      def apply(request; Request): String = {
         val header = request.getHeader("X-My-Scheme-Header")
         if (header == null) request.getScheme
         else header.toUpperCase

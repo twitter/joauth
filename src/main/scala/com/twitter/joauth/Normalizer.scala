@@ -12,9 +12,6 @@
 
 package com.twitter.joauth
 
-import java.net.URLEncoder
-import java.util.Date
-
 /**
  * a Normalizer takes the fields that describe an OAuth 1.0a request, and produces
  * the normalized string that is used for the signature.
@@ -49,6 +46,12 @@ class ConstNormalizer(const: String) extends Normalizer {
  */
 object Normalizer {
   def apply(): Normalizer = StandardNormalizer
+  val HTTP = "HTTP"
+  val HTTPS = "HTTPS"
+  val AND = "&"
+  val COLON = ":"
+  val EQ = "="
+  val COLON_SLASH_SLASH = "://"
 }
 
 /**
@@ -62,12 +65,7 @@ object StandardNormalizer extends StandardNormalizer
  * should use the corresponding StandardNormalizer object instead.
  */
 class StandardNormalizer extends Normalizer {
-  val HTTP = "HTTP"
-  val HTTPS = "HTTPS"
-  val AND = "&"
-  val COLON = ":"
-  val EQ = "="
-  val COLON_SLASH_SLASH = "://"
+  import Normalizer._
 
   def apply(
     scheme: String, 
@@ -84,14 +82,14 @@ class StandardNormalizer extends Normalizer {
 
     // now turn these back into a standard query string, with keys delimited
     // from values with "=" and pairs delimited from one another by "&"
-    val normalizedParams = sigParams.map(p => p._1+EQ+p._2).sort(_ < _).mkString(AND)
+    val normalizedParams = sigParams.map(p => p._1+EQ+p._2).sortWith(_ < _).mkString(AND)
 
     // the normalized URL is scheme://host[:port]/path, lowercased
     val requestUrl = (scheme+COLON_SLASH_SLASH+host).toLowerCase+getPortString(port,scheme)+path
 
     // the normalized string is VERB&normalizedParams&requestUrl,
     // where URL and PARAMS are UrlEncoded
-    verb.toUpperCase+AND+URLEncoder.encode(requestUrl)+AND+URLEncoder.encode(normalizedParams)
+    verb.toUpperCase+AND+UrlEncoder(requestUrl)+AND+UrlEncoder(normalizedParams)
   }
 
   /**

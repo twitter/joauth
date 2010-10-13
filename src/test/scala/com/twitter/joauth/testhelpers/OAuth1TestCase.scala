@@ -12,11 +12,8 @@
 
 package com.twitter.joauth.testhelpers
 
-import com.twitter.joauth.MalformedRequest
-import com.twitter.joauth.UnknownAuthType
-import java.net.URLDecoder
-import java.net.URLEncoder
-import javax.servlet.http.HttpServletRequest
+import com.twitter.joauth.{UrlDecoder, MalformedRequest, OAuthParams, OAuth1Request, UnknownAuthType}
+import com.twitter.thrust.{Get, Path, Request}
 
 case class OAuth1TestCase(
   val testName: String,
@@ -67,22 +64,22 @@ case class OAuth1TestCase(
     val signature = if (paramsInPost) signaturePost else signatureGet
     if (urlEncodeParams) signature
     // if it came in already encoded, we need to decode it here
-    else URLDecoder.decode(signature)
+    else UrlDecoder(signature)
   }
 
-  def httpServletRequest(oAuthInParam: Boolean, oAuthInHeader: Boolean, useNamespacedPath: Boolean, paramsInPost: Boolean): HttpServletRequest = {
+  def request(oAuthInParam: Boolean, oAuthInHeader: Boolean, useNamespacedPath: Boolean, paramsInPost: Boolean): Request = {
     val signature = if (paramsInPost) signaturePost else signatureGet
-    val request = new MockServletRequest(
-      "GET", 
+    val request = new MockRequest(
+      Get,
       scheme, 
       "123.123.123.123", 
-      if (useNamespacedPath) namespacedPath else path, 
+      Path(if (useNamespacedPath) namespacedPath else path),
       host, 
       port)
     if (oAuthInHeader) {
-      request.setHeader(
-        "Authorization",
-        MockRequestFactory.oAuth1Header(token, consumerKey, signature, nonce, timestamp.toString, urlEncodeParams))
+      request.headers +=
+        "Authorization" ->
+        MockRequestFactory.oAuth1Header(token, consumerKey, signature, nonce, timestamp.toString, urlEncodeParams)
     }
     var queryString = ParamHelper.toQueryString(parameters, urlEncodeParams)
     if (oAuthInParam) {

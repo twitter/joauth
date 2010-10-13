@@ -12,6 +12,8 @@
 
 package com.twitter.joauth.keyvalue
 
+import com.twitter.joauth.OAuthParams
+
 /**
  * The Transformer trait describes the transformation function
  * from a string to a derived string

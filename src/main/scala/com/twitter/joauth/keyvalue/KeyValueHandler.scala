@@ -26,7 +26,7 @@ trait KeyValueHandler extends ((String, String) => Unit)
  */
 class DuplicateKeyValueHandler extends KeyValueHandler {
   private val buffer = new ArrayBuffer[(String, String)]
-  override def apply(k: String, v: String): Unit = buffer += (k, v)
+  override def apply(k: String, v: String): Unit = buffer += ((k, v))
   def toList = buffer.toList
 }
 

@@ -12,6 +12,8 @@
 
 package com.twitter.joauth.keyvalue
 
+import com.twitter.joauth.OAuthParams
+
 /**
  * The KeyValueFilter trait tests validity of a key/value pair
  */

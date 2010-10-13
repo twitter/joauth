@@ -35,14 +35,13 @@ class ConstSigner(const: String) extends Signer {
  */
 object Signer {
   def apply(): Signer = StandardSigner
+  val HMACSHA1 = "HmacSHA1"
 }
 
 /**
  * a singleton of the StandardSigner class
  */
-object StandardSigner extends StandardSigner {
-  val HMACSHA1 = "HmacSHA1"
-}
+object StandardSigner extends StandardSigner
 
 /**
  * the standard implmenentation of the Signer trait. Though stateless and threadsafe,
@@ -51,11 +50,11 @@ object StandardSigner extends StandardSigner {
  */
 class StandardSigner extends Signer {
   def apply(str: String, tokenSecret: String, consumerSecret: String) = {
-    val key = consumerSecret+StandardNormalizer.AND+tokenSecret
-    val signingKey = new SecretKeySpec(key.getBytes, StandardSigner.HMACSHA1)
+    val key = consumerSecret+Normalizer.AND+tokenSecret
+    val signingKey = new SecretKeySpec(key.getBytes, Signer.HMACSHA1)
 
     // TODO: consider synchronizing this, apparently Mac may not be threadsafe
-    val mac = Mac.getInstance(StandardSigner.HMACSHA1)
+    val mac = Mac.getInstance(Signer.HMACSHA1)
     mac.init(signingKey)
     val rawHmac = mac.doFinal(str.getBytes)
     new String(Base64.encodeBase64(rawHmac))

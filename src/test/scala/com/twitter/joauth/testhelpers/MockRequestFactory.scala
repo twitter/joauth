@@ -12,7 +12,8 @@
 
 package com.twitter.joauth.testhelpers
 
-import java.io.StringBufferInputStream
+import com.twitter.joauth.UrlEncoder
+import com.twitter.thrust.Post
 import java.net.URLEncoder
 import scala.util.Random
 
@@ -20,7 +21,7 @@ object MockRequestFactory {
   val random = new Random()
   
   def oAuth1Header(token: String, clientKey: String, signature: String, nonce: String, timestamp: String, urlEncodeSig: Boolean): String = {
-    val encodedSignature = if (signature == null || !urlEncodeSig) signature else URLEncoder.encode(signature)
+    val encodedSignature = if (signature == null || !urlEncodeSig) signature else UrlEncoder(signature)
     "OAuth " + (oAuth1ParameterMap(token, clientKey, encodedSignature, nonce, timestamp).flatMap { (e) =>
       if (e._2 == null) None
       else Some(getRandomWhitespace + e._1 + getRandomWhitespace + "=" + getRandomWhitespace + quote(e._2) + getRandomWhitespace)
@@ -53,15 +54,15 @@ object MockRequestFactory {
 
   def getRandomWhitespace() =  " " * random.nextInt(2)
 
-  def request(method: String, protocol: String, ipaddr: String): MockServletRequest = {
-    new MockServletRequest(method, protocol, ipaddr)
+  def request(method: String, protocol: String, ipaddr: String): MockRequest = {
+    new MockRequest(method, protocol, ipaddr)
   }
 
-  def request(): MockServletRequest = new MockServletRequest("GET", "http", "123.123.123.123")
+  def request(): MockRequest = new MockRequest("GET", "http", "123.123.123.123")
 
-  def requestWithAuthHeader(header: String): MockServletRequest = {
-    val req = new MockServletRequest
-    req.getHeaders.put("Authorization", header)
+  def requestWithAuthHeader(header: String): MockRequest = {
+    val req = new MockRequest
+    req.headers += "Authorization" -> header
     req
   }
 
@@ -69,26 +70,25 @@ object MockRequestFactory {
     requestWithAuthHeader(oAuth1Header(token, clientKey, signature, nonce, timestamp, true))
 
   def oAuth1RequestInParams(token: String, clientKey: String, signature: String, nonce: String, timestamp: String) = {
-    val req = new MockServletRequest
+    val req = new MockRequest
     req.queryString = oAuth1QueryString(token, clientKey, signature, nonce, timestamp, true)
     req
   }
 
-  def oAuth2RequestInHeader(token: String): MockServletRequest =
+  def oAuth2RequestInHeader(token: String): MockRequest =
     requestWithAuthHeader(oAuth2Header(token))
 
-  def oAuth2RequestInParams(token: String)  : MockServletRequest = {
-    val req = new MockServletRequest
+  def oAuth2RequestInParams(token: String)  : MockRequest = {
+    val req = new MockRequest
     req.queryString = "oauth_token=%s".format(token)
     req
   }
   
-  def postRequest(request: MockServletRequest) = {
-    val sbis = new StringBufferInputStream(request.queryString)
-    request.inputStream = new MockServletInputStream(sbis)
+  def postRequest(request: MockRequest) = {
+    request.inputStream = request.queryString
     request.queryString = null
     request.contentType = "application/x-www-form-urlencoded";
-    request.method = "POST"
+    request.method = Post
     request
   }
 }

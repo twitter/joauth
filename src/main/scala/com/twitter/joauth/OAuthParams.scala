@@ -13,7 +13,6 @@
 package com.twitter.joauth
 
 import com.twitter.joauth.keyvalue.KeyValueHandler
-import java.net.URLDecoder
 
 /**
  * pull all the OAuth parameter string constants into one place,
@@ -78,7 +77,7 @@ class OAuthParams extends KeyValueHandler {
       } catch {
         case _ =>
       }
-      case OAUTH_SIGNATURE => signature = URLDecoder.decode(v)
+      case OAUTH_SIGNATURE => signature = UrlDecoder(v)
       case OAUTH_SIGNATURE_METHOD => signatureMethod = v
       case OAUTH_VERSION => version = v
       case _ => // ignore

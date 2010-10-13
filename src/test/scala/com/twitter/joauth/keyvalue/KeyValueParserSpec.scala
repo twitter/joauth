@@ -22,8 +22,8 @@ class KeyValueParserSpec extends Specification with Mockito {
     "call handler with key values" in {
       val parser = new ConstKeyValueParser(List(("a", "b"), ("c", "d")))
       parser("foo", Seq(handler))
-      handler.apply("a", "b") was called.once
-      handler.apply("c", "d") was called.once
+      there was one(handler).apply("a", "b")
+      there was one(handler).apply("c", "d")
     }
   }
 
@@ -31,25 +31,25 @@ class KeyValueParserSpec extends Specification with Mockito {
     val parser = QueryKeyValueParser
     "not blow up on null string" in {
       parser(null, Seq(handler))
-      handler.apply(any[String], any[String]) was notCalled
+      there was no(handler).apply(any[String], any[String])
     }
     "not blow up on empty string" in {
       parser("", Seq(handler))
-      handler.apply(any[String], any[String]) was notCalled
+      there was no(handler).apply(any[String], any[String])
     }
     "parse simple string" in {
       parser("foo", Seq(handler))
-      handler.apply("foo", "") was called.once
+      there was one(handler).apply("foo", "")
     }
     "parse valid pairs" in {
       parser("foo=bar&baz", Seq(handler))
-      handler.apply("foo", "bar") was called.once
-      handler.apply("baz", "") was called.once
+      there was one(handler).apply("foo", "bar")
+      there was one(handler).apply("baz", "")
     }
     "parse malformed pairs" in {
       parser("foo=bar&&baz&", Seq(handler))
-      handler.apply("foo", "bar") was called.once
-      handler.apply("baz", "") was called.once
+      there was one(handler).apply("foo", "bar")
+      there was one(handler).apply("baz", "")
     }
   }
 }

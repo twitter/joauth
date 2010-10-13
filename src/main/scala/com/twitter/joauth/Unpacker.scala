@@ -13,14 +13,14 @@
 package com.twitter.joauth
 
 import com.twitter.joauth.keyvalue._
+import com.twitter.thrust.{Post, Request}
 import java.io.ByteArrayOutputStream
-import javax.servlet.http.HttpServletRequest
 
 /**
  * it's sometimes useful to override the scheme of the request in one way or another.
  * Passing a custom class that extends UriSchemeGetter will allow this.
  */
-trait UriSchemeGetter extends ((HttpServletRequest) => String)
+trait UriSchemeGetter extends ((Request) => String)
 
 /**
  * The StandardUriSchemeGetter class obtains the scheme by calling request.getScheme.
@@ -29,7 +29,7 @@ trait UriSchemeGetter extends ((HttpServletRequest) => String)
  * object instead.
  */
 class StandardUriSchemeGetter extends UriSchemeGetter {
-  def apply(request: HttpServletRequest): String = request.getScheme
+  def apply(request: Request): String = request.scheme
 }
 
 /**
@@ -41,16 +41,16 @@ object StandardUriSchemeGetter extends StandardUriSchemeGetter
  * it's sometimes useful to override the path of the request in one way or another.
  * Passing a custom class that extends PathGetter will allow this.
  */
-trait PathGetter extends ((HttpServletRequest) => String)
+trait PathGetter extends ((Request) => String)
 
 /**
- * The StandardPathGetter class obtains the path by calling request.getPathInfo.
+ * The StandardPathGetter class obtains the path by calling request.path.
  * Though stateless and threadsafe, this is a class rather than an object to allow easy
  * access from Java. Scala codebases should use the corresponding StandardPathGetter
  * object instead.
  */
 class StandardPathGetter extends PathGetter {
-  def apply(request: HttpServletRequest): String = request.getPathInfo
+  def apply(request: Request): String = request.path.toString
 }
 
 /**
@@ -59,31 +59,26 @@ class StandardPathGetter extends PathGetter {
 object StandardPathGetter extends StandardPathGetter
 
 /**
- * An Unpacker takes an HttpServletRequest and optionally a Seq[KeyValueHandler],
+ * An Unpacker takes an Request and optionally a Seq[KeyValueHandler],
  * and parses the request into an OAuthRequest instance, invoking each KeyValueHandler
  * for every key/value pair obtained from either the queryString or the POST data.
  * If no valid request can be obtained, an UnpackerException is thrown.
  */
 trait Unpacker {
   @throws(classOf[UnpackerException])
-  def apply(request: HttpServletRequest): OAuthRequest = apply(request, Seq())
+  def apply(request: Request): OAuthRequest = apply(request, Seq())
   @throws(classOf[UnpackerException])
-  def apply(
-      request: HttpServletRequest,
-      kvHandler: KeyValueHandler): OAuthRequest = apply(request, Seq(kvHandler))
+  def apply(request: Request, kvHandler: KeyValueHandler): OAuthRequest =
+    apply(request, Seq(kvHandler))
   @throws(classOf[UnpackerException])
-  def apply(
-      request: HttpServletRequest,
-      kvHandlers: Seq[KeyValueHandler]): OAuthRequest
+  def apply(equest: Request, kvHandlers: Seq[KeyValueHandler]): OAuthRequest
 }
 
 /**
  * for testing. Always returns the same result.
  */
 class ConstUnpacker(result: OAuthRequest) extends Unpacker {
-  def apply(
-      request: HttpServletRequest,
-      kvHandlers: Seq[KeyValueHandler]): OAuthRequest = result
+  def apply(request: Request, kvHandlers: Seq[KeyValueHandler]): OAuthRequest = result
 }
 
 /**
@@ -153,10 +148,7 @@ class StandardUnpacker(
   import StandardUnpacker._
 
   @throws(classOf[UnpackerException])
-  def apply(
-    request: HttpServletRequest, 
-    kvHandlers: Seq[KeyValueHandler]): OAuthRequest = {
-
+  def apply(request: Request, kvHandlers: Seq[KeyValueHandler]): OAuthRequest = {
     try {
       val (params, oAuthParams) = parseRequest(request, kvHandlers)
 
@@ -176,23 +168,23 @@ class StandardUnpacker(
 
   @throws(classOf[MalformedRequest])
   def getOAuth1Request(
-    request: HttpServletRequest,
+    request: Request,
     params: List[(String, String)],
     oAuthParams: OAuthParams): OAuth1Request = {
       OAuth1Request(
         getScheme(request).toUpperCase,
-        request.getServerName,
-        request.getServerPort,
-        request.getMethod.toUpperCase,
+        request.serverName,
+        request.serverPort,
+        request.method.toString,
         getPath(request),
-        params, 
+        params,
         oAuthParams,
         normalizer)
   }
 
   @throws(classOf[MalformedRequest])
   def getOAuth2Request(
-      request: HttpServletRequest, token: String): OAuthRequest = {
+      request: Request, token: String): OAuthRequest = {
     // OAuth 2.0 requests are totally insecure with SSL, so depend on HTTPS to provide
     // protection against replay and man-in-the-middle attacks. If you need to run
     // an authorization service that can't do HTTPS for some reason, you can define
@@ -202,7 +194,7 @@ class StandardUnpacker(
     else throw new MalformedRequest("OAuth 2.0 requests must use HTTPS")
   }
 
-  def parseRequest(request: HttpServletRequest, kvHandlers: Seq[KeyValueHandler]) = {
+  def parseRequest(request: Request, kvHandlers: Seq[KeyValueHandler]) = {
     // get all key/value pairs, allow duplicate values for keys
     val kvHandler = new DuplicateKeyValueHandler
 
@@ -223,27 +215,27 @@ class StandardUnpacker(
       kvHandlers.map(h => new NotOAuthKeyValueHandler(h))
 
     // parse the GET query string
-    queryParser(request.getQueryString, handlerSeq)
+    queryParser(request.queryString, handlerSeq)
 
     // parse the POST if the Content-Type is appropriate. Use the same
     // set of KeyValueHandlers that we used to parse the query string.
-    if (request.getMethod.toUpperCase == POST &&
-        request.getContentType != null &&
-        request.getContentType.startsWith(WWW_FORM_URLENCODED)) {
+    if (request.method == Post &&
+        request.contentType != null &&
+        request.contentType.startsWith(WWW_FORM_URLENCODED)) {
       queryParser(getPostData(request), handlerSeq)
     }
 
-    parseHeader(request.getHeader(AUTHORIZATION), filteredOAuthKvHandler)
+    parseHeader(request.headers.get(AUTHORIZATION), filteredOAuthKvHandler)
 
     // now we just return the accumulated parameters and OAuthParams
     (kvHandler.toList, oAuthParams)
   }
 
-  def parseHeader(header: String, filteredOAuthKvHandler: KeyValueHandler): Unit = {
+  def parseHeader(header: Option[String], filteredOAuthKvHandler: KeyValueHandler): Unit = {
     // check for OAuth credentials in the header. OAuth 1.0a and 2.0 have
     // different header schemes, so match first on the auth scheme.
     header match {
-      case AUTH_HEADER_REGEX(authType, authString) => {
+      case Some(AUTH_HEADER_REGEX(authType, authString)) => {
         val headerHandler = authType.toLowerCase match {
 
           // if the auth scheme is OAuth 2.0, we want to parse the header,
@@ -278,14 +270,14 @@ class StandardUnpacker(
     }
   }
 
-  def getPostData(request: HttpServletRequest) = {
-    val is = request.getInputStream
+  def getPostData(request: Request) = {
+    val is = request.inputStream
     val stream = new ByteArrayOutputStream()
     val buf = new Array[Byte](4 * 1024)
     var letti = is.read(buf)
     var totalBytesRead = 0
     
-    val characterEncoding = request.getCharacterEncoding() match {
+    val characterEncoding = request.characterEncoding match {
       case null => UTF_8
       case encoding => encoding
     }
@@ -295,7 +287,7 @@ class StandardUnpacker(
       stream.write(buf, 0, letti)
       letti = is.read(buf)
       totalBytesRead += letti
-      if (totalBytesRead > request.getContentLength) {
+      if (totalBytesRead > request.contentLength) {
         throw new IllegalStateException("more bytes in input stream than content-length specified")
       }
     }
