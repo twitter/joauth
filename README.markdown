@@ -2,7 +2,7 @@
 
 A Scala/JVM library for authenticating HttpServletRequests using OAuth
 
-**v1.2.2 is the last version that can be built using scala 2.7.7. v1.3 and beyond require scala > 2.8 to build**
+**v1.1.2 is the last version that can be built using scala 2.7.7. v1.2 and beyond require scala > 2.8 to build**
 
 ## License
 
