@@ -26,7 +26,7 @@ trait Verifier {
  * for testing. always returns the same result.
  */
 class ConstVerifier(result: VerifierResult) extends Verifier {
-  def apply(request: OAuth1Request, tokenSecret: String, consumerSecret: String): VerifierResult = result
+  override def apply(request: OAuth1Request, tokenSecret: String, consumerSecret: String): VerifierResult = result
 }
 
 /**
@@ -52,7 +52,7 @@ class StandardVerifier(
 
   val maxClockFloatMs = maxClockFloatMins * 60000
 
-  def apply(request: OAuth1Request, tokenSecret: String, consumerSecret: String): VerifierResult = {
+  override def apply(request: OAuth1Request, tokenSecret: String, consumerSecret: String): VerifierResult = {
     if (!validateNonce(request.nonce)) VerifierResult.BAD_NONCE
     else if (!validateTimestamp(request.timestamp)) VerifierResult.BAD_TIMESTAMP
     else if (!validateSignature(request, tokenSecret, consumerSecret)) VerifierResult.BAD_SIGNATURE

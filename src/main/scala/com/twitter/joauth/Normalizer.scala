@@ -31,7 +31,7 @@ trait Normalizer {
  * ConstNormalizer can be used for testing. It will always return the same String.
  */
 class ConstNormalizer(const: String) extends Normalizer {
-  def apply(
+  override def apply(
     scheme: String, 
     host: String, 
     port: Int,
@@ -67,7 +67,7 @@ object StandardNormalizer extends StandardNormalizer
 class StandardNormalizer extends Normalizer {
   import Normalizer._
 
-  def apply(
+  override def apply(
     scheme: String, 
     host: String, 
     port: Int,

@@ -68,6 +68,7 @@ class OAuthParams(parseTimestamp: TimestampParser, processSignature: SignaturePr
   var consumerKey: String = null
   var nonce: String = null
   var timestamp: Int = -1
+  var timestampStr: String = null
   var signature: String = null
   var signatureMethod: String = null
   var version: String = null
@@ -78,7 +79,10 @@ class OAuthParams(parseTimestamp: TimestampParser, processSignature: SignaturePr
       case OAUTH_CONSUMER_KEY => consumerKey = v
       case OAUTH_NONCE => nonce = v
       case OAUTH_TIMESTAMP => parseTimestamp(v) match {
-        case Some(t:Int) => timestamp = t
+        case Some(t:Int) => {
+          timestamp = t
+          timestampStr = v
+        }
         case None => // ignore
       }
       case OAUTH_SIGNATURE => signature = processSignature(v)
@@ -91,11 +95,11 @@ class OAuthParams(parseTimestamp: TimestampParser, processSignature: SignaturePr
   // we use String.format here, because we're probably not that worried about
   // effeciency when printing the class for debugging
   override def toString: String =
-    "%s=%s,%s=%s,%s=%s,%s=%s,%s=%s,%s=%s,%s=%s".format(
+    "%s=%s,%s=%s,%s=%s,%s=%s(->%s),%s=%s,%s=%s,%s=%s".format(
     OAUTH_TOKEN, valueOrUnset(token),
     OAUTH_CONSUMER_KEY, valueOrUnset(consumerKey),
     OAUTH_NONCE, valueOrUnset(nonce),
-    OAUTH_TIMESTAMP, timestamp,
+    OAUTH_TIMESTAMP, timestampStr, timestamp,
     OAUTH_SIGNATURE, valueOrUnset(signature),
     OAUTH_SIGNATURE_METHOD, valueOrUnset(signatureMethod),
     OAUTH_VERSION, valueOrUnset(version))
@@ -107,26 +111,26 @@ class OAuthParams(parseTimestamp: TimestampParser, processSignature: SignaturePr
       (OAUTH_TOKEN, token),
       (OAUTH_CONSUMER_KEY, consumerKey),
       (OAUTH_NONCE, nonce),
-      (OAUTH_TIMESTAMP, timestamp.toString),
+      (OAUTH_TIMESTAMP, timestampStr),
       (OAUTH_SIGNATURE_METHOD, signatureMethod)) ::: 
       (if (version == null) Nil else List((OAUTH_VERSION, version)))
     
   def isOnlyOAuthTokenSet: Boolean =
     token != null &&
-        consumerKey == null &&
-        nonce == null &&
-        timestamp < 0 &&
-        signature == null &&
-        signatureMethod == null &&
-        // version is optional, but its inclusion indicates an oAuth1 request
-        version == null
+    consumerKey == null &&
+    nonce == null &&
+    timestampStr == null &&
+    signature == null &&
+    signatureMethod == null &&
+    // version is optional, but its inclusion indicates an oAuth1 request
+    version == null
 
   def areAllOAuth1FieldsSet: Boolean =
     token != null &&
-        consumerKey != null &&
-        nonce != null &&
-        timestamp >= 0 &&
-        signature != null &&
-        signatureMethod != null
-        // version is optional, so not included here
+    consumerKey != null &&
+    nonce != null &&
+    timestampStr != null &&
+    signature != null &&
+    signatureMethod != null
+    // version is optional, so not included here
 }

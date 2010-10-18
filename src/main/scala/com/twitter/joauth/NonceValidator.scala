@@ -29,12 +29,12 @@ object NoopNonceValidator extends NoopNonceValidator
  * should use the corresponding NonceValidator object instead.
  */
 class NoopNonceValidator extends NonceValidator {
-  def apply(nonce: String): Boolean = true
+  override def apply(nonce: String): Boolean = true
 }
 
 /**
  * for testing. always returns the same result.
  */
 class ConstNonceValidator(result: Boolean) extends NonceValidator {
-  def apply(nonce: String): Boolean = result
+  override def apply(nonce: String): Boolean = result
 }

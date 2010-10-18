@@ -39,6 +39,26 @@ class OAuth1ParamsSpec extends Specification with Mockito {
       params.areAllOAuth1FieldsSet must beFalse
       params.isOnlyOAuthTokenSet must beFalse
     }
+    "timestampStr set if timestamp parses" in {
+      params.timestamp must be_==(-1)
+      params.timestampStr must beNull
+      doReturn(Some(4)).when(parseTimestamp).apply("foo")
+      params("oauth_timestamp", "foo")
+      params.timestamp must be_==(4)
+      params.timestampStr must be_==("foo")
+      there was one(parseTimestamp).apply("foo")
+      there was one(parseTimestamp).apply(any[String])
+    }
+    "timestampStr null if timestamp doesn't parse" in {
+      params.timestamp must be_==(-1)
+      params.timestampStr must beNull
+      doReturn(None).when(parseTimestamp).apply("foo")
+      params("oauth_timestamp", "foo")
+      params.timestamp must be_==(-1)
+      params.timestampStr must beNull
+      there was one(parseTimestamp).apply("foo")
+      there was one(parseTimestamp).apply(any[String])
+    }
     "set all params" in {
       params.token must beNull
       params("oauth_token", "1")
@@ -58,13 +78,10 @@ class OAuth1ParamsSpec extends Specification with Mockito {
       params.areAllOAuth1FieldsSet must beFalse
       params.isOnlyOAuthTokenSet must beFalse
 
-      doReturn(Some(4)).when(parseTimestamp).apply("4")
-      params("oauth_timestamp", "4")
-      params.timestamp must be_==(4)
+      doReturn(Some(4)).when(parseTimestamp).apply("foo")
+      params("oauth_timestamp", "foo")
       params.areAllOAuth1FieldsSet must beFalse
       params.isOnlyOAuthTokenSet must beFalse
-      there was one(parseTimestamp).apply("4")
-      there was one(parseTimestamp).apply(any[String])
 
       doReturn("a").when(processSignature).apply("a")
       params.signature must beNull
@@ -81,7 +98,7 @@ class OAuth1ParamsSpec extends Specification with Mockito {
       params.areAllOAuth1FieldsSet must beTrue
       params.isOnlyOAuthTokenSet must beFalse
 
-      params.toString must be_==("oauth_token=1,oauth_consumer_key=2,oauth_nonce=3,oauth_timestamp=4,oauth_signature=a,oauth_signature_method=6,oauth_version=(unset)")
+      params.toString must be_==("oauth_token=1,oauth_consumer_key=2,oauth_nonce=3,oauth_timestamp=foo(->4),oauth_signature=a,oauth_signature_method=6,oauth_version=(unset)")
 
       // version defaults to 1.0
       params.version must beNull
@@ -90,7 +107,7 @@ class OAuth1ParamsSpec extends Specification with Mockito {
       params.areAllOAuth1FieldsSet must beTrue
       params.isOnlyOAuthTokenSet must beFalse
 
-      params.toString must be_==("oauth_token=1,oauth_consumer_key=2,oauth_nonce=3,oauth_timestamp=4,oauth_signature=a,oauth_signature_method=6,oauth_version=7")
+      params.toString must be_==("oauth_token=1,oauth_consumer_key=2,oauth_nonce=3,oauth_timestamp=foo(->4),oauth_signature=a,oauth_signature_method=6,oauth_version=7")
     }
   }
 }

@@ -52,6 +52,7 @@ case class OAuth1TestCase(
     params.consumerKey = consumerKey
     params.nonce = nonce
     params.timestamp = timestamp
+    params.timestampStr = timestamp.toString
     params.signature = signature(paramsInPost)
     params.signatureMethod = OAuthParams.HMAC_SHA1
     params.version = OAuthParams.ONE_DOT_OH

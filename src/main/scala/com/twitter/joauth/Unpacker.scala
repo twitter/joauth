@@ -29,7 +29,7 @@ trait UriSchemeGetter extends ((Request) => String)
  * object instead.
  */
 class StandardUriSchemeGetter extends UriSchemeGetter {
-  def apply(request: Request): String = request.scheme
+  override def apply(request: Request): String = request.scheme
 }
 
 /**
@@ -50,7 +50,7 @@ trait PathGetter extends ((Request) => String)
  * object instead.
  */
 class StandardPathGetter extends PathGetter {
-  def apply(request: Request): String = request.path.toString
+  override def apply(request: Request): String = request.path.toString
 }
 
 /**
@@ -72,7 +72,7 @@ trait TimestampParser extends ((String) => Option[Int])
  * object instead.
  */
 class StandardTimestampParser extends TimestampParser {
-  def apply(str: String) = try {
+  override def apply(str: String) = try {
     Some(str.toInt)
   } catch {
     case _ => None
@@ -123,7 +123,7 @@ trait Unpacker {
  * for testing. Always returns the same result.
  */
 class ConstUnpacker(result: OAuthRequest) extends Unpacker {
-  def apply(request: Request, kvHandlers: Seq[KeyValueHandler]): OAuthRequest = result
+  override def apply(request: Request, kvHandlers: Seq[KeyValueHandler]): OAuthRequest = result
 }
 
 /**
@@ -207,7 +207,7 @@ class StandardUnpacker(
   import StandardUnpacker._
 
   @throws(classOf[UnpackerException])
-  def apply(request: Request, kvHandlers: Seq[KeyValueHandler]): OAuthRequest = {
+  override def apply(request: Request, kvHandlers: Seq[KeyValueHandler]): OAuthRequest = {
     try {
       val (params, oAuthParams) = parseRequest(request, kvHandlers)
 

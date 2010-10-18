@@ -27,7 +27,7 @@ trait Signer {
  * For testing. Always returns the same string
  */
 class ConstSigner(const: String) extends Signer {
-  def apply(str: String, tokenSecret: String, consumerSecret: String) = const
+  override def apply(str: String, tokenSecret: String, consumerSecret: String) = const
 }
 
 /**
@@ -49,7 +49,7 @@ object StandardSigner extends StandardSigner
  * should use the corresponding StandardSigner object instead.
  */
 class StandardSigner extends Signer {
-  def apply(str: String, tokenSecret: String, consumerSecret: String) = {
+  override def apply(str: String, tokenSecret: String, consumerSecret: String) = {
     val key = consumerSecret+Normalizer.AND+tokenSecret
     val signingKey = new SecretKeySpec(key.getBytes, Signer.HMACSHA1)
 
