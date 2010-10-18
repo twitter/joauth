@@ -12,10 +12,13 @@
 
 package com.twitter.joauth
 
+import org.specs.mock.Mockito
 import org.specs.Specification
 
-class OAuth1ParamsSpec extends Specification {
-  val params = new OAuthParams
+class OAuth1ParamsSpec extends Specification with Mockito {
+  val parseTimestamp = mock[TimestampParser]
+  val processSignature = mock[SignatureProcessor]
+  val params = OAuthParams(parseTimestamp, processSignature)
   "OAuth1Params" should {
     "set one param, ignore unknown param" in {
       params("foo", "bar")
@@ -55,19 +58,22 @@ class OAuth1ParamsSpec extends Specification {
       params.areAllOAuth1FieldsSet must beFalse
       params.isOnlyOAuthTokenSet must beFalse
 
-      params.timestamp must be_==(-1)
-      params("oauth_timestamp", "e")
-      params.timestamp must be_==(-1)
+      doReturn(Some(4)).when(parseTimestamp).apply("4")
       params("oauth_timestamp", "4")
       params.timestamp must be_==(4)
       params.areAllOAuth1FieldsSet must beFalse
       params.isOnlyOAuthTokenSet must beFalse
+      there was one(parseTimestamp).apply("4")
+      there was one(parseTimestamp).apply(any[String])
 
+      doReturn("a").when(processSignature).apply("a")
       params.signature must beNull
-      params("oauth_signature", "a%3Db")
-      params.signature must be_==("a=b")
+      params("oauth_signature", "a")
+      params.signature must be_==("a")
       params.areAllOAuth1FieldsSet must beFalse
       params.isOnlyOAuthTokenSet must beFalse
+      there was one(processSignature).apply("a")
+      there was one(processSignature).apply(any[String])
 
       params.signatureMethod must beNull
       params("oauth_signature_method", "6")
@@ -75,7 +81,7 @@ class OAuth1ParamsSpec extends Specification {
       params.areAllOAuth1FieldsSet must beTrue
       params.isOnlyOAuthTokenSet must beFalse
 
-      params.toString must be_==("oauth_token=1,oauth_consumer_key=2,oauth_nonce=3,oauth_timestamp=4,oauth_signature=a=b,oauth_signature_method=6,oauth_version=(unset)")
+      params.toString must be_==("oauth_token=1,oauth_consumer_key=2,oauth_nonce=3,oauth_timestamp=4,oauth_signature=a,oauth_signature_method=6,oauth_version=(unset)")
 
       // version defaults to 1.0
       params.version must beNull
@@ -84,7 +90,7 @@ class OAuth1ParamsSpec extends Specification {
       params.areAllOAuth1FieldsSet must beTrue
       params.isOnlyOAuthTokenSet must beFalse
 
-      params.toString must be_==("oauth_token=1,oauth_consumer_key=2,oauth_nonce=3,oauth_timestamp=4,oauth_signature=a=b,oauth_signature_method=6,oauth_version=7")
+      params.toString must be_==("oauth_token=1,oauth_consumer_key=2,oauth_nonce=3,oauth_timestamp=4,oauth_signature=a,oauth_signature_method=6,oauth_version=7")
     }
   }
 }

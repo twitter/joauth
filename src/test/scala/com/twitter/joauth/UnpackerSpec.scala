@@ -19,6 +19,25 @@ import org.specs.mock.Mockito
 import org.specs.Specification
 
 class UnpackerSpec extends Specification with Mockito {
+  "StandardTimestampParser" should {
+    "parse legit timestamp" in {
+      StandardTimestampParser("45") must be_==(Some(45))
+    }
+    "return None for bad timestamp" in {
+      StandardTimestampParser("abdf") must beNone
+    }
+    "return None for null timestamp" in {
+      StandardTimestampParser(null) must beNone
+    }
+  }
+  "StandardSignatureProcessor" should {
+    "urldecode string" in {
+      StandardSignatureProcessor("a%3Db") must be_==("a=b")
+    }
+    "return null for null string" in {
+      StandardSignatureProcessor(null) must beNull
+    }
+  }
   "Unpacked for OAuth2 Request" should {
 
     val unpacker = StandardUnpacker()
@@ -27,7 +46,9 @@ class UnpackerSpec extends Specification with Mockito {
       new UriSchemeGetter { 
         override def apply(request: Request) = "HTTPS"
       },
-      StandardPathGetter)
+      StandardPathGetter,
+      StandardTimestampParser,
+      StandardSignatureProcessor)
 
     "unpack request with token in header HTTPS" in {
       val request = MockRequestFactory.oAuth2RequestInHeader("a");
@@ -69,7 +90,7 @@ class UnpackerSpec extends Specification with Mockito {
       }
     } else StandardPathGetter
 
-    val unpacker = StandardUnpacker(StandardUriSchemeGetter, getPath)
+    val unpacker = StandardUnpacker(StandardUriSchemeGetter, getPath, StandardTimestampParser, StandardSignatureProcessor)
     val kvHandler = mock[KeyValueHandler]
 
     if (testCase.exception == null) {

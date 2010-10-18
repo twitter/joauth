@@ -47,6 +47,10 @@ object OAuthParams {
         field == OAUTH_SIGNATURE_METHOD ||
         field == OAUTH_VERSION
   }
+  
+  def apply() = new OAuthParams(StandardTimestampParser, StandardSignatureProcessor)
+  def apply(parseTimestamp: TimestampParser, processSignature: SignatureProcessor) =
+    new OAuthParams(parseTimestamp, processSignature)
 }
 
 /**
@@ -56,7 +60,8 @@ object OAuthParams {
  * if it has all parameters set, just the token set, and for obtaining
  * a list of the params for use in producing the normalized request.
  */
-class OAuthParams extends KeyValueHandler {
+class OAuthParams(parseTimestamp: TimestampParser, processSignature: SignatureProcessor)
+  extends KeyValueHandler {
   import OAuthParams._
 
   var token: String = null
@@ -72,12 +77,11 @@ class OAuthParams extends KeyValueHandler {
       case OAUTH_TOKEN => token = v
       case OAUTH_CONSUMER_KEY => consumerKey = v
       case OAUTH_NONCE => nonce = v
-      case OAUTH_TIMESTAMP => try {
-        timestamp = v.toInt
-      } catch {
-        case _ =>
+      case OAUTH_TIMESTAMP => parseTimestamp(v) match {
+        case Some(t:Int) => timestamp = t
+        case None => // ignore
       }
-      case OAUTH_SIGNATURE => signature = UrlDecoder(v)
+      case OAUTH_SIGNATURE => signature = processSignature(v)
       case OAUTH_SIGNATURE_METHOD => signatureMethod = v
       case OAUTH_VERSION => version = v
       case _ => // ignore

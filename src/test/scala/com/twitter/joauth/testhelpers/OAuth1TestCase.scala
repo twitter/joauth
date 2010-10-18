@@ -47,7 +47,7 @@ case class OAuth1TestCase(
     normalizedRequest(paramsInPost))
 
   def oAuthParams(paramsInPost: Boolean) = {
-    val params = new OAuthParams
+    val params = OAuthParams()
     params.token = token
     params.consumerKey = consumerKey
     params.nonce = nonce

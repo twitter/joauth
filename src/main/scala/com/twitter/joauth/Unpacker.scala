@@ -59,6 +59,51 @@ class StandardPathGetter extends PathGetter {
 object StandardPathGetter extends StandardPathGetter
 
 /**
+ * The TimestampGetter trait allows one to override the default behavior when parsing
+ * timestamps, which is to parse them as integers, and ignore timestamps that are
+ * malformed
+ */
+trait TimestampParser extends ((String) => Option[Int])
+
+/**
+ * implements the default timestamp getting behavior.
+ * Though stateless and threadsafe, this is a class rather than an object to allow easy
+ * access from Java. Scala codebases should use the corresponding TimestampParser
+ * object instead.
+ */
+class StandardTimestampParser extends TimestampParser {
+  def apply(str: String) = try {
+    Some(str.toInt)
+  } catch {
+    case _ => None
+  }
+}
+
+/**
+ * a singleton of the StandardTimestampParser class
+ */
+object StandardTimestampParser extends StandardTimestampParser
+
+/**
+ * The SignatureProcessor allows custom processing of the OAuth 1.0 signature.
+ * The default implementation URLDecodes the string.
+ */
+trait SignatureProcessor extends ((String) => String)
+
+/**
+ * implements teh default signature processing behavior, which is to UrlDecode the string.
+ * Though stateless and threadsafe, this is a class rather than an object to allow easy
+ * access from Java. Scala codebases should use the corresponding StandardSignatureProcessor
+ * object instead.
+ */
+class StandardSignatureProcessor extends SignatureProcessor with UrlDecoder
+
+/**
+ * a singleton of the StandardSignatureProcessor class
+ */
+object StandardSignatureProcessor extends StandardSignatureProcessor
+
+/**
  * An Unpacker takes an Request and optionally a Seq[KeyValueHandler],
  * and parses the request into an OAuthRequest instance, invoking each KeyValueHandler
  * for every key/value pair obtained from either the queryString or the POST data.
@@ -87,16 +132,22 @@ class ConstUnpacker(result: OAuthRequest) extends Unpacker {
 object Unpacker {
   def apply(): Unpacker = StandardUnpacker()
 
-  def apply(getScheme: UriSchemeGetter, getPath: PathGetter): Unpacker =
-    StandardUnpacker(getScheme, getPath)
-
   def apply(
       getScheme: UriSchemeGetter,
       getPath: PathGetter,
+      parseTimestamp: TimestampParser,
+      processSignature: SignatureProcessor,
       normalizer: Normalizer,
       queryParser: KeyValueParser,
       headerParser: KeyValueParser): Unpacker =
-    new StandardUnpacker(getScheme, getPath, normalizer, queryParser, headerParser)
+    new StandardUnpacker(
+      getScheme,
+      getPath,
+      parseTimestamp,
+      processSignature,
+      normalizer,
+      queryParser,
+      headerParser)
 }
 
 /**
@@ -114,15 +165,21 @@ object StandardUnpacker {
   def apply(): StandardUnpacker = new StandardUnpacker(
     StandardUriSchemeGetter,
     StandardPathGetter,
+    StandardTimestampParser,
+    StandardSignatureProcessor,
     Normalizer(),
     QueryKeyValueParser,
     HeaderKeyValueParser)
 
   def apply(
     getScheme: UriSchemeGetter,
-    getPath: PathGetter): StandardUnpacker = new StandardUnpacker(
+    getPath: PathGetter,
+    parseTimestamp: TimestampParser,
+    processSignature: SignatureProcessor): StandardUnpacker = new StandardUnpacker(
       getScheme,
       getPath,
+      parseTimestamp,
+      processSignature,
       Normalizer(),
       QueryKeyValueParser,
       HeaderKeyValueParser)
@@ -142,6 +199,8 @@ object StandardUnpacker {
 class StandardUnpacker(
     getScheme: UriSchemeGetter,
     getPath: PathGetter,
+    parseTimestamp: TimestampParser,
+    processSignature: SignatureProcessor,
     normalizer: Normalizer,
     queryParser: KeyValueParser,
     headerParser: KeyValueParser) extends Unpacker {
@@ -204,7 +263,7 @@ class StandardUnpacker(
     // use an OAuthParams instance to accumulate OAuth key/values from
     // the query string, the POST (if the appropriate Content-Type), and
     // the Authorization header, if any.
-    val oAuthParams = new OAuthParams
+    val oAuthParams = OAuthParams(parseTimestamp, processSignature)
 
     // filter out non-OAuth keys, and empty values
     val filteredOAuthKvHandler = new OAuthKeyValueHandler(oAuthParams)
