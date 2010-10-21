@@ -14,6 +14,40 @@ package com.twitter.joauth
 
 import com.twitter.joauth.keyvalue.KeyValueHandler
 
+trait OAuthParamsHelper {
+  /**
+   * allows one to override the default behavior when parsing timestamps,
+   * which is to parse them as integers, and ignore timestamps that are
+   * malformed
+   */
+  def parseTimestamp(str: String): Option[Int]
+
+  /**
+   * allows custom processing of the OAuth 1.0 signature obtained from the request.
+   */
+  def processSignature(str: String): String
+}
+
+/**
+ * Provides the default implementation of the OAuthParamsHelper trait
+ * Though stateless and threadsafe, this is a class rather than an object to allow easy
+ * access from Java. Scala codebases should use the corresponding StandardOAuthParamsHelper
+ * object instead.
+ */
+class StandardOAuthParamsHelper extends OAuthParamsHelper {
+  override def parseTimestamp(str: String): Option[Int] = try {
+    Some(str.toInt)
+  } catch {
+    case _ => None
+  }
+  override def processSignature(str: String): String = UrlDecoder(str)
+}
+
+/**
+ * the singleton object of StandardOAuthParamsHelper
+ */
+object StandardOAuthParamsHelper extends StandardOAuthParamsHelper
+
 /**
  * pull all the OAuth parameter string constants into one place,
  * add a convenience method for determining if a string is an
@@ -48,9 +82,8 @@ object OAuthParams {
         field == OAUTH_VERSION
   }
   
-  def apply() = new OAuthParams(StandardTimestampParser, StandardSignatureProcessor)
-  def apply(parseTimestamp: TimestampParser, processSignature: SignatureProcessor) =
-    new OAuthParams(parseTimestamp, processSignature)
+  def apply() = new OAuthParams(StandardOAuthParamsHelper)
+  def apply(helper: OAuthParamsHelper) = new OAuthParams(helper)
 }
 
 /**
@@ -60,7 +93,7 @@ object OAuthParams {
  * if it has all parameters set, just the token set, and for obtaining
  * a list of the params for use in producing the normalized request.
  */
-class OAuthParams(parseTimestamp: TimestampParser, processSignature: SignatureProcessor)
+class OAuthParams(helper: OAuthParamsHelper)
   extends KeyValueHandler {
   import OAuthParams._
 
@@ -78,14 +111,14 @@ class OAuthParams(parseTimestamp: TimestampParser, processSignature: SignaturePr
       case OAUTH_TOKEN => token = v
       case OAUTH_CONSUMER_KEY => consumerKey = v
       case OAUTH_NONCE => nonce = v
-      case OAUTH_TIMESTAMP => parseTimestamp(v) match {
+      case OAUTH_TIMESTAMP => helper.parseTimestamp(v) match {
         case Some(t:Int) => {
           timestamp = t
           timestampStr = v
         }
         case None => // ignore
       }
-      case OAUTH_SIGNATURE => signature = processSignature(v)
+      case OAUTH_SIGNATURE => signature = helper.processSignature(v)
       case OAUTH_SIGNATURE_METHOD => signatureMethod = v
       case OAUTH_VERSION => version = v
       case _ => // ignore

@@ -19,36 +19,15 @@ import org.specs.mock.Mockito
 import org.specs.Specification
 
 class UnpackerSpec extends Specification with Mockito {
-  "StandardTimestampParser" should {
-    "parse legit timestamp" in {
-      StandardTimestampParser("45") must be_==(Some(45))
-    }
-    "return None for bad timestamp" in {
-      StandardTimestampParser("abdf") must beNone
-    }
-    "return None for null timestamp" in {
-      StandardTimestampParser(null) must beNone
-    }
-  }
-  "StandardSignatureProcessor" should {
-    "urldecode string" in {
-      StandardSignatureProcessor("a%3Db") must be_==("a=b")
-    }
-    "return null for null string" in {
-      StandardSignatureProcessor(null) must beNull
-    }
-  }
   "Unpacked for OAuth2 Request" should {
 
     val unpacker = StandardUnpacker()
     val kvHandler = mock[KeyValueHandler]
     val overriddenUnpacker = StandardUnpacker(
-      new UriSchemeGetter { 
-        override def apply(request: Request) = "HTTPS"
+      new StandardUnpackerHelper {
+        override def getScheme(request: Request) = "HTTPS"
       },
-      StandardPathGetter,
-      StandardTimestampParser,
-      StandardSignatureProcessor)
+      StandardOAuthParamsHelper)
 
     "unpack request with token in header HTTPS" in {
       val request = MockRequestFactory.oAuth2RequestInHeader("a");
@@ -84,13 +63,12 @@ class UnpackerSpec extends Specification with Mockito {
       testName, testCaseName, oAuthInParams, oAuthInHeader, useNamespacedPath, paramsInPost)
 
   def doOAuth1Tests(testCase: OAuth1TestCase, oAuthInParams: Boolean, oAuthInHeader: Boolean, useNamespacedPath: Boolean, paramsInPost: Boolean) = {
-    val getPath = if (useNamespacedPath) new PathGetter {
-      def apply(request: Request) = {
-        testCase.path
-      }
-    } else StandardPathGetter
 
-    val unpacker = StandardUnpacker(StandardUriSchemeGetter, getPath, StandardTimestampParser, StandardSignatureProcessor)
+    def helper = new StandardUnpackerHelper {
+      override def getPath(request: Request) = if (useNamespacedPath) testCase.path else super.getPath(request)
+    }
+
+    val unpacker = StandardUnpacker(helper, StandardOAuthParamsHelper)
     val kvHandler = mock[KeyValueHandler]
 
     if (testCase.exception == null) {

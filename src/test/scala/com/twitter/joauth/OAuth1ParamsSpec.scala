@@ -16,9 +16,8 @@ import org.specs.mock.Mockito
 import org.specs.Specification
 
 class OAuth1ParamsSpec extends Specification with Mockito {
-  val parseTimestamp = mock[TimestampParser]
-  val processSignature = mock[SignatureProcessor]
-  val params = OAuthParams(parseTimestamp, processSignature)
+  val helper = mock[OAuthParamsHelper]
+  val params = OAuthParams(helper)
   "OAuth1Params" should {
     "set one param, ignore unknown param" in {
       params("foo", "bar")
@@ -42,22 +41,22 @@ class OAuth1ParamsSpec extends Specification with Mockito {
     "timestampStr set if timestamp parses" in {
       params.timestamp must be_==(-1)
       params.timestampStr must beNull
-      doReturn(Some(4)).when(parseTimestamp).apply("foo")
+      doReturn(Some(4)).when(helper).parseTimestamp("foo")
       params("oauth_timestamp", "foo")
       params.timestamp must be_==(4)
       params.timestampStr must be_==("foo")
-      there was one(parseTimestamp).apply("foo")
-      there was one(parseTimestamp).apply(any[String])
+      there was one(helper).parseTimestamp("foo")
+      there was one(helper).parseTimestamp(any[String])
     }
     "timestampStr null if timestamp doesn't parse" in {
       params.timestamp must be_==(-1)
       params.timestampStr must beNull
-      doReturn(None).when(parseTimestamp).apply("foo")
+      doReturn(None).when(helper).parseTimestamp("foo")
       params("oauth_timestamp", "foo")
       params.timestamp must be_==(-1)
       params.timestampStr must beNull
-      there was one(parseTimestamp).apply("foo")
-      there was one(parseTimestamp).apply(any[String])
+      there was one(helper).parseTimestamp("foo")
+      there was one(helper).parseTimestamp(any[String])
     }
     "set all params" in {
       params.token must beNull
@@ -78,19 +77,19 @@ class OAuth1ParamsSpec extends Specification with Mockito {
       params.areAllOAuth1FieldsSet must beFalse
       params.isOnlyOAuthTokenSet must beFalse
 
-      doReturn(Some(4)).when(parseTimestamp).apply("foo")
+      doReturn(Some(4)).when(helper).parseTimestamp("foo")
       params("oauth_timestamp", "foo")
       params.areAllOAuth1FieldsSet must beFalse
       params.isOnlyOAuthTokenSet must beFalse
 
-      doReturn("a").when(processSignature).apply("a")
+      doReturn("a").when(helper).processSignature("a")
       params.signature must beNull
       params("oauth_signature", "a")
       params.signature must be_==("a")
       params.areAllOAuth1FieldsSet must beFalse
       params.isOnlyOAuthTokenSet must beFalse
-      there was one(processSignature).apply("a")
-      there was one(processSignature).apply(any[String])
+      there was one(helper).processSignature("a")
+      there was one(helper).processSignature(any[String])
 
       params.signatureMethod must beNull
       params("oauth_signature_method", "6")
@@ -108,6 +107,25 @@ class OAuth1ParamsSpec extends Specification with Mockito {
       params.isOnlyOAuthTokenSet must beFalse
 
       params.toString must be_==("oauth_token=1,oauth_consumer_key=2,oauth_nonce=3,oauth_timestamp=foo(->4),oauth_signature=a,oauth_signature_method=6,oauth_version=7")
+    }
+  }
+  "StandardOAuthParamsHelper.parseTimestamp" should {
+    "parse legit timestamp" in {
+      StandardOAuthParamsHelper.parseTimestamp("45") must be_==(Some(45))
+    }
+    "return None for bad timestamp" in {
+      StandardOAuthParamsHelper.parseTimestamp("abdf") must beNone
+    }
+    "return None for null timestamp" in {
+      StandardOAuthParamsHelper.parseTimestamp(null) must beNone
+    }
+  }
+  "StandardOAuthParamsHelper.processSignature" should {
+    "urldecode string" in {
+      StandardOAuthParamsHelper.processSignature("a%3Db") must be_==("a=b")
+    }
+    "return null for null string" in {
+      StandardOAuthParamsHelper.processSignature(null) must beNull
     }
   }
 }

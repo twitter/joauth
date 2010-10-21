@@ -16,92 +16,39 @@ import com.twitter.joauth.keyvalue._
 import com.twitter.thrust.{Post, Request}
 import java.io.ByteArrayOutputStream
 
-/**
- * it's sometimes useful to override the scheme of the request in one way or another.
- * Passing a custom class that extends UriSchemeGetter will allow this.
- */
-trait UriSchemeGetter extends ((Request) => String)
+trait UnpackerHelper {
+  /**
+   * it's sometimes useful to override the scheme of the request in one way or another.
+   */
+  def getScheme(request: Request): String
 
-/**
- * The StandardUriSchemeGetter class obtains the scheme by calling request.getScheme.
- * Though stateless and threadsafe, this is a class rather than an object to allow easy
- * access from Java. Scala codebases should use the corresponding StandardPathGetter
- * object instead.
- */
-class StandardUriSchemeGetter extends UriSchemeGetter {
-  override def apply(request: Request): String = request.scheme
+  /**
+   * it's sometimes useful to override the path of the request in one way or another.
+   */
+  def getPath(request: Request): String
+
+  /**
+   * allows custom logic for obtaining the port from the request
+   */
+  def getPort(request: Request): Int
 }
 
 /**
- * a singleton of the StandardPathGetter class
- */
-object StandardUriSchemeGetter extends StandardUriSchemeGetter
-
-/**
- * it's sometimes useful to override the path of the request in one way or another.
- * Passing a custom class that extends PathGetter will allow this.
- */
-trait PathGetter extends ((Request) => String)
-
-/**
- * The StandardPathGetter class obtains the path by calling request.path.
+ * Provides the default implementation of the UnpackerHelper trait
  * Though stateless and threadsafe, this is a class rather than an object to allow easy
- * access from Java. Scala codebases should use the corresponding StandardPathGetter
+ * access from Java. Scala codebases should use the corresponding StandardUnpackerHelper
  * object instead.
  */
-class StandardPathGetter extends PathGetter {
-  override def apply(request: Request): String = request.path.toString
+class StandardUnpackerHelper extends UnpackerHelper {
+  override def getScheme(request: Request): String = request.scheme
+  override def getPath(request: Request): String = request.path.toString
+  override def getPort(request: Request): Int = request.serverPort
 }
 
 /**
- * a singleton of the StandardPathGetter class
+ * the singleton object of StandardUnpackerHelper
  */
-object StandardPathGetter extends StandardPathGetter
-
-/**
- * The TimestampGetter trait allows one to override the default behavior when parsing
- * timestamps, which is to parse them as integers, and ignore timestamps that are
- * malformed
- */
-trait TimestampParser extends ((String) => Option[Int])
-
-/**
- * implements the default timestamp getting behavior.
- * Though stateless and threadsafe, this is a class rather than an object to allow easy
- * access from Java. Scala codebases should use the corresponding TimestampParser
- * object instead.
- */
-class StandardTimestampParser extends TimestampParser {
-  override def apply(str: String) = try {
-    Some(str.toInt)
-  } catch {
-    case _ => None
-  }
-}
-
-/**
- * a singleton of the StandardTimestampParser class
- */
-object StandardTimestampParser extends StandardTimestampParser
-
-/**
- * The SignatureProcessor allows custom processing of the OAuth 1.0 signature.
- * The default implementation URLDecodes the string.
- */
-trait SignatureProcessor extends ((String) => String)
-
-/**
- * implements teh default signature processing behavior, which is to UrlDecode the string.
- * Though stateless and threadsafe, this is a class rather than an object to allow easy
- * access from Java. Scala codebases should use the corresponding StandardSignatureProcessor
- * object instead.
- */
-class StandardSignatureProcessor extends SignatureProcessor with UrlDecoder
-
-/**
- * a singleton of the StandardSignatureProcessor class
- */
-object StandardSignatureProcessor extends StandardSignatureProcessor
+object StandardUnpackerHelper extends StandardUnpackerHelper
 
 /**
  * An Unpacker takes an Request and optionally a Seq[KeyValueHandler],
@@ -112,9 +59,11 @@ object StandardSignatureProcessor extends StandardSignatureProcessor
 trait Unpacker {
   @throws(classOf[UnpackerException])
   def apply(request: Request): OAuthRequest = apply(request, Seq())
+
   @throws(classOf[UnpackerException])
   def apply(request: Request, kvHandler: KeyValueHandler): OAuthRequest =
     apply(request, Seq(kvHandler))
+
   @throws(classOf[UnpackerException])
   def apply(equest: Request, kvHandlers: Seq[KeyValueHandler]): OAuthRequest
 }
@@ -133,21 +82,12 @@ object Unpacker {
   def apply(): Unpacker = StandardUnpacker()
 
   def apply(
-      getScheme: UriSchemeGetter,
-      getPath: PathGetter,
-      parseTimestamp: TimestampParser,
-      processSignature: SignatureProcessor,
+      helper: UnpackerHelper,
+      paramsHelper: OAuthParamsHelper,
       normalizer: Normalizer,
       queryParser: KeyValueParser,
       headerParser: KeyValueParser): Unpacker =
-    new StandardUnpacker(
-      getScheme,
-      getPath,
-      parseTimestamp,
-      processSignature,
-      normalizer,
-      queryParser,
-      headerParser)
+    new StandardUnpacker(helper, paramsHelper, normalizer, queryParser, headerParser)
 }
 
 /**
@@ -162,24 +102,18 @@ object StandardUnpacker {
   val HTTPS = "HTTPS"
   val UTF_8 = "UTF-8"
 
-  def apply(): StandardUnpacker = new StandardUnpacker(
-    StandardUriSchemeGetter,
-    StandardPathGetter,
-    StandardTimestampParser,
-    StandardSignatureProcessor,
-    Normalizer(),
-    QueryKeyValueParser,
-    HeaderKeyValueParser)
+  def apply(): StandardUnpacker =
+    new StandardUnpacker(
+      StandardUnpackerHelper,
+      StandardOAuthParamsHelper,
+      Normalizer(),
+      QueryKeyValueParser,
+      HeaderKeyValueParser)
 
-  def apply(
-    getScheme: UriSchemeGetter,
-    getPath: PathGetter,
-    parseTimestamp: TimestampParser,
-    processSignature: SignatureProcessor): StandardUnpacker = new StandardUnpacker(
-      getScheme,
-      getPath,
-      parseTimestamp,
-      processSignature,
+  def apply(helper: UnpackerHelper, paramsHelper: OAuthParamsHelper): StandardUnpacker =
+    new StandardUnpacker(
+      helper,
+      paramsHelper,
       Normalizer(),
       QueryKeyValueParser,
       HeaderKeyValueParser)
@@ -197,13 +131,12 @@ object StandardUnpacker {
  * get the parameters in the POST as a side effect of unpacking.
  */
 class StandardUnpacker(
-    getScheme: UriSchemeGetter,
-    getPath: PathGetter,
-    parseTimestamp: TimestampParser,
-    processSignature: SignatureProcessor,
+    helper: UnpackerHelper,
+    paramsHelper: OAuthParamsHelper,
     normalizer: Normalizer,
     queryParser: KeyValueParser,
     headerParser: KeyValueParser) extends Unpacker {
+
   import StandardUnpacker._
 
   @throws(classOf[UnpackerException])
@@ -231,11 +164,11 @@ class StandardUnpacker(
     params: List[(String, String)],
     oAuthParams: OAuthParams): OAuth1Request = {
       OAuth1Request(
-        getScheme(request).toUpperCase,
+        helper.getScheme(request).toUpperCase,
         request.serverName,
-        request.serverPort,
+        helper.getPort(request),
         request.method.toString,
-        getPath(request),
+        helper.getPath(request),
         params,
         oAuthParams,
         normalizer)
@@ -249,7 +182,7 @@ class StandardUnpacker(
     // an authorization service that can't do HTTPS for some reason, you can define
     // a custom UriSchemeGetter to make the scheme pretend to be HTTPS for the purposes
     // of request validation
-    if (getScheme(request).toUpperCase == HTTPS) new OAuth2Request(token)
+    if (helper.getScheme(request).toUpperCase == HTTPS) new OAuth2Request(token)
     else throw new MalformedRequest("OAuth 2.0 requests must use HTTPS")
   }
 
@@ -263,7 +196,7 @@ class StandardUnpacker(
     // use an OAuthParams instance to accumulate OAuth key/values from
     // the query string, the POST (if the appropriate Content-Type), and
     // the Authorization header, if any.
-    val oAuthParams = OAuthParams(parseTimestamp, processSignature)
+    val oAuthParams = OAuthParams(paramsHelper)
 
     // filter out non-OAuth keys, and empty values
     val filteredOAuthKvHandler = new OAuthKeyValueHandler(oAuthParams)
