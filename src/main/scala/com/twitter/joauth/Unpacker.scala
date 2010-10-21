@@ -16,7 +16,7 @@ import com.twitter.joauth.keyvalue._
 import com.twitter.thrust.{Post, Request}
 import java.io.ByteArrayOutputStream
 
-trait UnpackerHelper {
+trait UnpackerHelper extends OAuthParamsHelper {
   /**
    * it's sometimes useful to override the scheme of the request in one way or another.
    */
@@ -39,7 +39,7 @@ trait UnpackerHelper {
  * access from Java. Scala codebases should use the corresponding StandardUnpackerHelper
  * object instead.
  */
-class StandardUnpackerHelper extends UnpackerHelper {
+class StandardUnpackerHelper extends StandardOAuthParamsHelper with UnpackerHelper {
   override def getScheme(request: Request): String = request.scheme
   override def getPath(request: Request): String = request.path.toString
   override def getPort(request: Request): Int = request.serverPort
@@ -83,11 +83,10 @@ object Unpacker {
 
   def apply(
       helper: UnpackerHelper,
-      paramsHelper: OAuthParamsHelper,
       normalizer: Normalizer,
       queryParser: KeyValueParser,
       headerParser: KeyValueParser): Unpacker =
-    new StandardUnpacker(helper, paramsHelper, normalizer, queryParser, headerParser)
+    new StandardUnpacker(helper, normalizer, queryParser, headerParser)
 }
 
 /**
@@ -102,21 +101,11 @@ object StandardUnpacker {
   val HTTPS = "HTTPS"
   val UTF_8 = "UTF-8"
 
-  def apply(): StandardUnpacker =
-    new StandardUnpacker(
-      StandardUnpackerHelper,
-      StandardOAuthParamsHelper,
-      Normalizer(),
-      QueryKeyValueParser,
-      HeaderKeyValueParser)
+  def apply(): StandardUnpacker = new StandardUnpacker(
+      StandardUnpackerHelper, Normalizer(), QueryKeyValueParser, HeaderKeyValueParser)
 
-  def apply(helper: UnpackerHelper, paramsHelper: OAuthParamsHelper): StandardUnpacker =
-    new StandardUnpacker(
-      helper,
-      paramsHelper,
-      Normalizer(),
-      QueryKeyValueParser,
-      HeaderKeyValueParser)
+  def apply(helper: UnpackerHelper): StandardUnpacker =
+    new StandardUnpacker(helper, Normalizer(), QueryKeyValueParser, HeaderKeyValueParser)
 }
 
 /**
@@ -132,7 +121,6 @@ object StandardUnpacker {
  */
 class StandardUnpacker(
     helper: UnpackerHelper,
-    paramsHelper: OAuthParamsHelper,
     normalizer: Normalizer,
     queryParser: KeyValueParser,
     headerParser: KeyValueParser) extends Unpacker {
@@ -196,7 +184,7 @@ class StandardUnpacker(
     // use an OAuthParams instance to accumulate OAuth key/values from
     // the query string, the POST (if the appropriate Content-Type), and
     // the Authorization header, if any.
-    val oAuthParams = OAuthParams(paramsHelper)
+    val oAuthParams = OAuthParams(helper)
 
     // filter out non-OAuth keys, and empty values
     val filteredOAuthKvHandler = new OAuthKeyValueHandler(oAuthParams)

@@ -24,10 +24,7 @@ class UnpackerSpec extends Specification with Mockito {
     val unpacker = StandardUnpacker()
     val kvHandler = mock[KeyValueHandler]
     val overriddenUnpacker = StandardUnpacker(
-      new StandardUnpackerHelper {
-        override def getScheme(request: Request) = "HTTPS"
-      },
-      StandardOAuthParamsHelper)
+      new StandardUnpackerHelper { override def getScheme(request: Request) = "HTTPS" })
 
     "unpack request with token in header HTTPS" in {
       val request = MockRequestFactory.oAuth2RequestInHeader("a");
@@ -68,7 +65,7 @@ class UnpackerSpec extends Specification with Mockito {
       override def getPath(request: Request) = if (useNamespacedPath) testCase.path else super.getPath(request)
     }
 
-    val unpacker = StandardUnpacker(helper, StandardOAuthParamsHelper)
+    val unpacker = StandardUnpacker(helper)
     val kvHandler = mock[KeyValueHandler]
 
     if (testCase.exception == null) {
