@@ -1,10 +1,10 @@
 // Copyright 2010 Twitter, Inc.
-// 
+//
 // Licensed under the Apache License, Version 2.0 (the "License"); you may not use this
 // file except in compliance with the License. You may obtain a copy of the License at
-// 
+//
 //     http://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 // Unless required by applicable law or agreed to in writing, software distributed
 // under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
 // CONDITIONS OF ANY KIND, either express or implied. See the License for the
@@ -20,7 +20,7 @@ trait OAuthParamsHelper {
    * which is to parse them as integers, and ignore timestamps that are
    * malformed
    */
-  def parseTimestamp(str: String): Option[Int]
+  def parseTimestamp(str: String): Option[Long]
 
   /**
    * allows custom processing of the OAuth 1.0 signature obtained from the request.
@@ -35,8 +35,8 @@ trait OAuthParamsHelper {
  * object instead.
  */
 class StandardOAuthParamsHelper extends OAuthParamsHelper {
-  override def parseTimestamp(str: String): Option[Int] = try {
-    Some(str.toInt)
+  override def parseTimestamp(str: String): Option[Long] = try {
+    Some(str.toLong)
   } catch {
     case _ => None
   }
@@ -81,7 +81,7 @@ object OAuthParams {
         field == OAUTH_SIGNATURE_METHOD ||
         field == OAUTH_VERSION
   }
-  
+
   def apply() = new OAuthParams(StandardOAuthParamsHelper)
   def apply(helper: OAuthParamsHelper) = new OAuthParams(helper)
 }
@@ -100,7 +100,7 @@ class OAuthParams(helper: OAuthParamsHelper)
   var token: String = null
   var consumerKey: String = null
   var nonce: String = null
-  var timestamp: Int = -1
+  var timestamp: Long = -1
   var timestampStr: String = null
   var signature: String = null
   var signatureMethod: String = null
@@ -112,7 +112,7 @@ class OAuthParams(helper: OAuthParamsHelper)
       case OAUTH_CONSUMER_KEY => consumerKey = v
       case OAUTH_NONCE => nonce = v
       case OAUTH_TIMESTAMP => helper.parseTimestamp(v) match {
-        case Some(t:Int) => {
+        case Some(t: Long) => {
           timestamp = t
           timestampStr = v
         }
@@ -145,9 +145,9 @@ class OAuthParams(helper: OAuthParamsHelper)
       (OAUTH_CONSUMER_KEY, consumerKey),
       (OAUTH_NONCE, nonce),
       (OAUTH_TIMESTAMP, timestampStr),
-      (OAUTH_SIGNATURE_METHOD, signatureMethod)) ::: 
+      (OAUTH_SIGNATURE_METHOD, signatureMethod)) :::
       (if (version == null) Nil else List((OAUTH_VERSION, version)))
-    
+
   def isOnlyOAuthTokenSet: Boolean =
     token != null &&
     consumerKey == null &&
