@@ -1,10 +1,10 @@
 // Copyright 2010 Twitter, Inc.
-// 
+//
 // Licensed under the Apache License, Version 2.0 (the "License"); you may not use this
 // file except in compliance with the License. You may obtain a copy of the License at
-// 
+//
 //     http://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 // Unless required by applicable law or agreed to in writing, software distributed
 // under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
 // CONDITIONS OF ANY KIND, either express or implied. See the License for the
@@ -18,6 +18,8 @@ package com.twitter.joauth
  */
 trait OAuthRequest {
   def token: String
+  def oAuthParamMap: Map[String, String]
+  def processedRequest: ProcessedRequest
 }
 
 /**
@@ -33,12 +35,28 @@ case class OAuth1Request(
   signature: String,
   signatureMethod: String,
   version: String,
-  normalizedRequest: String) extends OAuthRequest
+  processedRequest: ProcessedRequest,
+  normalizedRequest: String) extends OAuthRequest {
+
+  import OAuthParams._
+
+  override lazy val oAuthParamMap = Map(
+      OAUTH_TOKEN -> token,
+      OAUTH_CONSUMER_KEY -> consumerKey,
+      OAUTH_NONCE -> nonce,
+      OAUTH_TIMESTAMP -> timestamp.toString,
+      OAUTH_SIGNATURE_METHOD -> signatureMethod,
+      OAUTH_SIGNATURE -> signature,
+      OAUTH_VERSION -> (if (version == null) ONE_DOT_OH else version),
+      NORMALIZED_REQUEST -> normalizedRequest)
+}
 
 /**
  * models an OAuth 2.0 request. Just a wrapper for the token, really.
  */
-case class OAuth2Request(token: String) extends OAuthRequest
+case class OAuth2Request(token: String, processedRequest: ProcessedRequest) extends OAuthRequest {
+  override lazy val oAuthParamMap = Map(OAuthParams.OAUTH_TOKEN -> token)
+}
 
 /**
  * The companion object's apply method produces an OAuth1Request instance by
@@ -59,17 +77,13 @@ object OAuth1Request {
 
   @throws(classOf[MalformedRequest])
   def verify(
-    scheme: String,
-    host: String,
-    port: Int,
-    verb: String,
-    path: String,
+    processedRequest: ProcessedRequest,
     oAuthParams: OAuthParams) {
-      if (scheme == null) throw nullException(SCHEME)
-      else if (host == null) throw nullException(HOST)
-      else if (port < 0) throw nullException(PORT)
-      else if (verb == null) throw nullException(VERB)
-      else if (path == null) throw nullException(PATH)
+      if (processedRequest.scheme == null) throw nullException(SCHEME)
+      else if (processedRequest.host == null) throw nullException(HOST)
+      else if (processedRequest.port < 0) throw nullException(PORT)
+      else if (processedRequest.verb == null) throw nullException(VERB)
+      else if (processedRequest.path == null) throw nullException(PATH)
       else if (oAuthParams.signatureMethod != OAuthParams.HMAC_SHA1) {
         throw new MalformedRequest(UNSUPPORTED_METHOD+oAuthParams.signatureMethod)
       }
@@ -85,16 +99,11 @@ object OAuth1Request {
 
   @throws(classOf[MalformedRequest])
   def apply(
-    scheme: String, 
-    host: String, 
-    port: Int,
-    verb: String,
-    path: String,
-    params: List[(String, String)], 
+    processedRequest: ProcessedRequest,
     oAuthParams: OAuthParams,
     normalize: Normalizer): OAuth1Request = {
 
-    verify(scheme, host, port, verb, path, oAuthParams)
+    verify(processedRequest, oAuthParams)
 
     new OAuth1Request(
       oAuthParams.token,
@@ -104,6 +113,7 @@ object OAuth1Request {
       oAuthParams.signature,
       oAuthParams.signatureMethod,
       oAuthParams.version,
-      normalize(scheme, host, port, verb, path, params, oAuthParams))
+      processedRequest,
+      normalize(processedRequest, oAuthParams))
   }
 }

@@ -61,6 +61,7 @@ object OAuthParams {
   val OAUTH_TIMESTAMP = "oauth_timestamp"
   val OAUTH_SIGNATURE_METHOD = "oauth_signature_method"
   val OAUTH_VERSION = "oauth_version"
+  val NORMALIZED_REQUEST = "normalized_request"
   val UNSET = "(unset)"
 
   val HMAC_SHA1 = "HMAC-SHA1"
@@ -139,14 +140,15 @@ class OAuthParams(helper: OAuthParamsHelper)
 
   def valueOrUnset(value: String) = if (value == null) UNSET else value
 
-  def toListNoSignature: List[(String, String)] =
+  def toList(includeSig: Boolean): List[(String, String)] =
     List(
-      (OAUTH_TOKEN, token),
-      (OAUTH_CONSUMER_KEY, consumerKey),
-      (OAUTH_NONCE, nonce),
-      (OAUTH_TIMESTAMP, timestampStr),
-      (OAUTH_SIGNATURE_METHOD, signatureMethod)) :::
-      (if (version == null) Nil else List((OAUTH_VERSION, version)))
+      OAUTH_TOKEN -> token,
+      OAUTH_CONSUMER_KEY -> consumerKey,
+      OAUTH_NONCE -> nonce,
+      OAUTH_TIMESTAMP -> timestampStr,
+      OAUTH_SIGNATURE_METHOD -> signatureMethod) :::
+    (if (includeSig) List(OAUTH_SIGNATURE -> signature) else Nil) :::
+    (if (version == null) Nil else List(OAUTH_VERSION -> version))
 
   def isOnlyOAuthTokenSet: Boolean =
     token != null &&

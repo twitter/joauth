@@ -1,10 +1,10 @@
 // Copyright 2010 Twitter, Inc.
-// 
+//
 // Licensed under the Apache License, Version 2.0 (the "License"); you may not use this
 // file except in compliance with the License. You may obtain a copy of the License at
-// 
+//
 //     http://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 // Unless required by applicable law or agreed to in writing, software distributed
 // under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
 // CONDITIONS OF ANY KIND, either express or implied. See the License for the
@@ -135,7 +135,7 @@ class StandardUnpacker(
       if (oAuthParams.areAllOAuth1FieldsSet) {
         getOAuth1Request(request, params, oAuthParams)
       } else if (oAuthParams.isOnlyOAuthTokenSet) {
-        getOAuth2Request(request, oAuthParams.token)
+        getOAuth2Request(request, params, oAuthParams.token)
       } else throw new UnknownAuthType("could not determine the authentication type")
 
     } catch {
@@ -152,25 +152,23 @@ class StandardUnpacker(
     params: List[(String, String)],
     oAuthParams: OAuthParams): OAuth1Request = {
       OAuth1Request(
-        helper.getScheme(request).toUpperCase,
-        request.serverName,
-        helper.getPort(request),
-        request.method.toString,
-        helper.getPath(request),
-        params,
+        ProcessedRequest(request, params, helper),
         oAuthParams,
         normalizer)
   }
 
   @throws(classOf[MalformedRequest])
   def getOAuth2Request(
-      request: Request, token: String): OAuthRequest = {
+      request: Request,
+      params: List[(String, String)],
+      token: String): OAuthRequest = {
     // OAuth 2.0 requests are totally insecure with SSL, so depend on HTTPS to provide
     // protection against replay and man-in-the-middle attacks. If you need to run
     // an authorization service that can't do HTTPS for some reason, you can define
     // a custom UriSchemeGetter to make the scheme pretend to be HTTPS for the purposes
     // of request validation
-    if (helper.getScheme(request).toUpperCase == HTTPS) new OAuth2Request(token)
+    if (helper.getScheme(request).toUpperCase == HTTPS)
+      new OAuth2Request(token, ProcessedRequest(request, params, helper))
     else throw new MalformedRequest("OAuth 2.0 requests must use HTTPS")
   }
 
@@ -191,7 +189,7 @@ class StandardUnpacker(
 
     // add our handlers to the passed-in handlers, to which
     // we'll only send non-oauth key/values.
-    val handlerSeq = Seq(filteredKvHandler, filteredOAuthKvHandler) ++ 
+    val handlerSeq = Seq(filteredKvHandler, filteredOAuthKvHandler) ++
       kvHandlers.map(h => new NotOAuthKeyValueHandler(h))
 
     // parse the GET query string
@@ -221,7 +219,7 @@ class StandardUnpacker(
           // if the auth scheme is OAuth 2.0, we want to parse the header,
           // pull out only the token="<TOKEN>" pair, and map it to oauth_token,
           // and pass it to our existing OAuth KeyValueHandler.
-          case OAuthParams.OAUTH2_HEADER_AUTHTYPE => 
+          case OAuthParams.OAUTH2_HEADER_AUTHTYPE =>
             Some(new OAuth2HeaderKeyValueHandler(filteredOAuthKvHandler))
 
           // otherwise, we'll send all the key/value paris directly
@@ -256,7 +254,7 @@ class StandardUnpacker(
     val buf = new Array[Byte](4 * 1024)
     var letti = is.read(buf)
     var totalBytesRead = 0
-    
+
     val characterEncoding = request.characterEncoding match {
       case null => UTF_8
       case encoding => encoding

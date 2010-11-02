@@ -1,10 +1,10 @@
 // Copyright 2010 Twitter, Inc.
-// 
+//
 // Licensed under the Apache License, Version 2.0 (the "License"); you may not use this
 // file except in compliance with the License. You may obtain a copy of the License at
-// 
+//
 //     http://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 // Unless required by applicable law or agreed to in writing, software distributed
 // under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
 // CONDITIONS OF ANY KIND, either express or implied. See the License for the
@@ -18,13 +18,16 @@ package com.twitter.joauth
  */
 trait Normalizer {
   def apply(
-    scheme: String, 
-    host: String, 
-    port: Int, 
+    scheme: String,
+    host: String,
+    port: Int,
     verb: String,
-    path: String, 
-    params: List[(String, String)], 
+    path: String,
+    params: List[(String, String)],
     oAuthParams: OAuthParams): String
+
+  def apply(req: ProcessedRequest, oAuthParams: OAuthParams): String =
+    apply(req.scheme, req.host, req.port, req.verb, req.path, req.params, oAuthParams)
 }
 
 /**
@@ -32,12 +35,12 @@ trait Normalizer {
  */
 class ConstNormalizer(const: String) extends Normalizer {
   override def apply(
-    scheme: String, 
-    host: String, 
+    scheme: String,
+    host: String,
     port: Int,
     verb: String,
-    path: String, 
-    params: List[(String, String)], 
+    path: String,
+    params: List[(String, String)],
     oAuthParams: OAuthParams): String = const
 }
 
@@ -68,17 +71,17 @@ class StandardNormalizer extends Normalizer {
   import Normalizer._
 
   override def apply(
-    scheme: String, 
-    host: String, 
+    scheme: String,
+    host: String,
     port: Int,
     verb: String,
     path: String,
-    params: List[(String, String)], 
+    params: List[(String, String)],
     oAuthParams: OAuthParams): String = {
 
     // first, concatenate the params and the oAuthParams together.
     // the parameters are already URLEncoded, so we leave them alone
-    val sigParams = params ::: oAuthParams.toListNoSignature
+    val sigParams = params ::: oAuthParams.toList(false)
 
     // now turn these back into a standard query string, with keys delimited
     // from values with "=" and pairs delimited from one another by "&"

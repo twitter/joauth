@@ -1,10 +1,10 @@
 // Copyright 2010 Twitter, Inc.
-// 
+//
 // Licensed under the Apache License, Version 2.0 (the "License"); you may not use this
 // file except in compliance with the License. You may obtain a copy of the License at
-// 
+//
 //     http://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 // Unless required by applicable law or agreed to in writing, software distributed
 // under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
 // CONDITIONS OF ANY KIND, either express or implied. See the License for the
@@ -12,7 +12,8 @@
 
 package com.twitter.joauth.testhelpers
 
-import com.twitter.joauth.{UrlDecoder, MalformedRequest, OAuthParams, OAuth1Request, UnknownAuthType}
+import com.twitter.joauth.keyvalue.UrlEncodingNormalizingTransformer
+import com.twitter.joauth.{UrlDecoder, MalformedRequest, OAuthParams, OAuth1Request, ProcessedRequest, UnknownAuthType}
 import com.twitter.thrust.{Get, Path, Request}
 
 case class OAuth1TestCase(
@@ -44,6 +45,13 @@ case class OAuth1TestCase(
     signature(paramsInPost),
     OAuthParams.HMAC_SHA1,
     OAuthParams.ONE_DOT_OH,
+    ProcessedRequest(
+      scheme.toUpperCase,
+      host,
+      port,
+      if (paramsInPost) "POST" else "GET",
+      path,
+      parameters.map(e => (e._1, UrlEncodingNormalizingTransformer(e._2)))),
     normalizedRequest(paramsInPost))
 
   def oAuthParams(paramsInPost: Boolean) = {
@@ -72,10 +80,10 @@ case class OAuth1TestCase(
     val signature = if (paramsInPost) signaturePost else signatureGet
     val request = new MockRequest(
       Get,
-      scheme, 
-      "123.123.123.123", 
+      scheme,
+      "123.123.123.123",
       Path(if (useNamespacedPath) namespacedPath else path),
-      host, 
+      host,
       port)
     if (oAuthInHeader) {
       request.headers +=

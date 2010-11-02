@@ -1,10 +1,10 @@
 // Copyright 2010 Twitter, Inc.
-// 
+//
 // Licensed under the Apache License, Version 2.0 (the "License"); you may not use this
 // file except in compliance with the License. You may obtain a copy of the License at
-// 
+//
 //     http://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 // Unless required by applicable law or agreed to in writing, software distributed
 // under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
 // CONDITIONS OF ANY KIND, either express or implied. See the License for the
@@ -15,11 +15,24 @@ package com.twitter.joauth
 import com.twitter.joauth.keyvalue.{KeyValueHandler, UrlEncodingNormalizingTransformer}
 import com.twitter.joauth.testhelpers.{MockRequestFactory, OAuth1TestCase, OAuth1TestCases}
 import com.twitter.thrust.Request
+import org.specs.matcher.Matcher
 import org.specs.mock.Mockito
 import org.specs.Specification
 
 class UnpackerSpec extends Specification with Mockito {
   "Unpacked for OAuth2 Request" should {
+
+    case class containTheToken(token: String) extends Matcher[OAuthRequest] {
+      val goodresponse = "oauth request matches token"
+       def apply(r: => OAuthRequest) = {
+         val (result, badresponse) = r match {
+           case null => (false, "unpacked request is null")
+           case u:OAuthRequest => (u.token == token,"unpacked request has incorrect token: " + u.token)
+           case _ => (false, "unknown request")
+         }
+         (result, goodresponse, badresponse)
+       }
+    }
 
     val unpacker = StandardUnpacker()
     val kvHandler = mock[KeyValueHandler]
@@ -29,17 +42,17 @@ class UnpackerSpec extends Specification with Mockito {
     "unpack request with token in header HTTPS" in {
       val request = MockRequestFactory.oAuth2RequestInHeader("a");
       request.scheme = "HTTPS"
-      unpacker(request) must be_==(OAuth2Request("a"))
+      unpacker(request) must containTheToken("a")
     }
     "unpack request with token in params HTTPS" in {
       val request = MockRequestFactory.oAuth2RequestInParams("a")
       request.scheme = "https"
-      unpacker(request) must be_==(OAuth2Request("a"))
+      unpacker(request) must containTheToken("a")
     }
     "unpack request with token in params HTTPS in POST" in {
       val request = MockRequestFactory.postRequest(MockRequestFactory.oAuth2RequestInParams("a"))
       request.scheme = "https"
-      unpacker(request) must be_==(OAuth2Request("a"))
+      unpacker(request) must containTheToken("a")
     }
     "unpack as unknown request with token in params HTTP" in {
       unpacker(MockRequestFactory.oAuth2RequestInParams("a")) must throwA[MalformedRequest]
@@ -48,14 +61,14 @@ class UnpackerSpec extends Specification with Mockito {
       unpacker(MockRequestFactory.oAuth2RequestInHeader("a")) must throwA[MalformedRequest]
     }
     "respect getScheme override with token in params HTTP" in {
-      overriddenUnpacker(MockRequestFactory.oAuth2RequestInParams("a")) must be_==(OAuth2Request("a"))
+      overriddenUnpacker(MockRequestFactory.oAuth2RequestInParams("a")) must containTheToken("a")
     }
     "respect getScheme override with token in header HTTP" in {
-      overriddenUnpacker(MockRequestFactory.oAuth2RequestInHeader("a")) must be_==(OAuth2Request("a"))
+      overriddenUnpacker(MockRequestFactory.oAuth2RequestInHeader("a")) must containTheToken("a")
     }
   }
 
-  def getTestName(testName: String, testCaseName: String, oAuthInParams: Boolean, oAuthInHeader: Boolean, useNamespacedPath: Boolean, paramsInPost: Boolean) = 
+  def getTestName(testName: String, testCaseName: String, oAuthInParams: Boolean, oAuthInHeader: Boolean, useNamespacedPath: Boolean, paramsInPost: Boolean) =
     "%s for %s oAuthInParams:%s, oAuthInHeader: %s, useNamespacedPath: %s, paramsInPost:%s".format(
       testName, testCaseName, oAuthInParams, oAuthInHeader, useNamespacedPath, paramsInPost)
 
