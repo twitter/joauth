@@ -52,14 +52,14 @@ class OAuth1RequestSpec extends Specification {
       val oAuthParams = OAuthParams()
       oAuthParams("oauth_signature_method", "HMAC-SHA1")
       OAuth1Request.verify(pr("1", "2", 3, "4", "5"), oAuthParams)
-      1
+      1 must be_==(1)
     }
     "not throw for 1.0a oauth version" in {
       val oAuthParams = OAuthParams()
       oAuthParams("oauth_signature_method", "HMAC-SHA1")
       oAuthParams("oauth_version", "1.0a")
       OAuth1Request.verify(pr("1", "2", 3, "4", "5"), oAuthParams)
-      1
+      1 must be_==(1)
     }
   }
 }
