@@ -41,17 +41,18 @@ class UnpackerSpec extends Specification with Mockito {
 
     "unpack request with token in header HTTPS" in {
       val request = MockRequestFactory.oAuth2RequestInHeader("a")
-        .setScheme("HTTPS")
+      request.scheme = "https"
       unpacker(request) must containTheToken("a")
     }
+
     "unpack request with token in params HTTPS" in {
       val request = MockRequestFactory.oAuth2RequestInParams("a")
-        .setScheme("https")
+      request.scheme = "https"
       unpacker(request) must containTheToken("a")
     }
     "unpack request with token in params HTTPS in POST" in {
       val request = MockRequestFactory.postRequest(MockRequestFactory.oAuth2RequestInParams("a"))
-        .setScheme("https")
+      request.scheme = "https"
       unpacker(request) must containTheToken("a")
     }
     "unpack as unknown request with token in params HTTP" in {

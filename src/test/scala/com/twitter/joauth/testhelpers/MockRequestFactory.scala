@@ -15,7 +15,7 @@ package com.twitter.joauth.testhelpers
 import com.twitter.joauth.UrlEncoder
 import scala.util.Random
 import com.twitter.thrust.protocol.Post
-import java.io.{ByteArrayInputStream, InputStreamReader, StringReader}
+import java.io.ByteArrayInputStream
 
 object MockRequestFactory {
   val random = new Random()
@@ -55,31 +55,34 @@ object MockRequestFactory {
   def getRandomWhitespace() =  " " * random.nextInt(2)
 
   def requestWithAuthHeader(header: String): MockRequest = {
-    new MockRequest()
-      .setHeaders(Map("Authorization" -> header))
+    val request = new MockRequest()
+    request.headers += "Authorization" -> header
+    request
   }
 
   def oAuth1RequestInHeader(token: String, clientKey: String, signature: String, nonce: String, timestamp: String) =
     requestWithAuthHeader(oAuth1Header(token, clientKey, signature, nonce, timestamp, true))
 
   def oAuth1RequestInParams(token: String, clientKey: String, signature: String, nonce: String, timestamp: String) = {
-    new MockRequest()
-      .setQueryString(oAuth1QueryString(token, clientKey, signature, nonce, timestamp, true))
+    val request = new MockRequest()
+    request.queryString = oAuth1QueryString(token, clientKey, signature, nonce, timestamp, true)
+    request
   }
 
   def oAuth2RequestInHeader(token: String): MockRequest =
     requestWithAuthHeader(oAuth2Header(token))
 
   def oAuth2RequestInParams(token: String)  : MockRequest = {
-    new MockRequest()
-      .setQueryString("oauth_token=%s".format(token))
+    val request = new MockRequest()
+    request.queryString = "oauth_token=%s".format(token)
+    request
   }
 
   def postRequest(request: MockRequest) = {
+    request.inputStream = new ByteArrayInputStream(request.queryString.getBytes("UTF-8"))
+    request.queryString = ""
+    request.headers += "Content-Type" -> "application/x-www-form-urlencoded"
+    request.method = Post
     request
-      .setInputStream(new ByteArrayInputStream(request.queryString.getBytes("UTF-8")))
-      .setQueryString(null)
-      .setContentType("application/x-www-form-urlencoded")
-      .setMethod(Post)
   }
 }

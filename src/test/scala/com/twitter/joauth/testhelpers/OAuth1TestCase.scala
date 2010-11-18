@@ -80,15 +80,13 @@ case class OAuth1TestCase(
   def request(oAuthInParam: Boolean, oAuthInHeader: Boolean, useNamespacedPath: Boolean, paramsInPost: Boolean): Request = {
     val signature = if (paramsInPost) signaturePost else signatureGet
     var request = new MockRequest()
-      .setMethod(Get)
-      .setScheme(scheme)
-      .setPath(Path(if (useNamespacedPath) namespacedPath else path))
+    request.method = Get
+    request.scheme = scheme
+    request.pathString = if (useNamespacedPath) namespacedPath else path
 
     if (oAuthInHeader) {
-      request = request.setHeaders(Map(
-        "Authorization" ->
+      request.headers += "Authorization" ->
         MockRequestFactory.oAuth1Header(token, consumerKey, signature, nonce, timestamp.toString, urlEncodeParams)
-      ))
     }
     var queryString = ParamHelper.toQueryString(parameters, urlEncodeParams)
     if (oAuthInParam) {
@@ -96,7 +94,7 @@ case class OAuth1TestCase(
       queryString += MockRequestFactory.oAuth1QueryString(token, consumerKey, signature, nonce, timestamp.toString, urlEncodeParams)
     }
     if (!queryString.isEmpty) {
-      request = request.setQueryString(queryString)
+      request.queryString = queryString
     }
     if (paramsInPost) MockRequestFactory.postRequest(request)
     request
