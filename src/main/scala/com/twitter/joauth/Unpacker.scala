@@ -202,7 +202,7 @@ class StandardUnpacker(
     if (request.method == Post &&
         request.contentType != null &&
         request.contentType.startsWith(WWW_FORM_URLENCODED)) {
-      queryParser(request.content.toString, handlerSeq)
+      queryParser(request.content.mkString, handlerSeq)
     }
 
     parseHeader(request.headers.get(AUTHORIZATION), filteredOAuthKvHandler)

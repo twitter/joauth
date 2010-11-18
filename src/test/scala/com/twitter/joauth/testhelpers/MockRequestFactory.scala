@@ -79,8 +79,10 @@ object MockRequestFactory {
   }
 
   def postRequest(request: MockRequest) = {
-    request.inputStream = new ByteArrayInputStream(request.queryString.getBytes("UTF-8"))
-    request.queryString = ""
+    if (request.queryString ne null) {
+      request.inputStream = new ByteArrayInputStream(request.queryString.getBytes("UTF-8"))
+      request.queryString = null
+    }
     request.headers += "Content-Type" -> "application/x-www-form-urlencoded"
     request.method = Post
     request

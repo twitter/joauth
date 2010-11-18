@@ -18,25 +18,25 @@ import com.twitter.thrust.protocol.Get
 import com.twitter.thrust.server.{Path, Request}
 
 case class OAuth1TestCase(
-  val testName: String,
-  val scheme: String,
-  val host: String,
-  val port: Int,
-  val path: String,
-  val namespacedPath: String,
-  val parameters: List[(String, String)],
-  val token: String,
-  val tokenSecret: String,
-  val consumerKey: String,
-  val consumerSecret: String,
-  val signatureGet: String,
-  val signaturePost: String,
-  val nonce: String,
-  val timestamp: Int,
-  val normalizedRequestGet: String,
-  val normalizedRequestPost: String,
-  val urlEncodeParams: Boolean,
-  val exception: Exception) {
+  testName: String,
+  scheme: String,
+  host: String,
+  port: Int,
+  path: String,
+  namespacedPath: String,
+  parameters: List[(String, String)],
+  token: String,
+  tokenSecret: String,
+  consumerKey: String,
+  consumerSecret: String,
+  signatureGet: String,
+  signaturePost: String,
+  nonce: String,
+  timestamp: Int,
+  normalizedRequestGet: String,
+  normalizedRequestPost: String,
+  urlEncodeParams: Boolean,
+  exception: Exception) {
 
   def oAuth1Request(paramsInPost: Boolean) = new OAuth1Request(
     token,
@@ -82,6 +82,8 @@ case class OAuth1TestCase(
     var request = new MockRequest()
     request.method = Get
     request.scheme = scheme
+    request.serverHost = host
+    request.serverPort = port
     request.pathString = if (useNamespacedPath) namespacedPath else path
 
     if (oAuthInHeader) {

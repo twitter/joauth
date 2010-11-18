@@ -1,13 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="085feefc-962a-4002-bf38-0e29b06463c3" name="Default" comment="">
+    <list default="true" id="085feefc-962a-4002-bf38-0e29b06463c3" name="Default" comment="Latest API">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/scala/com/twitter/joauth/Unpacker.scala" afterPath="$PROJECT_DIR$/src/main/scala/com/twitter/joauth/Unpacker.scala" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/scala/com/twitter/joauth/OAuthParams.scala" afterPath="$PROJECT_DIR$/src/main/scala/com/twitter/joauth/OAuthParams.scala" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/test/scala/com/twitter/joauth/UnpackerSpec.scala" afterPath="$PROJECT_DIR$/src/test/scala/com/twitter/joauth/UnpackerSpec.scala" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/test/scala/com/twitter/joauth/testhelpers/OAuth1TestCase.scala" afterPath="$PROJECT_DIR$/src/test/scala/com/twitter/joauth/testhelpers/OAuth1TestCase.scala" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/test/scala/com/twitter/joauth/testhelpers/MockRequestFactory.scala" afterPath="$PROJECT_DIR$/src/test/scala/com/twitter/joauth/testhelpers/MockRequestFactory.scala" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/test/scala/com/twitter/joauth/testhelpers/MockRequest.scala" afterPath="$PROJECT_DIR$/src/test/scala/com/twitter/joauth/testhelpers/MockRequest.scala" />
     </list>
     <ignored path=".idea/workspace.xml" />
     <ignored path="joauth.iws" />
@@ -66,7 +65,7 @@
   </component>
   <component name="FileColors" enabled="true" enabledForTabs="true" />
   <component name="FileEditorManager">
-    <splitter split-orientation="vertical" split-proportion="0.3275281">
+    <splitter split-orientation="vertical" split-proportion="0.4988764">
       <split-first>
         <leaf>
           <file leaf-file-name="OAuthRequest.scala" pinned="false" current="false" current-in-tab="false">
@@ -78,10 +77,10 @@
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="Unpacker.scala" pinned="false" current="false" current-in-tab="true">
+          <file leaf-file-name="Unpacker.scala" pinned="false" current="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/src/main/scala/com/twitter/joauth/Unpacker.scala">
               <provider selected="true" editor-type-id="text-editor">
-                <state line="217" column="28" selection-start="8374" selection-end="8374" vertical-scroll-proportion="0.12885663">
+                <state line="220" column="25" selection-start="8491" selection-end="8491" vertical-scroll-proportion="0.0">
                   <folding />
                 </state>
               </provider>
@@ -90,7 +89,16 @@
           <file leaf-file-name="OAuthParams.scala" pinned="false" current="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/src/main/scala/com/twitter/joauth/OAuthParams.scala">
               <provider selected="true" editor-type-id="text-editor">
-                <state line="155" column="20" selection-start="5292" selection-end="5292" vertical-scroll-proportion="0.0">
+                <state line="153" column="18" selection-start="5244" selection-end="5244" vertical-scroll-proportion="0.0">
+                  <folding />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="MockRequestFactory.scala" pinned="false" current="false" current-in-tab="true">
+            <entry file="file://$PROJECT_DIR$/src/test/scala/com/twitter/joauth/testhelpers/MockRequestFactory.scala">
+              <provider selected="true" editor-type-id="text-editor">
+                <state line="79" column="0" selection-start="3130" selection-end="3130" vertical-scroll-proportion="0.9045521">
                   <folding />
                 </state>
               </provider>
@@ -121,16 +129,7 @@
           <file leaf-file-name="MockRequest.scala" pinned="false" current="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/src/test/scala/com/twitter/joauth/testhelpers/MockRequest.scala">
               <provider selected="true" editor-type-id="text-editor">
-                <state line="29" column="32" selection-start="1205" selection-end="1205" vertical-scroll-proportion="-13.384615">
-                  <folding />
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file leaf-file-name="MockRequestFactory.scala" pinned="false" current="true" current-in-tab="true">
-            <entry file="file://$PROJECT_DIR$/src/test/scala/com/twitter/joauth/testhelpers/MockRequestFactory.scala">
-              <provider selected="true" editor-type-id="text-editor">
-                <state line="16" column="39" selection-start="726" selection-end="726" vertical-scroll-proportion="0.16710183">
+                <state line="28" column="38" selection-start="1150" selection-end="1150" vertical-scroll-proportion="-12.923077">
                   <folding />
                 </state>
               </provider>
@@ -139,7 +138,16 @@
           <file leaf-file-name="UnpackerSpec.scala" pinned="false" current="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/src/test/scala/com/twitter/joauth/UnpackerSpec.scala">
               <provider selected="true" editor-type-id="text-editor">
-                <state line="53" column="43" selection-start="2266" selection-end="2266" vertical-scroll-proportion="0.0">
+                <state line="55" column="0" selection-start="2352" selection-end="2352" vertical-scroll-proportion="0.0">
+                  <folding />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="UnpackerException.scala" pinned="false" current="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/src/main/scala/com/twitter/joauth/UnpackerException.scala">
+              <provider selected="true" editor-type-id="text-editor">
+                <state line="17" column="6" selection-start="721" selection-end="721" vertical-scroll-proportion="0.0">
                   <folding />
                 </state>
               </provider>
@@ -148,7 +156,16 @@
           <file leaf-file-name="OAuth1TestCase.scala" pinned="false" current="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/src/test/scala/com/twitter/joauth/testhelpers/OAuth1TestCase.scala">
               <provider selected="true" editor-type-id="text-editor">
-                <state line="88" column="32" selection-start="3112" selection-end="3112" vertical-scroll-proportion="0.0">
+                <state line="79" column="46" selection-start="2623" selection-end="2623" vertical-scroll-proportion="0.0">
+                  <folding />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="KeyValueHandler.scala" pinned="false" current="true" current-in-tab="true">
+            <entry file="file://$PROJECT_DIR$/src/main/scala/com/twitter/joauth/keyvalue/KeyValueHandler.scala">
+              <provider selected="true" editor-type-id="text-editor">
+                <state line="87" column="3" selection-start="3194" selection-end="3194" vertical-scroll-proportion="0.6242857">
                   <folding />
                 </state>
               </provider>
@@ -172,11 +189,12 @@
       <list>
         <option value="$PROJECT_DIR$/project/build/Project.scala" />
         <option value="$PROJECT_DIR$/src/main/scala/com/twitter/joauth/ProcessedRequest.scala" />
-        <option value="$PROJECT_DIR$/src/main/scala/com/twitter/joauth/Unpacker.scala" />
-        <option value="$PROJECT_DIR$/src/test/scala/com/twitter/joauth/UnpackerSpec.scala" />
         <option value="$PROJECT_DIR$/src/test/scala/com/twitter/joauth/testhelpers/MockRequest.scala" />
-        <option value="$PROJECT_DIR$/src/test/scala/com/twitter/joauth/testhelpers/OAuth1TestCase.scala" />
+        <option value="$PROJECT_DIR$/src/main/scala/com/twitter/joauth/Unpacker.scala" />
+        <option value="$PROJECT_DIR$/src/main/scala/com/twitter/joauth/OAuthParams.scala" />
         <option value="$PROJECT_DIR$/src/test/scala/com/twitter/joauth/testhelpers/MockRequestFactory.scala" />
+        <option value="$PROJECT_DIR$/src/test/scala/com/twitter/joauth/UnpackerSpec.scala" />
+        <option value="$PROJECT_DIR$/src/test/scala/com/twitter/joauth/testhelpers/OAuth1TestCase.scala" />
       </list>
     </option>
   </component>
@@ -433,20 +451,20 @@
     <frame x="0" y="22" width="1200" height="1849" extended-state="0" />
     <editor active="true" />
     <layout>
+      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Changes" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Palette" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.152809" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="true" content_ui="tabs" />
       <window_info id="Dependency Viewer" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.25" sideWeight="0.66629213" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.25" sideWeight="0.84325844" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
-      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.152809" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
-      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
@@ -465,7 +483,7 @@
     <option name="ENABLE_BACKGROUND_PROCESSES" value="false" />
     <option name="CHANGED_ON_SERVER_INTERVAL" value="60" />
     <option name="FORCE_NON_EMPTY_COMMENT" value="false" />
-    <option name="LAST_COMMIT_MESSAGE" value="compiles" />
+    <option name="LAST_COMMIT_MESSAGE" value="Latest API" />
     <option name="MAKE_NEW_CHANGELIST_ACTIVE" value="true" />
     <option name="OPTIMIZE_IMPORTS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_FILES_UP_TO_DATE_BEFORE_COMMIT" value="false" />
@@ -479,6 +497,7 @@
     <option name="SHOW_FILE_HISTORY_AS_TREE" value="false" />
     <option name="FILE_HISTORY_SPLITTER_PROPORTION" value="0.6" />
     <MESSAGE value="compiles" />
+    <MESSAGE value="Latest API" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager />
@@ -519,13 +538,6 @@
         <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" />
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/scala/com/twitter/joauth/OAuthParams.scala">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="155" column="20" selection-start="5292" selection-end="5292" vertical-scroll-proportion="0.0">
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="jar://$PROJECT_DIR$/lib_managed/compile/thrust-1.1.jar!/com/twitter/thrust/protocol/Post.class">
       <provider selected="true" editor-type-id="text-editor">
         <state line="1" column="12" selection-start="48" selection-end="48" vertical-scroll-proportion="0.010309278">
@@ -533,37 +545,58 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/test/scala/com/twitter/joauth/UnpackerSpec.scala">
+    <entry file="file://$PROJECT_DIR$/src/main/scala/com/twitter/joauth/UnpackerException.scala">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="53" column="43" selection-start="2266" selection-end="2266" vertical-scroll-proportion="0.0">
+        <state line="17" column="6" selection-start="721" selection-end="721" vertical-scroll-proportion="0.0">
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/scala/com/twitter/joauth/Unpacker.scala">
+    <entry file="file://$PROJECT_DIR$/src/main/scala/com/twitter/joauth/OAuthParams.scala">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="217" column="28" selection-start="8374" selection-end="8374" vertical-scroll-proportion="0.12885663">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/test/scala/com/twitter/joauth/testhelpers/OAuth1TestCase.scala">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="88" column="32" selection-start="3112" selection-end="3112" vertical-scroll-proportion="0.0">
+        <state line="153" column="18" selection-start="5244" selection-end="5244" vertical-scroll-proportion="0.0">
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/test/scala/com/twitter/joauth/testhelpers/MockRequest.scala">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="29" column="32" selection-start="1205" selection-end="1205" vertical-scroll-proportion="-13.384615">
+        <state line="28" column="38" selection-start="1150" selection-end="1150" vertical-scroll-proportion="-12.923077">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/scala/com/twitter/joauth/Unpacker.scala">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="220" column="25" selection-start="8491" selection-end="8491" vertical-scroll-proportion="0.0">
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/test/scala/com/twitter/joauth/testhelpers/MockRequestFactory.scala">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="16" column="39" selection-start="726" selection-end="726" vertical-scroll-proportion="0.16710183">
+        <state line="79" column="0" selection-start="3130" selection-end="3130" vertical-scroll-proportion="0.9045521">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/test/scala/com/twitter/joauth/UnpackerSpec.scala">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="55" column="0" selection-start="2352" selection-end="2352" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/test/scala/com/twitter/joauth/testhelpers/OAuth1TestCase.scala">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="79" column="46" selection-start="2623" selection-end="2623" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/scala/com/twitter/joauth/keyvalue/KeyValueHandler.scala">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="87" column="3" selection-start="3194" selection-end="3194" vertical-scroll-proportion="0.6242857">
           <folding />
         </state>
       </provider>
