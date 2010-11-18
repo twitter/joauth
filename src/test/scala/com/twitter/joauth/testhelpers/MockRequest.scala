@@ -12,62 +12,58 @@
 
 package com.twitter.joauth.testhelpers
 
-// import java.io.{BufferedReader, StringReader, StringBufferInputStream}
-// import java.util.{Locale, Arrays, Vector}
-// import javax.servlet.{ServletInputStream, RequestDispatcher}
-// import javax.servlet.http.{HttpSession, Cookie, HttpServletRequest}
+import java.nio.charset.Charset
+import com.twitter.thrust.server.{Params, Request, Path}
+import com.twitter.thrust.protocol.{Get, MultiMap, HttpMethod}
+import java.io.{ByteArrayInputStream, InputStream}
 
-import com.twitter.thrust.{Format, Headers, HttpMethod, Path, Params, Request}
-import java.io.BufferedReader
-import java.io.StringReader
-import javax.servlet.http.{Cookie, HttpServletRequest, HttpSession}
-import javax.servlet.ServletInputStream
-import scala.collection.mutable.{HashMap, Map}
+case class MockRequest(
+  _method:      Option[HttpMethod],
+  _scheme:      Option[String],
+  _path:        Option[Path],
+  _serverHost:  Option[String],
+  _serverPort:  Option[Int],
+  _headers:     Option[MultiMap],
+  _pathString:  Option[String],
+  _uriString:   Option[String],
+  _charset:     Option[Charset],
+  _queryString: Option[String],
+  _params:      Option[Params],
+  _inputStream: Option[InputStream],
+  _contentType: Option[String]) extends Request {
 
-class MockRequest(
-    var method: HttpMethod,
-    var scheme: String,
-    var remoteAddr: String,
-    var path: Path,
-    var serverName: String,
-    var serverPort: Int) extends Request {
-  def this(m: String, scheme: String, ipaddr: String) = this(HttpMethod(m), scheme, ipaddr, Path("/foo"), "foo", 80)
-  def this() = this("GET", "http", "123.123.123.123")
+  def this() = this(None, None, None, None, None, None, None, None, None, None, None, None, None)
 
-  override val headers = new Headers {
-    val underlying = new HashMap[String, String]
-    def names: List[String] = underlying.keySet.toList
+  def setMethod(_method: HttpMethod)               = copy(_method = Some(_method))
+  def setScheme(_scheme: String)                   = copy(_scheme = Some(_scheme))
+  def setPath(_path: Path)                         = copy(_path = Some(_path))
+  def setServerHost(_serverHost: String)           = copy(_serverHost = Some(_serverHost))
+  def setServerPort(_serverPort: Int)              = copy(_serverPort = Some(_serverPort))
+  def setPathString(_pathString: String)           = copy(_pathString = Some(_pathString))
+  def setHeaders(headers: Map[String, String])     = copy(_headers = Some(mapToMultiMap(headers)))
+  def setUriString(_uriString: String)             = copy(_uriString = Some(_uriString))
+  def setCharset(_charset: Charset)                = copy(_charset = Some(_charset))
+  def setQueryString(_queryString: String)         = copy(_queryString = Some(_queryString))
+  def setParams(_params: Params)                   = copy(_params = Some(_params))
+  def setInputStream(_inputStream: InputStream)    = copy(_inputStream = Some(_inputStream))
+  def setContentType(_contentType: String)         = copy(_contentType = Some(_contentType))
+
+  val serverHost                = "localhost"
+  val serverPort                = 0
+  lazy val scheme               = _scheme.getOrElse("http")
+  override lazy val contentType = _contentType.getOrElse("text/plain; charset=us-ascii")
+  lazy val pathString           = _pathString.getOrElse("/")
+  lazy val uriString            = _uriString.getOrElse(null)
+  lazy val queryString          = _queryString.getOrElse(null)
+  lazy val headers              = _headers.getOrElse(mapToMultiMap(Map[String, String]()))
+  lazy val charset              = _charset.getOrElse(Charset.forName("UTF-8"))
+  override lazy val params      = _params.get
+  lazy val inputStream          = _inputStream.getOrElse(new ByteArrayInputStream(new Array[Byte](0)))
+  lazy val method               = _method.getOrElse(Get)
+
+  private[this] def mapToMultiMap(underlying: Map[String, String]) = new MultiMap {
+    def getAll(name: String) = List(underlying(name))
     def get(name: String) = underlying.get(name)
-    def getAll(name: String) = get(name).toList.toSeq
-    def += (kv: (String, String)): Map[String, String] = underlying += kv
+    def names = underlying.keys
   }
-
-  var inputStream:ServletInputStream = null
-  var queryString:String = null
-  var contentType:String = null
-  def method_=(m:String) { method = HttpMethod(m) }
-  def inputStream_=(i:String) {
-    inputStream = new ServletInputStream {
-      val reader = new StringReader(if (i == null) "" else i)
-      def read = reader.read()
-    }
-  }
-
-  // not implemented
-  val reader: BufferedReader = null
-  val lines : Seq[String] = null
-  val characterEncoding: String = null
-  val contentLength: Int = 0
-  val protocol: String = "HTTP 1.0"
-  val params: Params = null
-  def remoteHost: String = remoteAddr
-  val authType: String = null
-  val cookies: Seq[Cookie] = null
-  val remoteUser: String = null
-  val requestedSessionId: String = null
-  def requestUri: String = path.toString
-  val servletPath: String = ""
-  val session: HttpSession = null
-  val toHttpServletRequest: HttpServletRequest = null
-  val format: Format = null
 }

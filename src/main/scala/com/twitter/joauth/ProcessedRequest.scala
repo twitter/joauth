@@ -12,13 +12,13 @@
 
 package com.twitter.joauth
 
-import com.twitter.thrust.Request
+import com.twitter.thrust.server.Request
 
 object ProcessedRequest {
   def apply(request: Request, params: List[(String, String)], helper: UnpackerHelper) =
     new ProcessedRequest(
       helper.getScheme(request).toUpperCase,
-      request.serverName,
+      request.serverHost,
       helper.getPort(request),
       request.method.toString,
       helper.getPath(request),

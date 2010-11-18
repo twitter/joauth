@@ -14,7 +14,8 @@ package com.twitter.joauth.testhelpers
 
 import com.twitter.joauth.keyvalue.UrlEncodingNormalizingTransformer
 import com.twitter.joauth.{UrlDecoder, MalformedRequest, OAuthParams, OAuth1Request, ProcessedRequest, UnknownAuthType}
-import com.twitter.thrust.{Get, Path, Request}
+import com.twitter.thrust.protocol.Get
+import com.twitter.thrust.server.{Path, Request}
 
 case class OAuth1TestCase(
   val testName: String,
@@ -78,17 +79,16 @@ case class OAuth1TestCase(
 
   def request(oAuthInParam: Boolean, oAuthInHeader: Boolean, useNamespacedPath: Boolean, paramsInPost: Boolean): Request = {
     val signature = if (paramsInPost) signaturePost else signatureGet
-    val request = new MockRequest(
-      Get,
-      scheme,
-      "123.123.123.123",
-      Path(if (useNamespacedPath) namespacedPath else path),
-      host,
-      port)
+    var request = new MockRequest()
+      .setMethod(Get)
+      .setScheme(scheme)
+      .setPath(Path(if (useNamespacedPath) namespacedPath else path))
+
     if (oAuthInHeader) {
-      request.headers +=
+      request = request.setHeaders(Map(
         "Authorization" ->
         MockRequestFactory.oAuth1Header(token, consumerKey, signature, nonce, timestamp.toString, urlEncodeParams)
+      ))
     }
     var queryString = ParamHelper.toQueryString(parameters, urlEncodeParams)
     if (oAuthInParam) {
@@ -96,7 +96,7 @@ case class OAuth1TestCase(
       queryString += MockRequestFactory.oAuth1QueryString(token, consumerKey, signature, nonce, timestamp.toString, urlEncodeParams)
     }
     if (!queryString.isEmpty) {
-      request.queryString = queryString
+      request = request.setQueryString(queryString)
     }
     if (paramsInPost) MockRequestFactory.postRequest(request)
     request
