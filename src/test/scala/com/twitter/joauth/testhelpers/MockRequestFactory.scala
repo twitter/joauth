@@ -1,10 +1,10 @@
 // Copyright 2010 Twitter, Inc.
-// 
+//
 // Licensed under the Apache License, Version 2.0 (the "License"); you may not use this
 // file except in compliance with the License. You may obtain a copy of the License at
-// 
+//
 //     http://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 // Unless required by applicable law or agreed to in writing, software distributed
 // under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
 // CONDITIONS OF ANY KIND, either express or implied. See the License for the
@@ -19,7 +19,7 @@ import scala.util.Random
 
 object MockRequestFactory {
   val random = new Random()
-  
+
   def oAuth1Header(token: String, clientKey: String, signature: String, nonce: String, timestamp: String, urlEncodeSig: Boolean): String = {
     val encodedSignature = if (signature == null || !urlEncodeSig) signature else UrlEncoder(signature)
     "OAuth " + (oAuth1ParameterMap(token, clientKey, encodedSignature, nonce, timestamp).flatMap { (e) =>
@@ -83,7 +83,7 @@ object MockRequestFactory {
     req.queryString = "oauth_token=%s".format(token)
     req
   }
-  
+
   def postRequest(request: MockRequest) = {
     request.inputStream = request.queryString
     request.queryString = null

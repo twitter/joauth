@@ -39,21 +39,21 @@ class OAuth1ParamsSpec extends Specification with Mockito {
       params.isOnlyOAuthTokenSet must beFalse
     }
     "timestampStr set if timestamp parses" in {
-      params.timestamp must be_==(-1)
+      params.timestampSecs must be_==(-1)
       params.timestampStr must beNull
       doReturn(Some(4L)).when(helper).parseTimestamp("foo")
       params("oauth_timestamp", "foo")
-      params.timestamp must be_==(4L)
+      params.timestampSecs must be_==(4L)
       params.timestampStr must be_==("foo")
       there was one(helper).parseTimestamp("foo")
       there was one(helper).parseTimestamp(any[String])
     }
     "timestampStr null if timestamp doesn't parse" in {
-      params.timestamp must be_==(-1)
+      params.timestampSecs must be_==(-1)
       params.timestampStr must beNull
       doReturn(None).when(helper).parseTimestamp("foo")
       params("oauth_timestamp", "foo")
-      params.timestamp must be_==(-1)
+      params.timestampSecs must be_==(-1)
       params.timestampStr must beNull
       there was one(helper).parseTimestamp("foo")
       there was one(helper).parseTimestamp(any[String])
