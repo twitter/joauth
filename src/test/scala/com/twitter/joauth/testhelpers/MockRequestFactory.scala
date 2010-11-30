@@ -15,6 +15,7 @@ package com.twitter.joauth.testhelpers
 import com.twitter.joauth.UrlEncoder
 import scala.util.Random
 import com.twitter.thrust.protocol.Post
+import com.twitter.thrust.server.MockRequest
 import java.io.ByteArrayInputStream
 
 object MockRequestFactory {
