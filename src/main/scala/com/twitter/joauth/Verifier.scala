@@ -1,10 +1,10 @@
 // Copyright 2010 Twitter, Inc.
-// 
+//
 // Licensed under the Apache License, Version 2.0 (the "License"); you may not use this
 // file except in compliance with the License. You may obtain a copy of the License at
-// 
+//
 //     http://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 // Unless required by applicable law or agreed to in writing, software distributed
 // under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
 // CONDITIONS OF ANY KIND, either express or implied. See the License for the
@@ -34,13 +34,13 @@ class ConstVerifier(result: VerifierResult) extends Verifier {
  */
 object Verifier {
   val NO_TIMESTAMP_CHECK = -1
-  
+
   def apply(): Verifier = new StandardVerifier(Signer(), NO_TIMESTAMP_CHECK, NoopNonceValidator)
-  def apply(maxClockFloat: Int) = new StandardVerifier(Signer(), maxClockFloat, NoopNonceValidator)
-  def apply(maxClockFloat: Int, validateNonce: NonceValidator) =
-    new StandardVerifier(Signer(), maxClockFloat, validateNonce)
-  def apply(sign: Signer, maxClockFloat: Int, validateNonce: NonceValidator) =
-    new StandardVerifier(sign, maxClockFloat, validateNonce)
+  def apply(maxClockFloatMins: Int) = new StandardVerifier(Signer(), maxClockFloatMins, NoopNonceValidator)
+  def apply(maxClockFloatMins: Int, validateNonce: NonceValidator) =
+    new StandardVerifier(Signer(), maxClockFloatMins, validateNonce)
+  def apply(sign: Signer, maxClockFloatMins: Int, validateNonce: NonceValidator) =
+    new StandardVerifier(sign, maxClockFloatMins, validateNonce)
 }
 
 /**
@@ -50,19 +50,19 @@ object Verifier {
 class StandardVerifier(
   sign: Signer, maxClockFloatMins: Int, validateNonce: NonceValidator) extends Verifier {
 
-  val maxClockFloatMs = maxClockFloatMins * 60000
+  val maxClockFloatSecs = maxClockFloatMins * 60L
 
   override def apply(request: OAuth1Request, tokenSecret: String, consumerSecret: String): VerifierResult = {
     if (!validateNonce(request.nonce)) VerifierResult.BAD_NONCE
-    else if (!validateTimestamp(request.timestamp)) VerifierResult.BAD_TIMESTAMP
+    else if (!validateTimestampSecs(request.timestampSecs)) VerifierResult.BAD_TIMESTAMP
     else if (!validateSignature(request, tokenSecret, consumerSecret)) VerifierResult.BAD_SIGNATURE
     else VerifierResult.OK
   }
 
-  def validateTimestamp(timestamp: Long): Boolean = {
-    val now = (new Date).getTime
-    (maxClockFloatMs < 0) ||
-      ((timestamp >= now - maxClockFloatMs) && (timestamp <= now + maxClockFloatMs))
+  def validateTimestampSecs(timestampSecs: Long): Boolean = {
+    val nowSecs = (new Date).getTime / 1000
+    (maxClockFloatSecs < 0) ||
+      ((timestampSecs >= nowSecs - maxClockFloatSecs) && (timestampSecs <= nowSecs + maxClockFloatSecs))
   }
 
   def validateSignature(

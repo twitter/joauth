@@ -101,7 +101,7 @@ class OAuthParams(helper: OAuthParamsHelper)
   var token: String = null
   var consumerKey: String = null
   var nonce: String = null
-  var timestamp: Long = -1
+  var timestampSecs: Long = -1
   var timestampStr: String = null
   var signature: String = null
   var signatureMethod: String = null
@@ -114,7 +114,7 @@ class OAuthParams(helper: OAuthParamsHelper)
       case OAUTH_NONCE => nonce = v
       case OAUTH_TIMESTAMP => helper.parseTimestamp(v) match {
         case Some(t: Long) => {
-          timestamp = t
+          timestampSecs = t
           timestampStr = v
         }
         case None => // ignore
@@ -133,7 +133,7 @@ class OAuthParams(helper: OAuthParamsHelper)
     OAUTH_TOKEN, valueOrUnset(token),
     OAUTH_CONSUMER_KEY, valueOrUnset(consumerKey),
     OAUTH_NONCE, valueOrUnset(nonce),
-    OAUTH_TIMESTAMP, timestampStr, timestamp,
+    OAUTH_TIMESTAMP, timestampStr, timestampSecs,
     OAUTH_SIGNATURE, valueOrUnset(signature),
     OAUTH_SIGNATURE_METHOD, valueOrUnset(signatureMethod),
     OAUTH_VERSION, valueOrUnset(version))

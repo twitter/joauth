@@ -15,34 +15,34 @@ package com.twitter.joauth.testhelpers
 import com.twitter.joauth.keyvalue.UrlEncodingNormalizingTransformer
 import com.twitter.joauth.{UrlDecoder, MalformedRequest, OAuthParams, OAuth1Request, ProcessedRequest, UnknownAuthType}
 import com.twitter.thrust.protocol.Get
-import com.twitter.thrust.server.{Path, Request}
+import com.twitter.thrust.server.{MockRequest, Path, Request}
 
 case class OAuth1TestCase(
-  testName: String,
-  scheme: String,
-  host: String,
-  port: Int,
-  path: String,
-  namespacedPath: String,
-  parameters: List[(String, String)],
-  token: String,
-  tokenSecret: String,
-  consumerKey: String,
-  consumerSecret: String,
-  signatureGet: String,
-  signaturePost: String,
-  nonce: String,
-  timestamp: Int,
-  normalizedRequestGet: String,
-  normalizedRequestPost: String,
-  urlEncodeParams: Boolean,
-  exception: Exception) {
+  val testName: String,
+  val scheme: String,
+  val host: String,
+  val port: Int,
+  val path: String,
+  val namespacedPath: String,
+  val parameters: List[(String, String)],
+  val token: String,
+  val tokenSecret: String,
+  val consumerKey: String,
+  val consumerSecret: String,
+  val signatureGet: String,
+  val signaturePost: String,
+  val nonce: String,
+  val timestampSecs: Int,
+  val normalizedRequestGet: String,
+  val normalizedRequestPost: String,
+  val urlEncodeParams: Boolean,
+  val exception: Exception) {
 
   def oAuth1Request(paramsInPost: Boolean) = new OAuth1Request(
     token,
     consumerKey,
     nonce,
-    timestamp,
+    timestampSecs,
     signature(paramsInPost),
     OAuthParams.HMAC_SHA1,
     OAuthParams.ONE_DOT_OH,
@@ -60,8 +60,8 @@ case class OAuth1TestCase(
     params.token = token
     params.consumerKey = consumerKey
     params.nonce = nonce
-    params.timestamp = timestamp
-    params.timestampStr = timestamp.toString
+    params.timestampSecs = timestampSecs
+    params.timestampStr = timestampSecs.toString
     params.signature = signature(paramsInPost)
     params.signatureMethod = OAuthParams.HMAC_SHA1
     params.version = OAuthParams.ONE_DOT_OH
@@ -79,21 +79,21 @@ case class OAuth1TestCase(
 
   def request(oAuthInParam: Boolean, oAuthInHeader: Boolean, useNamespacedPath: Boolean, paramsInPost: Boolean): Request = {
     val signature = if (paramsInPost) signaturePost else signatureGet
-    var request = new MockRequest()
+    var request = new MockRequest
     request.method = Get
     request.scheme = scheme
     request.serverHost = host
     request.serverPort = port
-    request.pathString = if (useNamespacedPath) namespacedPath else path
+    request.uriString = if (useNamespacedPath) namespacedPath else path
 
     if (oAuthInHeader) {
       request.headers += "Authorization" ->
-        MockRequestFactory.oAuth1Header(token, consumerKey, signature, nonce, timestamp.toString, urlEncodeParams)
+        MockRequestFactory.oAuth1Header(token, consumerKey, signature, nonce, timestampSecs.toString, urlEncodeParams)
     }
     var queryString = ParamHelper.toQueryString(parameters, urlEncodeParams)
     if (oAuthInParam) {
       if (!queryString.isEmpty) queryString += "&"
-      queryString += MockRequestFactory.oAuth1QueryString(token, consumerKey, signature, nonce, timestamp.toString, urlEncodeParams)
+      queryString += MockRequestFactory.oAuth1QueryString(token, consumerKey, signature, nonce, timestampSecs.toString, urlEncodeParams)
     }
     if (!queryString.isEmpty) {
       request.queryString = queryString
