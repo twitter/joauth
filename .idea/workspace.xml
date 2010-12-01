@@ -2,9 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="085feefc-962a-4002-bf38-0e29b06463c3" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/scala/com/twitter/joauth/Unpacker.scala" afterPath="$PROJECT_DIR$/src/main/scala/com/twitter/joauth/Unpacker.scala" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/project/build.properties" afterPath="$PROJECT_DIR$/project/build.properties" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/test/scala/com/twitter/joauth/testhelpers/MockRequestFactory.scala" afterPath="$PROJECT_DIR$/src/test/scala/com/twitter/joauth/testhelpers/MockRequestFactory.scala" />
     </list>
     <ignored path="joauth.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -75,10 +74,19 @@
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="Unpacker.scala" pinned="false" current="true" current-in-tab="true">
+          <file leaf-file-name="Unpacker.scala" pinned="false" current="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/src/main/scala/com/twitter/joauth/Unpacker.scala">
               <provider selected="true" editor-type-id="text-editor">
-                <state line="146" column="0" selection-start="5455" selection-end="5455" vertical-scroll-proportion="0.8451817">
+                <state line="135" column="46" selection-start="5019" selection-end="5019" vertical-scroll-proportion="0.0">
+                  <folding />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="build.properties" pinned="false" current="true" current-in-tab="true">
+            <entry file="file://$PROJECT_DIR$/project/build.properties">
+              <provider selected="true" editor-type-id="text-editor">
+                <state line="8" column="0" selection-start="195" selection-end="195" vertical-scroll-proportion="0.15165877">
                   <folding />
                 </state>
               </provider>
@@ -185,6 +193,7 @@
         <option value="$PROJECT_DIR$/src/test/scala/com/twitter/joauth/testhelpers/OAuth1TestCase.scala" />
         <option value="$PROJECT_DIR$/src/test/scala/com/twitter/joauth/testhelpers/MockRequestFactory.scala" />
         <option value="$PROJECT_DIR$/src/main/scala/com/twitter/joauth/Unpacker.scala" />
+        <option value="$PROJECT_DIR$/project/build.properties" />
       </list>
     </option>
   </component>
@@ -517,7 +526,7 @@
     <option name="ENABLE_BACKGROUND_PROCESSES" value="false" />
     <option name="CHANGED_ON_SERVER_INTERVAL" value="60" />
     <option name="FORCE_NON_EMPTY_COMMENT" value="false" />
-    <option name="LAST_COMMIT_MESSAGE" value="Merge branch 'master' of https://github.com/9len/joauth into new_thrust&#10;&#10;Conflicts:&#10;&#9;src/test/scala/com/twitter/joauth/testhelpers/OAuth1TestCase.scala&#10;" />
+    <option name="LAST_COMMIT_MESSAGE" value="Added content-length header... I'm not sure how it worked before..." />
     <option name="MAKE_NEW_CHANGELIST_ACTIVE" value="true" />
     <option name="OPTIMIZE_IMPORTS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_FILES_UP_TO_DATE_BEFORE_COMMIT" value="false" />
@@ -534,18 +543,12 @@
     <MESSAGE value="Latest API" />
     <MESSAGE value="latest thrust" />
     <MESSAGE value="Merge branch 'master' of https://github.com/9len/joauth into new_thrust&#10;&#10;Conflicts:&#10;&#9;src/test/scala/com/twitter/joauth/testhelpers/OAuth1TestCase.scala&#10;" />
+    <MESSAGE value="Added content-length header... I'm not sure how it worked before..." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/src/main/scala/com/twitter/joauth/OAuthParams.scala">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="153" column="18" selection-start="5256" selection-end="5256" vertical-scroll-proportion="0.0">
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/project/plugins/Plugins.scala">
       <provider selected="true" editor-type-id="text-editor">
         <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" />
@@ -607,7 +610,14 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/scala/com/twitter/joauth/Unpacker.scala">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="146" column="0" selection-start="5455" selection-end="5455" vertical-scroll-proportion="0.8451817">
+        <state line="135" column="46" selection-start="5019" selection-end="5019" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/project/build.properties">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="8" column="0" selection-start="195" selection-end="195" vertical-scroll-proportion="0.15165877">
           <folding />
         </state>
       </provider>
