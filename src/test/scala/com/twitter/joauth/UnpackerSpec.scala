@@ -14,7 +14,7 @@ package com.twitter.joauth
 
 import com.twitter.joauth.keyvalue.{KeyValueHandler, UrlEncodingNormalizingTransformer}
 import com.twitter.joauth.testhelpers.{MockRequestFactory, OAuth1TestCase, OAuth1TestCases}
-import com.twitter.thrust.Request
+import com.twitter.thrust.server.Request
 import org.specs.matcher.Matcher
 import org.specs.mock.Mockito
 import org.specs.Specification
@@ -40,10 +40,11 @@ class UnpackerSpec extends Specification with Mockito {
       new StandardUnpackerHelper { override def getScheme(request: Request) = "HTTPS" })
 
     "unpack request with token in header HTTPS" in {
-      val request = MockRequestFactory.oAuth2RequestInHeader("a");
-      request.scheme = "HTTPS"
+      val request = MockRequestFactory.oAuth2RequestInHeader("a")
+      request.scheme = "https"
       unpacker(request) must containTheToken("a")
     }
+
     "unpack request with token in params HTTPS" in {
       val request = MockRequestFactory.oAuth2RequestInParams("a")
       request.scheme = "https"

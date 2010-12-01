@@ -150,7 +150,7 @@ class OAuthParams(helper: OAuthParamsHelper)
     (if (includeSig) List(OAUTH_SIGNATURE -> signature) else Nil) :::
     (if (version == null) Nil else List(OAUTH_VERSION -> version))
 
-  def isOnlyOAuthTokenSet: Boolean =
+  def isOnlyOAuthTokenSet: Boolean = {
     token != null &&
     consumerKey == null &&
     nonce == null &&
@@ -159,6 +159,7 @@ class OAuthParams(helper: OAuthParamsHelper)
     signatureMethod == null &&
     // version is optional, but its inclusion indicates an oAuth1 request
     version == null
+  }
 
   def areAllOAuth1FieldsSet: Boolean =
     token != null &&

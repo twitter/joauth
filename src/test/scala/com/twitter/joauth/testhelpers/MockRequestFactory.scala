@@ -13,9 +13,10 @@
 package com.twitter.joauth.testhelpers
 
 import com.twitter.joauth.UrlEncoder
-import com.twitter.thrust.Post
-import java.net.URLEncoder
 import scala.util.Random
+import com.twitter.thrust.protocol.Post
+import com.twitter.thrust.server.MockRequest
+import java.io.ByteArrayInputStream
 
 object MockRequestFactory {
   val random = new Random()
@@ -54,40 +55,40 @@ object MockRequestFactory {
 
   def getRandomWhitespace() =  " " * random.nextInt(2)
 
-  def request(method: String, protocol: String, ipaddr: String): MockRequest = {
-    new MockRequest(method, protocol, ipaddr)
-  }
-
-  def request(): MockRequest = new MockRequest("GET", "http", "123.123.123.123")
-
   def requestWithAuthHeader(header: String): MockRequest = {
-    val req = new MockRequest
-    req.headers += "Authorization" -> header
-    req
+    val request = new MockRequest()
+    request.headers += "Authorization" -> header
+    request
   }
 
   def oAuth1RequestInHeader(token: String, clientKey: String, signature: String, nonce: String, timestamp: String) =
     requestWithAuthHeader(oAuth1Header(token, clientKey, signature, nonce, timestamp, true))
 
   def oAuth1RequestInParams(token: String, clientKey: String, signature: String, nonce: String, timestamp: String) = {
-    val req = new MockRequest
-    req.queryString = oAuth1QueryString(token, clientKey, signature, nonce, timestamp, true)
-    req
+    val request = new MockRequest()
+    request.queryString = oAuth1QueryString(token, clientKey, signature, nonce, timestamp, true)
+    request
   }
 
   def oAuth2RequestInHeader(token: String): MockRequest =
     requestWithAuthHeader(oAuth2Header(token))
 
   def oAuth2RequestInParams(token: String)  : MockRequest = {
-    val req = new MockRequest
-    req.queryString = "oauth_token=%s".format(token)
-    req
+    val request = new MockRequest()
+    request.queryString = "oauth_token=%s".format(token)
+    request
   }
 
   def postRequest(request: MockRequest) = {
-    request.inputStream = request.queryString
-    request.queryString = null
-    request.contentType = "application/x-www-form-urlencoded";
+    if (request.queryString ne null) {
+      val bytes = request.queryString.getBytes("UTF-8")
+      request.headers += "Content-Length" -> bytes.length.toString
+      request.inputStream = new ByteArrayInputStream(bytes)
+      request.queryString = null
+    } else {
+      request.headers += "Content-Length" -> "0"
+    }
+    request.headers += "Content-Type" -> "application/x-www-form-urlencoded"
     request.method = Post
     request
   }

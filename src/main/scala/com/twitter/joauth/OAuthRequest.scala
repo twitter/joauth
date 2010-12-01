@@ -16,7 +16,7 @@ package com.twitter.joauth
  * Both OAuth 1.0a and 2.0 requests have access tokens,
  * so it's convenient to combine them into a single trait
  */
-trait OAuthRequest {
+sealed trait OAuthRequest {
   def token: String
   def oAuthParamMap: Map[String, String]
   def processedRequest: ProcessedRequest

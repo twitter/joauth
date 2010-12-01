@@ -14,7 +14,8 @@ package com.twitter.joauth.testhelpers
 
 import com.twitter.joauth.keyvalue.UrlEncodingNormalizingTransformer
 import com.twitter.joauth.{UrlDecoder, MalformedRequest, OAuthParams, OAuth1Request, ProcessedRequest, UnknownAuthType}
-import com.twitter.thrust.{Get, Path, Request}
+import com.twitter.thrust.protocol.Get
+import com.twitter.thrust.server.{MockRequest, Path, Request}
 
 case class OAuth1TestCase(
   val testName: String,
@@ -78,16 +79,15 @@ case class OAuth1TestCase(
 
   def request(oAuthInParam: Boolean, oAuthInHeader: Boolean, useNamespacedPath: Boolean, paramsInPost: Boolean): Request = {
     val signature = if (paramsInPost) signaturePost else signatureGet
-    val request = new MockRequest(
-      Get,
-      scheme,
-      "123.123.123.123",
-      Path(if (useNamespacedPath) namespacedPath else path),
-      host,
-      port)
+    var request = new MockRequest
+    request.method = Get
+    request.scheme = scheme
+    request.serverHost = host
+    request.serverPort = port
+    request.uriString = if (useNamespacedPath) namespacedPath else path
+
     if (oAuthInHeader) {
-      request.headers +=
-        "Authorization" ->
+      request.headers += "Authorization" ->
         MockRequestFactory.oAuth1Header(token, consumerKey, signature, nonce, timestampSecs.toString, urlEncodeParams)
     }
     var queryString = ParamHelper.toQueryString(parameters, urlEncodeParams)

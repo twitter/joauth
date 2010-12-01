@@ -13,7 +13,8 @@
 package com.twitter.joauth
 
 import com.twitter.joauth.keyvalue._
-import com.twitter.thrust.{Post, Request}
+import com.twitter.thrust.protocol.Post
+import com.twitter.thrust.server.Request
 import java.io.ByteArrayOutputStream
 
 trait UnpackerHelper extends OAuthParamsHelper {
@@ -140,9 +141,10 @@ class StandardUnpacker(
 
     } catch {
       // just rethrow UnpackerExceptions
-      case u:UnpackerException => throw u
+      case u: UnpackerException => throw u
       // wrap other Throwables in an UnpackerException
-      case t:Throwable => throw new UnpackerException("could not unpack request: " + t, t)
+      case t: Throwable =>
+        throw new UnpackerException("could not unpack request: " + t, t)
     }
   }
 
@@ -198,9 +200,9 @@ class StandardUnpacker(
     // parse the POST if the Content-Type is appropriate. Use the same
     // set of KeyValueHandlers that we used to parse the query string.
     if (request.method == Post &&
-        request.contentType != null &&
-        request.contentType.startsWith(WWW_FORM_URLENCODED)) {
-      queryParser(getPostData(request), handlerSeq)
+        request.contentType.isDefined &&
+        request.contentType.get.startsWith(WWW_FORM_URLENCODED)) {
+      queryParser(request.body, handlerSeq)
     }
 
     parseHeader(request.headers.get(AUTHORIZATION), filteredOAuthKvHandler)
@@ -246,30 +248,5 @@ class StandardUnpacker(
       }
       case _ =>
     }
-  }
-
-  def getPostData(request: Request) = {
-    val is = request.inputStream
-    val stream = new ByteArrayOutputStream()
-    val buf = new Array[Byte](4 * 1024)
-    var letti = is.read(buf)
-    var totalBytesRead = 0
-
-    val characterEncoding = request.characterEncoding match {
-      case null => UTF_8
-      case encoding => encoding
-    }
-
-    // make sure the Content-Length isn't a lie
-    while (letti > 0) {
-      stream.write(buf, 0, letti)
-      letti = is.read(buf)
-      totalBytesRead += letti
-      if (totalBytesRead > request.contentLength) {
-        throw new IllegalStateException("more bytes in input stream than content-length specified")
-      }
-    }
-    val result = new String(stream.toByteArray(), characterEncoding)
-    result
   }
 }
