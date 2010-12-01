@@ -200,9 +200,9 @@ class StandardUnpacker(
     // parse the POST if the Content-Type is appropriate. Use the same
     // set of KeyValueHandlers that we used to parse the query string.
     if (request.method == Post &&
-        request.contentType != null &&
-        request.contentType.startsWith(WWW_FORM_URLENCODED)) {
-      queryParser(request.content.mkString, handlerSeq)
+        request.contentType.isDefined &&
+        request.contentType.get.startsWith(WWW_FORM_URLENCODED)) {
+      queryParser(request.body, handlerSeq)
     }
 
     parseHeader(request.headers.get(AUTHORIZATION), filteredOAuthKvHandler)
