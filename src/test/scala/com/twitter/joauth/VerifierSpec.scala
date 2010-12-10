@@ -26,7 +26,7 @@ class VerifierSpec extends Specification with Mockito {
   val longAgoSecs = nowSecs - (10 * 60)
   val farAheadSecs = nowSecs + (10 * 60)
 
-  val verify = new StandardVerifier(signer, 5, checkNonce)
+  val verify = new StandardVerifier(signer, 5, 5, checkNonce)
 
   "validateTimestampSec" should {
     "return false for timestamp that is too old" in {
@@ -35,8 +35,24 @@ class VerifierSpec extends Specification with Mockito {
     "return true for timestamp that is new enough" in {
       verify.validateTimestampSecs((new Date).getTime / 1000) must beTrue
     }
-    "return true for timestamp that too new" in {
+    "return false for timestamp that too new" in {
       verify.validateTimestampSecs(farAheadSecs) must beFalse
+    }
+  }
+  "no timestamp checks" should {
+    val noTimestampCheckingVerify = new StandardVerifier(
+      signer,
+      Verifier.NO_TIMESTAMP_CHECK,
+      Verifier.NO_TIMESTAMP_CHECK,
+      checkNonce)
+    "return true for timestamp that is too old" in {
+      noTimestampCheckingVerify.validateTimestampSecs(longAgoSecs) must beTrue
+    }
+    "return true for timestamp that is new enough" in {
+      noTimestampCheckingVerify.validateTimestampSecs((new Date).getTime / 1000) must beTrue
+    }
+    "return true for timestamp that too new" in {
+      noTimestampCheckingVerify.validateTimestampSecs(farAheadSecs) must beTrue
     }
   }
   "validateSignature" should {

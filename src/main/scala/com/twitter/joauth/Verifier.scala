@@ -35,12 +35,21 @@ class ConstVerifier(result: VerifierResult) extends Verifier {
 object Verifier {
   val NO_TIMESTAMP_CHECK = -1
 
-  def apply(): Verifier = new StandardVerifier(Signer(), NO_TIMESTAMP_CHECK, NoopNonceValidator)
-  def apply(maxClockFloatMins: Int) = new StandardVerifier(Signer(), maxClockFloatMins, NoopNonceValidator)
-  def apply(maxClockFloatMins: Int, validateNonce: NonceValidator) =
-    new StandardVerifier(Signer(), maxClockFloatMins, validateNonce)
-  def apply(sign: Signer, maxClockFloatMins: Int, validateNonce: NonceValidator) =
-    new StandardVerifier(sign, maxClockFloatMins, validateNonce)
+  def apply(): Verifier = new StandardVerifier(
+    Signer(), NO_TIMESTAMP_CHECK, NO_TIMESTAMP_CHECK, NoopNonceValidator)
+  def apply(maxClockFloatAheadMins: Int, maxClockFloatBehindMins: Int) = new StandardVerifier(
+    Signer(), maxClockFloatAheadMins, maxClockFloatBehindMins, NoopNonceValidator)
+  def apply(
+    maxClockFloatAheadMins: Int,
+    maxClockFloatBehindMins: Int,
+    validateNonce: NonceValidator) = new StandardVerifier(
+    Signer(), maxClockFloatAheadMins, maxClockFloatBehindMins, validateNonce)
+  def apply(
+    sign: Signer,
+    maxClockFloatAheadMins: Int,
+    maxClockFloatBehindMins: Int,
+    validateNonce: NonceValidator) = new StandardVerifier(
+    sign, maxClockFloatAheadMins, maxClockFloatBehindMins, validateNonce)
 }
 
 /**
@@ -48,9 +57,14 @@ object Verifier {
  * allowed for a timestamp, and a NonceValidator.
  */
 class StandardVerifier(
-  sign: Signer, maxClockFloatMins: Int, validateNonce: NonceValidator) extends Verifier {
+  sign: Signer,
+  maxClockFloatAheadMins: Int,
+  maxClockFloatBehindMins: Int,
+  validateNonce: NonceValidator)
+extends Verifier {
 
-  val maxClockFloatSecs = maxClockFloatMins * 60L
+  val maxClockFloatAheadSecs = maxClockFloatAheadMins * 60L
+  val maxClockFloatBehindSecs = maxClockFloatBehindMins * 60L
 
   override def apply(request: OAuth1Request, tokenSecret: String, consumerSecret: String): VerifierResult = {
     if (!validateNonce(request.nonce)) VerifierResult.BAD_NONCE
@@ -60,9 +74,9 @@ class StandardVerifier(
   }
 
   def validateTimestampSecs(timestampSecs: Long): Boolean = {
-    val nowSecs = (new Date).getTime / 1000
-    (maxClockFloatSecs < 0) ||
-      ((timestampSecs >= nowSecs - maxClockFloatSecs) && (timestampSecs <= nowSecs + maxClockFloatSecs))
+    val nowSecs = System.currentTimeMillis / 1000
+    (maxClockFloatBehindMins < 0 || (timestampSecs >= nowSecs - maxClockFloatBehindMins)) &&
+    (maxClockFloatAheadMins < 0 || (timestampSecs <= nowSecs + maxClockFloatAheadMins))
   }
 
   def validateSignature(
