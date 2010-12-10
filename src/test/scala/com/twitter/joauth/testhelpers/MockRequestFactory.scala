@@ -29,7 +29,8 @@ object MockRequestFactory {
     }).mkString(",")
   }
 
-  def oAuth2Header(token: String) = "Token token=\"%s\"".format(token)
+  def oAuth2Header(token: String) = "OAuth2 %s".format(token)
+  def oAuth2HeaderWithKey(token: String) = "OAuth2 oauth_token=\"%s\"".format(token)
 
   def quote(str: String) ="\"%s\"".format(str)
 
@@ -69,9 +70,6 @@ object MockRequestFactory {
     request.queryString = oAuth1QueryString(token, clientKey, signature, nonce, timestamp, true)
     request
   }
-
-  def oAuth2RequestInHeader(token: String): MockRequest =
-    requestWithAuthHeader(oAuth2Header(token))
 
   def oAuth2RequestInParams(token: String)  : MockRequest = {
     val request = new MockRequest()

@@ -106,9 +106,9 @@ object OAuth1Request {
     verify(processedRequest, oAuthParams)
 
     new OAuth1Request(
-      oAuthParams.token,
-      oAuthParams.consumerKey,
-      oAuthParams.nonce,
+      UrlDecoder(oAuthParams.token),
+      UrlDecoder(oAuthParams.consumerKey),
+      UrlDecoder(oAuthParams.nonce),
       oAuthParams.timestampSecs,
       oAuthParams.signature,
       oAuthParams.signatureMethod,

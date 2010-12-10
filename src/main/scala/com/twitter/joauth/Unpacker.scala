@@ -170,7 +170,7 @@ class StandardUnpacker(
     // a custom UriSchemeGetter to make the scheme pretend to be HTTPS for the purposes
     // of request validation
     if (helper.getScheme(request).toUpperCase == HTTPS)
-      new OAuth2Request(token, ProcessedRequest(request, params, helper))
+      OAuth2Request(UrlDecoder(token), ProcessedRequest(request, params, helper))
     else throw new MalformedRequest("OAuth 2.0 requests must use HTTPS")
   }
 
@@ -211,42 +211,41 @@ class StandardUnpacker(
     (kvHandler.toList, oAuthParams)
   }
 
-  def parseHeader(header: Option[String], filteredOAuthKvHandler: KeyValueHandler): Unit = {
+  def parseHeader(header: Option[String], handler: KeyValueHandler): Unit = {
     // check for OAuth credentials in the header. OAuth 1.0a and 2.0 have
     // different header schemes, so match first on the auth scheme.
     header match {
       case Some(AUTH_HEADER_REGEX(authType, authString)) => {
-        val headerHandler = authType.toLowerCase match {
-
-          // if the auth scheme is OAuth 2.0, we want to parse the header,
-          // pull out only the token="<TOKEN>" pair, and map it to oauth_token,
-          // and pass it to our existing OAuth KeyValueHandler.
-          case OAuthParams.OAUTH2_HEADER_AUTHTYPE =>
-            Some(new OAuth2HeaderKeyValueHandler(filteredOAuthKvHandler))
-
-          // otherwise, we'll send all the key/value paris directly
-          // to the OAuth KeyValueHandler
-          case OAuthParams.OAUTH1_HEADER_AUTHTYPE => Some(filteredOAuthKvHandler)
-          case _ => None
+        val shouldParse = authType.toLowerCase match {
+          case OAuthParams.OAUTH2_HEADER_AUTHTYPE => true
+          case OAuthParams.OAUTH1_HEADER_AUTHTYPE => true
+          case _ => false
         }
-        headerHandler match {
-          case Some(handler) => {
+        if (shouldParse) {
+          // if we were able match an appropriate auth header,
+          // we'll wrap that handler with a QuotedValueKeyValueHandler,
+          // which will only pass quoted values to the underlying handler,
+          // stripping the quotes on the way.
+          val quotedHandler = new QuotedValueKeyValueHandler(handler)
 
-            // finally, if we were able to determine the auth type and produce
-            // a handler, we'll wrap that handler with a QuotedValueKeyValueHandler,
-            // which will only pass quoted values to the underlying handler,
-            // stripping the quotes on the way.
-            val quotedHandler = new QuotedValueKeyValueHandler(handler)
+          // oauth2 allows specification of the access token alone,
+          // without a key, so we pass in a kvHandler that can detect this case
+          val oneKeyOnlyHandler = new OneKeyOnlyKeyValueHandler
 
-            // now we'll pass the handler to the headerParser,
-            // which splits on commas rather than ampersands,
-            // and is more forgiving with whitespace
-            headerParser(authString, Seq(quotedHandler))
+          // now we'll pass the handler to the headerParser,
+          // which splits on commas rather than ampersands,
+          // and is more forgiving with whitespace
+          headerParser(authString, Seq(quotedHandler, oneKeyOnlyHandler))
+
+          // if we did encounter exactly one key with an empty value, invoke
+          // the underlying handler as if it were the token
+          oneKeyOnlyHandler.key match {
+            case Some(token) => handler(OAuthParams.OAUTH_TOKEN, token)
+            case None =>
           }
-          case None =>
         }
       }
-      case _ =>
+      case None =>
     }
   }
 }

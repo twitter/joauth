@@ -1,10 +1,10 @@
 // Copyright 2010 Twitter, Inc.
-// 
+//
 // Licensed under the Apache License, Version 2.0 (the "License"); you may not use this
 // file except in compliance with the License. You may obtain a copy of the License at
-// 
+//
 //     http://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 // Unless required by applicable law or agreed to in writing, software distributed
 // under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
 // CONDITIONS OF ANY KIND, either express or implied. See the License for the
@@ -12,7 +12,7 @@
 
 package com.twitter.joauth.keyvalue
 
-import collection.mutable.{HashMap, ArrayBuffer}
+import collection.mutable.{HashMap, ListBuffer}
 
 /**
  * KeyValueHandler is a trait for a callback with a key and a value.
@@ -25,7 +25,7 @@ trait KeyValueHandler extends ((String, String) => Unit)
  * value pairs, allowing duplicate values for keys.
  */
 class DuplicateKeyValueHandler extends KeyValueHandler {
-  private val buffer = new ArrayBuffer[(String, String)]
+  private val buffer = new ListBuffer[(String, String)]
   override def apply(k: String, v: String): Unit = buffer += ((k, v))
   def toList = buffer.toList
 }
@@ -40,6 +40,25 @@ class SingleKeyValueHandler extends KeyValueHandler {
   override def apply(k: String, v: String): Unit = kv += k -> v
   def toMap = Map(kv.toList: _*)
   def toList = kv.toList
+}
+
+/**
+ * key is set iff the handler was invoked exactly once with an empty value
+ */
+class OneKeyOnlyKeyValueHandler extends KeyValueHandler {
+  private var invoked = false
+  private var _key: Option[String] = None
+
+  override def apply(k: String, v: String): Unit = {
+    if (invoked) {
+      if (_key.isDefined) _key = None
+    } else {
+      invoked = true
+      if (v == null || v == "") _key = Some(k)
+    }
+  }
+
+  def key = _key
 }
 
 /**
@@ -72,10 +91,10 @@ class PrintlnKeyValueHandler(prefix: String) extends KeyValueHandler {
 }
 
 /**
- * FilteredKeyValueHandler applies the KeyValueFilter to each 
- * key value pair, and only calls the underlying KeyValueHandler 
+ * FilteredKeyValueHandler applies the KeyValueFilter to each
+ * key value pair, and only calls the underlying KeyValueHandler
  * if the filter returns true
- */ 
+ */
 class FilteredKeyValueHandler(
     underlying: KeyValueHandler, isValid: KeyValueFilter) extends KeyValueHandler {
   override def apply(k: String, v: String): Unit = if (isValid(k, v)) underlying(k, v)
@@ -87,8 +106,8 @@ class FilteredKeyValueHandler(
  * underlying KeyValueHandler
  */
 class TransformingKeyValueHandler(
-    underlying: KeyValueHandler, 
-    keyTransform: Transformer, 
+    underlying: KeyValueHandler,
+    keyTransform: Transformer,
     valueTransform: Transformer) extends KeyValueHandler {
   override def apply(k: String, v: String): Unit = underlying(keyTransform(k), valueTransform(v))
 }

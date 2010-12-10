@@ -1,10 +1,10 @@
 // Copyright 2010 Twitter, Inc.
-// 
+//
 // Licensed under the Apache License, Version 2.0 (the "License"); you may not use this
 // file except in compliance with the License. You may obtain a copy of the License at
-// 
+//
 //     http://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 // Unless required by applicable law or agreed to in writing, software distributed
 // under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
 // CONDITIONS OF ANY KIND, either express or implied. See the License for the
@@ -47,6 +47,26 @@ class KeyValueHandlerSpec extends Specification with Mockito {
     }
 
   }
+  "OneKeyOnlyKeyValueHandler" should {
+    val handler = new OneKeyOnlyKeyValueHandler
+    "return key for single key, empty value" in {
+      handler("foo", "")
+      handler.key must beSome("foo")
+    }
+    "return key for single key, null value" in {
+      handler("foo", null)
+      handler.key must beSome("foo")
+    }
+    "return None for single key/value" in {
+      handler("foo", "bar")
+      handler.key must beNone
+    }
+    "return None for two keys" in {
+      handler("foo", "")
+      handler("foo", "")
+      handler.key must beNone
+    }
+  }
   "OAuthKeyValueHandler" should {
     val underlying = mock[KeyValueHandler]
     val handler = new OAuthKeyValueHandler(underlying)
@@ -66,17 +86,6 @@ class KeyValueHandlerSpec extends Specification with Mockito {
       handler("  foo", "bar  ")
       there was no(underlying).apply("oauth_token", "foo")
       there was one(underlying).apply("  foo", "bar  ")
-      there was one(underlying).apply(any[String], any[String])
-    }
-  }
-  "OAuth2HeaderKeyValueHandler" should {
-    val underlying = mock[KeyValueHandler]
-    val handler = new OAuth2HeaderKeyValueHandler(underlying)
-    "pull token from header field, replace key name" in {
-      handler("  token", "foo  ")
-      handler("foo", "bar")
-      there was one(underlying).apply("oauth_token", "foo")
-      there was no(underlying).apply("foo", "bar")
       there was one(underlying).apply(any[String], any[String])
     }
   }

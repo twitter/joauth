@@ -68,10 +68,8 @@ object OAuthParams {
   val ONE_DOT_OH = "1.0"
   val ONE_DOT_OH_A = "1.0a"
 
-  val OAUTH2_HEADER_TOKEN = "token"
-
   val OAUTH1_HEADER_AUTHTYPE = "oauth"
-  val OAUTH2_HEADER_AUTHTYPE = OAUTH2_HEADER_TOKEN
+  val OAUTH2_HEADER_AUTHTYPE = "oauth2"
 
   def isOAuthParam(field: String): Boolean = {
     field == OAUTH_TOKEN ||
