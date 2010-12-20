@@ -54,6 +54,7 @@ object StandardOAuthParamsHelper extends StandardOAuthParamsHelper
  * OAuth 1.0 fieldname.
  */
 object OAuthParams {
+  val ACCESS_TOKEN = "access_token"
   val OAUTH_TOKEN = "oauth_token"
   val OAUTH_CONSUMER_KEY = "oauth_consumer_key"
   val OAUTH_SIGNATURE = "oauth_signature"
@@ -72,13 +73,14 @@ object OAuthParams {
   val OAUTH2_HEADER_AUTHTYPE = "oauth2"
 
   def isOAuthParam(field: String): Boolean = {
-    field == OAUTH_TOKEN ||
-        field == OAUTH_CONSUMER_KEY ||
-        field == OAUTH_SIGNATURE ||
-        field == OAUTH_NONCE ||
-        field == OAUTH_TIMESTAMP ||
-        field == OAUTH_SIGNATURE_METHOD ||
-        field == OAUTH_VERSION
+    field == ACCESS_TOKEN ||
+      field == OAUTH_TOKEN ||
+      field == OAUTH_CONSUMER_KEY ||
+      field == OAUTH_SIGNATURE ||
+      field == OAUTH_NONCE ||
+      field == OAUTH_TIMESTAMP ||
+      field == OAUTH_SIGNATURE_METHOD ||
+      field == OAUTH_VERSION
   }
 
   def apply() = new OAuthParams(StandardOAuthParamsHelper)
@@ -96,6 +98,7 @@ class OAuthParams(helper: OAuthParamsHelper)
   extends KeyValueHandler {
   import OAuthParams._
 
+  var v2Token: String = null
   var token: String = null
   var consumerKey: String = null
   var nonce: String = null
@@ -107,6 +110,7 @@ class OAuthParams(helper: OAuthParamsHelper)
 
   def apply(k: String, v: String): Unit = {
     k match {
+      case ACCESS_TOKEN => v2Token = v
       case OAUTH_TOKEN => token = v
       case OAUTH_CONSUMER_KEY => consumerKey = v
       case OAUTH_NONCE => nonce = v
@@ -127,7 +131,8 @@ class OAuthParams(helper: OAuthParamsHelper)
   // we use String.format here, because we're probably not that worried about
   // effeciency when printing the class for debugging
   override def toString: String =
-    "%s=%s,%s=%s,%s=%s,%s=%s(->%s),%s=%s,%s=%s,%s=%s".format(
+    "%s=%s,%s=%s,%s=%s,%s=%s,%s=%s(->%s),%s=%s,%s=%s,%s=%s".format(
+    ACCESS_TOKEN, valueOrUnset(v2Token),
     OAUTH_TOKEN, valueOrUnset(token),
     OAUTH_CONSUMER_KEY, valueOrUnset(consumerKey),
     OAUTH_NONCE, valueOrUnset(nonce),
@@ -139,27 +144,21 @@ class OAuthParams(helper: OAuthParamsHelper)
   def valueOrUnset(value: String) = if (value == null) UNSET else value
 
   def toList(includeSig: Boolean): List[(String, String)] =
-    List(
-      OAUTH_TOKEN -> token,
-      OAUTH_CONSUMER_KEY -> consumerKey,
-      OAUTH_NONCE -> nonce,
-      OAUTH_TIMESTAMP -> timestampStr,
-      OAUTH_SIGNATURE_METHOD -> signatureMethod) :::
-    (if (includeSig) List(OAUTH_SIGNATURE -> signature) else Nil) :::
-    (if (version == null) Nil else List(OAUTH_VERSION -> version))
+    if (isOAuth2) List(ACCESS_TOKEN -> v2Token)
+    else {
+      List(
+        OAUTH_TOKEN -> token,
+        OAUTH_CONSUMER_KEY -> consumerKey,
+        OAUTH_NONCE -> nonce,
+        OAUTH_TIMESTAMP -> timestampStr,
+        OAUTH_SIGNATURE_METHOD -> signatureMethod) :::
+      (if (includeSig) List(OAUTH_SIGNATURE -> signature) else Nil) :::
+      (if (version == null) Nil else List(OAUTH_VERSION -> version))
+    }
 
-  def isOnlyOAuthTokenSet: Boolean = {
-    token != null &&
-    consumerKey == null &&
-    nonce == null &&
-    timestampStr == null &&
-    signature == null &&
-    signatureMethod == null &&
-    // version is optional, but its inclusion indicates an oAuth1 request
-    version == null
-  }
+  def isOAuth2: Boolean = v2Token != null && !isOAuth1
 
-  def areAllOAuth1FieldsSet: Boolean =
+  def isOAuth1: Boolean =
     token != null &&
     consumerKey != null &&
     nonce != null &&

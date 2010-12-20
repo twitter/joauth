@@ -40,8 +40,8 @@ class UnpackerSpec extends Specification with Mockito {
       new StandardUnpackerHelper { override def getScheme(request: Request) = "HTTPS" })
 
     for ((verbose, header) <- List(
-      ("verbose ", MockRequestFactory.oAuth2Header(_)),
-      ("", MockRequestFactory.oAuth2HeaderWithKey(_)))) {
+      ("", MockRequestFactory.oAuth2Header(_)),
+      ("verbose ", MockRequestFactory.oAuth2HeaderWithKey(_)))) {
       "unpack request with "+verbose+"token in header HTTPS" in {
         val request = MockRequestFactory.requestWithAuthHeader(header("a"))
         request.scheme = "https"

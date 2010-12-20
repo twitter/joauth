@@ -12,7 +12,6 @@
 
 package com.twitter.joauth.keyvalue
 
-
 /**
  * OAuthKeyValueHandler only calls the underlying KeyValueHandler
  * if the key is an OAuth 1.0a field and the value is non-empty. Also

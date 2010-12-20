@@ -133,10 +133,10 @@ class StandardUnpacker(
     try {
       val (params, oAuthParams) = parseRequest(request, kvHandlers)
 
-      if (oAuthParams.areAllOAuth1FieldsSet) {
+      if (oAuthParams.isOAuth2) {
+        getOAuth2Request(request, params, oAuthParams.v2Token)
+      } else if (oAuthParams.isOAuth1) {
         getOAuth1Request(request, params, oAuthParams)
-      } else if (oAuthParams.isOnlyOAuthTokenSet) {
-        getOAuth2Request(request, params, oAuthParams.token)
       } else throw new UnknownAuthType("could not determine the authentication type")
 
     } catch {
@@ -240,7 +240,7 @@ class StandardUnpacker(
           // if we did encounter exactly one key with an empty value, invoke
           // the underlying handler as if it were the token
           oneKeyOnlyHandler.key match {
-            case Some(token) => handler(OAuthParams.OAUTH_TOKEN, token)
+            case Some(token) => handler(OAuthParams.ACCESS_TOKEN, token)
             case None =>
           }
         }

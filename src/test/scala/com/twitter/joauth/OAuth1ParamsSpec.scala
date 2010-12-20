@@ -24,19 +24,15 @@ class OAuth1ParamsSpec extends Specification with Mockito {
       params.token must beNull
       params("oauth_token", "foo")
       params.token must be_==("foo")
-      params.areAllOAuth1FieldsSet must beFalse
-      params.isOnlyOAuthTokenSet must beTrue
+      params.isOAuth1 must beFalse
+      params.isOAuth2 must beFalse
     }
-    "isOnlyOAuthTokenSet works correctly after setting token and version" in {
-      params("oauth_token", "foo")
-      params.token must be_==("foo")
-      params.areAllOAuth1FieldsSet must beFalse
-      params.isOnlyOAuthTokenSet must beTrue
-      params.version must beNull
-      params("oauth_version", "7")
-      params.version must be_==("7")
-      params.areAllOAuth1FieldsSet must beFalse
-      params.isOnlyOAuthTokenSet must beFalse
+    "isOAuth2 works correctly after setting token" in {
+      params.v2Token must beNull
+      params("access_token", "foo")
+      params.v2Token must be_==("foo")
+      params.isOAuth1 must beFalse
+      params.isOAuth2 must beTrue
     }
     "timestampStr set if timestamp parses" in {
       params.timestampSecs must be_==(-1)
@@ -59,54 +55,60 @@ class OAuth1ParamsSpec extends Specification with Mockito {
       there was one(helper).parseTimestamp(any[String])
     }
     "set all params" in {
+      params.v2Token must beNull
+      params("access_token", "0")
+      params.v2Token must be_==("0")
+      params.isOAuth1 must beFalse
+      params.isOAuth2 must beTrue
+
       params.token must beNull
       params("oauth_token", "1")
       params.token must be_==("1")
-      params.areAllOAuth1FieldsSet must beFalse
-      params.isOnlyOAuthTokenSet must beTrue
+      params.isOAuth1 must beFalse
+      params.isOAuth2 must beTrue
 
       params.consumerKey must beNull
       params("oauth_consumer_key", "2")
       params.consumerKey must be_==("2")
-      params.areAllOAuth1FieldsSet must beFalse
-      params.isOnlyOAuthTokenSet must beFalse
+      params.isOAuth1 must beFalse
+      params.isOAuth2 must beTrue
 
       params.nonce must beNull
       params("oauth_nonce", "3")
       params.nonce must be_==("3")
-      params.areAllOAuth1FieldsSet must beFalse
-      params.isOnlyOAuthTokenSet must beFalse
+      params.isOAuth1 must beFalse
+      params.isOAuth2 must beTrue
 
       doReturn(Some(4L)).when(helper).parseTimestamp("foo")
       params("oauth_timestamp", "foo")
-      params.areAllOAuth1FieldsSet must beFalse
-      params.isOnlyOAuthTokenSet must beFalse
+      params.isOAuth1 must beFalse
+      params.isOAuth2 must beTrue
 
       doReturn("a").when(helper).processSignature("a")
       params.signature must beNull
       params("oauth_signature", "a")
       params.signature must be_==("a")
-      params.areAllOAuth1FieldsSet must beFalse
-      params.isOnlyOAuthTokenSet must beFalse
+      params.isOAuth1 must beFalse
+      params.isOAuth2 must beTrue
       there was one(helper).processSignature("a")
       there was one(helper).processSignature(any[String])
 
       params.signatureMethod must beNull
       params("oauth_signature_method", "6")
       params.signatureMethod must be_==("6")
-      params.areAllOAuth1FieldsSet must beTrue
-      params.isOnlyOAuthTokenSet must beFalse
+      params.isOAuth1 must beTrue
+      params.isOAuth2 must beFalse
 
-      params.toString must be_==("oauth_token=1,oauth_consumer_key=2,oauth_nonce=3,oauth_timestamp=foo(->4),oauth_signature=a,oauth_signature_method=6,oauth_version=(unset)")
+      params.toString must be_==("access_token=0,oauth_token=1,oauth_consumer_key=2,oauth_nonce=3,oauth_timestamp=foo(->4),oauth_signature=a,oauth_signature_method=6,oauth_version=(unset)")
 
       // version defaults to 1.0
       params.version must beNull
       params("oauth_version", "7")
       params.version must be_==("7")
-      params.areAllOAuth1FieldsSet must beTrue
-      params.isOnlyOAuthTokenSet must beFalse
+      params.isOAuth1 must beTrue
+      params.isOAuth2 must beFalse
 
-      params.toString must be_==("oauth_token=1,oauth_consumer_key=2,oauth_nonce=3,oauth_timestamp=foo(->4),oauth_signature=a,oauth_signature_method=6,oauth_version=7")
+      params.toString must be_==("access_token=0,oauth_token=1,oauth_consumer_key=2,oauth_nonce=3,oauth_timestamp=foo(->4),oauth_signature=a,oauth_signature_method=6,oauth_version=7")
     }
   }
   "StandardOAuthParamsHelper.parseTimestamp" should {
