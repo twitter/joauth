@@ -83,19 +83,61 @@ object OAuthParams {
       field == OAUTH_VERSION
   }
 
-  def apply() = new OAuthParams(StandardOAuthParamsHelper)
-  def apply(helper: OAuthParamsHelper) = new OAuthParams(helper)
+  def valueOrUnset(value: String) = if (value == null) UNSET else value
 }
 
 /**
- * OAuthParams is mostly just a container for OAuth 1.0a parameters.
+ * OAuth1Params is mostly just a container for OAuth 1.0a parameters.
+ */
+case class OAuth1Params(
+  token: String,
+  consumerKey: String,
+  nonce: String,
+  timestampSecs: Long,
+  timestampStr: String,
+  signature: String,
+  signatureMethod: String,
+  version: String) {
+
+  import OAuthParams._
+
+  def toList(includeSig: Boolean): List[(String, String)] =
+    List(
+      OAUTH_TOKEN -> token,
+      OAUTH_CONSUMER_KEY -> consumerKey,
+      OAUTH_NONCE -> nonce,
+      OAUTH_TIMESTAMP -> timestampStr,
+      OAUTH_SIGNATURE_METHOD -> signatureMethod) :::
+    (if (includeSig) List(OAUTH_SIGNATURE -> signature) else Nil) :::
+    (if (version == null) Nil else List(OAUTH_VERSION -> version))
+
+  // we use String.format here, because we're probably not that worried about
+  // effeciency when printing the class for debugging
+  override def toString: String =
+    "%s=%s,%s=%s,%s=%s,%s=%s(->%s),%s=%s,%s=%s,%s=%s".format(
+    OAUTH_TOKEN, valueOrUnset(token),
+    OAUTH_CONSUMER_KEY, valueOrUnset(consumerKey),
+    OAUTH_NONCE, valueOrUnset(nonce),
+    OAUTH_TIMESTAMP, timestampStr, timestampSecs,
+    OAUTH_SIGNATURE, valueOrUnset(signature),
+    OAUTH_SIGNATURE_METHOD, valueOrUnset(signatureMethod),
+    OAUTH_VERSION, valueOrUnset(version))
+}
+
+object OAuthParamsBuilder {
+  def apply() = new OAuthParamsBuilder(StandardOAuthParamsHelper)
+  def apply(helper: OAuthParamsHelper) = new OAuthParamsBuilder(helper)
+}
+
+/**
  * It's a KeyValueHandler so that it can be easily populated by a
  * KeyValueParser. There are convenience methods for determining
  * if it has all parameters set, just the token set, and for obtaining
  * a list of the params for use in producing the normalized request.
  */
-class OAuthParams(helper: OAuthParamsHelper)
-  extends KeyValueHandler {
+
+class OAuthParamsBuilder(helper: OAuthParamsHelper)
+extends KeyValueHandler {
   import OAuthParams._
 
   var v2Token: String = null
@@ -143,19 +185,6 @@ class OAuthParams(helper: OAuthParamsHelper)
 
   def valueOrUnset(value: String) = if (value == null) UNSET else value
 
-  def toList(includeSig: Boolean): List[(String, String)] =
-    if (isOAuth2) List(ACCESS_TOKEN -> v2Token)
-    else {
-      List(
-        OAUTH_TOKEN -> token,
-        OAUTH_CONSUMER_KEY -> consumerKey,
-        OAUTH_NONCE -> nonce,
-        OAUTH_TIMESTAMP -> timestampStr,
-        OAUTH_SIGNATURE_METHOD -> signatureMethod) :::
-      (if (includeSig) List(OAUTH_SIGNATURE -> signature) else Nil) :::
-      (if (version == null) Nil else List(OAUTH_VERSION -> version))
-    }
-
   def isOAuth2: Boolean = v2Token != null && !isOAuth1
 
   def isOAuth1: Boolean =
@@ -166,4 +195,17 @@ class OAuthParams(helper: OAuthParamsHelper)
     signature != null &&
     signatureMethod != null
     // version is optional, so not included here
+
+  def oAuth2Token = v2Token
+
+  // make an immutable params instance
+  def oAuth1Params = OAuth1Params(
+    token,
+    consumerKey,
+    nonce,
+    timestampSecs,
+    timestampStr,
+    signature,
+    signatureMethod,
+    version)
 }

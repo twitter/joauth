@@ -15,100 +15,100 @@ package com.twitter.joauth
 import org.specs.mock.Mockito
 import org.specs.Specification
 
-class OAuth1ParamsSpec extends Specification with Mockito {
+class OAuthParamsSpec extends Specification with Mockito {
   val helper = mock[OAuthParamsHelper]
-  val params = OAuthParams(helper)
-  "OAuth1Params" should {
+  val builder = OAuthParamsBuilder(helper)
+  "OAuthParamsBuilder" should {
     "set one param, ignore unknown param" in {
-      params("foo", "bar")
-      params.token must beNull
-      params("oauth_token", "foo")
-      params.token must be_==("foo")
-      params.isOAuth1 must beFalse
-      params.isOAuth2 must beFalse
+      builder("foo", "bar")
+      builder.token must beNull
+      builder("oauth_token", "foo")
+      builder.token must be_==("foo")
+      builder.isOAuth1 must beFalse
+      builder.isOAuth2 must beFalse
     }
     "isOAuth2 works correctly after setting token" in {
-      params.v2Token must beNull
-      params("access_token", "foo")
-      params.v2Token must be_==("foo")
-      params.isOAuth1 must beFalse
-      params.isOAuth2 must beTrue
+      builder.v2Token must beNull
+      builder("access_token", "foo")
+      builder.v2Token must be_==("foo")
+      builder.isOAuth1 must beFalse
+      builder.isOAuth2 must beTrue
     }
     "timestampStr set if timestamp parses" in {
-      params.timestampSecs must be_==(-1)
-      params.timestampStr must beNull
+      builder.timestampSecs must be_==(-1)
+      builder.timestampStr must beNull
       doReturn(Some(4L)).when(helper).parseTimestamp("foo")
-      params("oauth_timestamp", "foo")
-      params.timestampSecs must be_==(4L)
-      params.timestampStr must be_==("foo")
+      builder("oauth_timestamp", "foo")
+      builder.timestampSecs must be_==(4L)
+      builder.timestampStr must be_==("foo")
       there was one(helper).parseTimestamp("foo")
       there was one(helper).parseTimestamp(any[String])
     }
     "timestampStr null if timestamp doesn't parse" in {
-      params.timestampSecs must be_==(-1)
-      params.timestampStr must beNull
+      builder.timestampSecs must be_==(-1)
+      builder.timestampStr must beNull
       doReturn(None).when(helper).parseTimestamp("foo")
-      params("oauth_timestamp", "foo")
-      params.timestampSecs must be_==(-1)
-      params.timestampStr must beNull
+      builder("oauth_timestamp", "foo")
+      builder.timestampSecs must be_==(-1)
+      builder.timestampStr must beNull
       there was one(helper).parseTimestamp("foo")
       there was one(helper).parseTimestamp(any[String])
     }
-    "set all params" in {
-      params.v2Token must beNull
-      params("access_token", "0")
-      params.v2Token must be_==("0")
-      params.isOAuth1 must beFalse
-      params.isOAuth2 must beTrue
+    "set all builder" in {
+      builder.v2Token must beNull
+      builder("access_token", "0")
+      builder.v2Token must be_==("0")
+      builder.isOAuth1 must beFalse
+      builder.isOAuth2 must beTrue
 
-      params.token must beNull
-      params("oauth_token", "1")
-      params.token must be_==("1")
-      params.isOAuth1 must beFalse
-      params.isOAuth2 must beTrue
+      builder.token must beNull
+      builder("oauth_token", "1")
+      builder.token must be_==("1")
+      builder.isOAuth1 must beFalse
+      builder.isOAuth2 must beTrue
 
-      params.consumerKey must beNull
-      params("oauth_consumer_key", "2")
-      params.consumerKey must be_==("2")
-      params.isOAuth1 must beFalse
-      params.isOAuth2 must beTrue
+      builder.consumerKey must beNull
+      builder("oauth_consumer_key", "2")
+      builder.consumerKey must be_==("2")
+      builder.isOAuth1 must beFalse
+      builder.isOAuth2 must beTrue
 
-      params.nonce must beNull
-      params("oauth_nonce", "3")
-      params.nonce must be_==("3")
-      params.isOAuth1 must beFalse
-      params.isOAuth2 must beTrue
+      builder.nonce must beNull
+      builder("oauth_nonce", "3")
+      builder.nonce must be_==("3")
+      builder.isOAuth1 must beFalse
+      builder.isOAuth2 must beTrue
 
       doReturn(Some(4L)).when(helper).parseTimestamp("foo")
-      params("oauth_timestamp", "foo")
-      params.isOAuth1 must beFalse
-      params.isOAuth2 must beTrue
+      builder("oauth_timestamp", "foo")
+      builder.isOAuth1 must beFalse
+      builder.isOAuth2 must beTrue
 
       doReturn("a").when(helper).processSignature("a")
-      params.signature must beNull
-      params("oauth_signature", "a")
-      params.signature must be_==("a")
-      params.isOAuth1 must beFalse
-      params.isOAuth2 must beTrue
+      builder.signature must beNull
+      builder("oauth_signature", "a")
+      builder.signature must be_==("a")
+      builder.isOAuth1 must beFalse
+      builder.isOAuth2 must beTrue
       there was one(helper).processSignature("a")
       there was one(helper).processSignature(any[String])
 
-      params.signatureMethod must beNull
-      params("oauth_signature_method", "6")
-      params.signatureMethod must be_==("6")
-      params.isOAuth1 must beTrue
-      params.isOAuth2 must beFalse
+      builder.signatureMethod must beNull
+      builder("oauth_signature_method", "6")
+      builder.signatureMethod must be_==("6")
+      builder.isOAuth1 must beTrue
+      builder.isOAuth2 must beFalse
 
-      params.toString must be_==("access_token=0,oauth_token=1,oauth_consumer_key=2,oauth_nonce=3,oauth_timestamp=foo(->4),oauth_signature=a,oauth_signature_method=6,oauth_version=(unset)")
+      builder.toString must be_==("access_token=0,oauth_token=1,oauth_consumer_key=2,oauth_nonce=3,oauth_timestamp=foo(->4),oauth_signature=a,oauth_signature_method=6,oauth_version=(unset)")
 
       // version defaults to 1.0
-      params.version must beNull
-      params("oauth_version", "7")
-      params.version must be_==("7")
-      params.isOAuth1 must beTrue
-      params.isOAuth2 must beFalse
+      builder.version must beNull
+      builder("oauth_version", "7")
+      builder.version must be_==("7")
+      builder.isOAuth1 must beTrue
+      builder.isOAuth2 must beFalse
 
-      params.toString must be_==("access_token=0,oauth_token=1,oauth_consumer_key=2,oauth_nonce=3,oauth_timestamp=foo(->4),oauth_signature=a,oauth_signature_method=6,oauth_version=7")
+      builder.toString must be_==("access_token=0,oauth_token=1,oauth_consumer_key=2,oauth_nonce=3,oauth_timestamp=foo(->4),oauth_signature=a,oauth_signature_method=6,oauth_version=7")
     }
   }
   "StandardOAuthParamsHelper.parseTimestamp" should {
