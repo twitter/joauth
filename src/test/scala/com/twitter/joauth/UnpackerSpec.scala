@@ -14,14 +14,12 @@ package com.twitter.joauth
 
 import com.twitter.joauth.keyvalue.{KeyValueHandler, UrlEncodingNormalizingTransformer}
 import com.twitter.joauth.testhelpers.{MockRequestFactory, OAuth1TestCase, OAuth1TestCases}
-import com.twitter.thrust.server.Request
 import org.specs.matcher.Matcher
 import org.specs.mock.Mockito
 import org.specs.Specification
 
 class UnpackerSpec extends Specification with Mockito {
   "Unpacked for OAuth2 Request" should {
-
     case class containTheToken(token: String) extends Matcher[OAuthRequest] {
       val goodresponse = "oauth request matches token"
       def apply(r: => OAuthRequest) = {
@@ -36,8 +34,6 @@ class UnpackerSpec extends Specification with Mockito {
 
     val unpacker = StandardUnpacker()
     val kvHandler = mock[KeyValueHandler]
-    val overriddenUnpacker = StandardUnpacker(
-      new StandardUnpackerHelper { override def getScheme(request: Request) = "HTTPS" })
 
     for ((verbose, header) <- List(
       ("", MockRequestFactory.oAuth2Header(_)),
@@ -49,9 +45,6 @@ class UnpackerSpec extends Specification with Mockito {
       }
       "unpack as unknown request with "+verbose+"token in header HTTP" in {
         unpacker(MockRequestFactory.requestWithAuthHeader(header("a"))) must throwA[MalformedRequest]
-      }
-      "respect getScheme override with "+verbose+"token in header HTTP" in {
-        overriddenUnpacker(MockRequestFactory.requestWithAuthHeader(header("a"))) must containTheToken("a")
       }
     }
     "unpack request with token in params HTTPS" in {
@@ -67,29 +60,22 @@ class UnpackerSpec extends Specification with Mockito {
     "unpack as unknown request with token in params HTTP" in {
       unpacker(MockRequestFactory.oAuth2RequestInParams("a")) must throwA[MalformedRequest]
     }
-    "respect getScheme override with token in params HTTP" in {
-      overriddenUnpacker(MockRequestFactory.oAuth2RequestInParams("a")) must containTheToken("a")
-    }
   }
 
-  def getTestName(testName: String, testCaseName: String, oAuthInParams: Boolean, oAuthInHeader: Boolean, useNamespacedPath: Boolean, paramsInPost: Boolean) =
-    "%s for %s oAuthInParams:%s, oAuthInHeader: %s, useNamespacedPath: %s, paramsInPost:%s".format(
-      testName, testCaseName, oAuthInParams, oAuthInHeader, useNamespacedPath, paramsInPost)
+  def getTestName(testName: String, testCaseName: String, oAuthInParams: Boolean, oAuthInHeader: Boolean, paramsInPost: Boolean) =
+    "%s for %s oAuthInParams:%s, oAuthInHeader: %s, paramsInPost:%s".format(
+      testName, testCaseName, oAuthInParams, oAuthInHeader, paramsInPost)
 
-  def doOAuth1Tests(testCase: OAuth1TestCase, oAuthInParams: Boolean, oAuthInHeader: Boolean, useNamespacedPath: Boolean, paramsInPost: Boolean) = {
+  def doOAuth1Tests(testCase: OAuth1TestCase, oAuthInParams: Boolean, oAuthInHeader: Boolean, paramsInPost: Boolean) = {
 
-    def helper = new StandardUnpackerHelper {
-      override def getPath(request: Request) = if (useNamespacedPath) testCase.path else super.getPath(request)
-    }
-
-    val unpacker = StandardUnpacker(helper)
     val kvHandler = mock[KeyValueHandler]
+    val unpacker = StandardUnpacker()
 
     if (testCase.exception == null) {
       // KV Handler Called Once Per Param
-      getTestName("kvHandler called once per parameter", testCase.testName, oAuthInParams, oAuthInHeader, useNamespacedPath, paramsInPost) in {
-        val request = testCase.request(oAuthInParams, oAuthInHeader, useNamespacedPath, paramsInPost)
-        val (params, oAuthParams) = unpacker.parseRequest(request, Seq(kvHandler))
+      getTestName("kvHandler called once per parameter", testCase.testName, oAuthInParams, oAuthInHeader, paramsInPost) in {
+        val request = testCase.request(oAuthInParams, oAuthInHeader, paramsInPost)
+        val (params, oAuthParamsBuilder) = unpacker.parseRequest(request, Seq(kvHandler))
         if (testCase.parameters == Nil) there was no(kvHandler).apply(any[String], any[String])
         else {
           there were (testCase.parameters.size).times(kvHandler).apply(any[String], any[String])
@@ -99,35 +85,36 @@ class UnpackerSpec extends Specification with Mockito {
         }
       }
       // Parse Request
-      getTestName("parse request", testCase.testName, oAuthInParams, oAuthInHeader, useNamespacedPath, paramsInPost) in {
-        val request = testCase.request(oAuthInParams, oAuthInHeader, useNamespacedPath, paramsInPost)
-        val (params, oAuthParams) = unpacker.parseRequest(request, Seq(kvHandler))
-        params.toString must be_==(testCase.parameters.map(e => (UrlEncodingNormalizingTransformer(e._1), UrlEncodingNormalizingTransformer(e._2))).toString)
-        oAuthParams.toString must be_==(testCase.oAuthParams(paramsInPost).toString)
+      getTestName("parse request", testCase.testName, oAuthInParams, oAuthInHeader, paramsInPost) in {
+        val request = testCase.request(oAuthInParams, oAuthInHeader, paramsInPost)
+        val (parsedRequest, oAuthParamsBuilder) = unpacker.parseRequest(request, Seq(kvHandler))
+        parsedRequest mustEqual testCase.parsedRequest(paramsInPost)
+        //params.toString must be_==(testCase.parameters.map(e => (UrlEncodingNormalizingTransformer(e._1), UrlEncodingNormalizingTransformer(e._2))).toString)
+        oAuthParamsBuilder.oAuth1Params.toString must be_==(testCase.oAuth1Params(paramsInPost).toString)
       }
       // Auth Result
-      getTestName("produce correct authresult", testCase.testName, oAuthInParams, oAuthInHeader, useNamespacedPath, paramsInPost) in {
-        val request = testCase.request(oAuthInParams, oAuthInHeader, useNamespacedPath, paramsInPost)
-        val (params, oAuthParams) = unpacker.parseRequest(request, Seq(kvHandler))
-        unpacker.getOAuth1Request(request, params, oAuthParams) must be_==(testCase.oAuth1Request(paramsInPost))
+      getTestName("produce correct authresult", testCase.testName, oAuthInParams, oAuthInHeader, paramsInPost) in {
+        val request = testCase.request(oAuthInParams, oAuthInHeader, paramsInPost)
+        val (parsedRequest, oAuthParamsBuilder) = unpacker.parseRequest(request, Seq(kvHandler))
+        unpacker.getOAuth1Request(parsedRequest, oAuthParamsBuilder.oAuth1Params) must be_==(testCase.oAuth1Request(paramsInPost))
       }
       // Unpack Request
-      val request = testCase.request(oAuthInParams, oAuthInHeader, useNamespacedPath, paramsInPost)
-      getTestName("unpack request", testCase.testName, oAuthInParams, oAuthInHeader, useNamespacedPath, paramsInPost) in {
+      val request = testCase.request(oAuthInParams, oAuthInHeader, paramsInPost)
+      getTestName("unpack request", testCase.testName, oAuthInParams, oAuthInHeader, paramsInPost) in {
         unpacker(request, Seq(kvHandler)) must be_==(testCase.oAuth1Request(paramsInPost))
       }
     } else {
       // Throw Exception
-      getTestName("throw exception", testCase.testName, oAuthInParams, oAuthInHeader, useNamespacedPath, paramsInPost) in {
-        try {
-          val request = testCase.request(oAuthInParams, oAuthInHeader, useNamespacedPath, paramsInPost)
-          unpacker(request)
-          fail("should have thrown")
-        } catch {
-          case e => e.toString must be_==(testCase.exception.toString)
-        }
-        // for compiler
-        1
+      getTestName("throw exception", testCase.testName, oAuthInParams, oAuthInHeader, paramsInPost) in {
+        // try {
+          val request = testCase.request(oAuthInParams, oAuthInHeader, paramsInPost)
+          unpacker(request) must throwA(testCase.exception)
+        //   fail("should have thrown")
+        // } catch {
+        //   case e => e.toString must be_==(testCase.exception.toString)
+        // }
+        // // for compiler
+        // 1
       }
     }
   }
@@ -135,22 +122,20 @@ class UnpackerSpec extends Specification with Mockito {
   "Unpacker for OAuth1 Test Cases" should {
     OAuth1TestCases().foreach { (testCase) =>
       for ((paramsInPost) <- List(true, false)) {
-        for ((useNamespacedPath) <- List(true, false)) {
-          for ((oAuthInParams, oAuthInHeader) <- List((true, false), (false, true))) {
-            doOAuth1Tests(testCase, oAuthInParams, oAuthInHeader, useNamespacedPath, paramsInPost)
-          }
+        for ((oAuthInParams, oAuthInHeader) <- List((true, false), (false, true))) {
+          doOAuth1Tests(testCase, oAuthInParams, oAuthInHeader, paramsInPost)
         }
       }
     }
   }
   "Unpacker for OAuth1 Special Case GET" should {
     for ((oAuthInParams, oAuthInHeader) <- List((true, false), (false, true))) {
-      doOAuth1Tests(OAuth1TestCases.oAuthSpecialCaseGet, oAuthInParams, oAuthInHeader, false, false)
+      doOAuth1Tests(OAuth1TestCases.oAuthSpecialCaseGet, oAuthInParams, oAuthInHeader, false)
     }
   }
   "Unpacker for OAuth1 Special Case POST" should {
     for ((oAuthInParams, oAuthInHeader) <- List((true, false), (false, true))) {
-      doOAuth1Tests(OAuth1TestCases.oAuthSpecialCasePost, oAuthInParams, oAuthInHeader, false, true)
+      doOAuth1Tests(OAuth1TestCases.oAuthSpecialCasePost, oAuthInParams, oAuthInHeader, true)
     }
   }
 }

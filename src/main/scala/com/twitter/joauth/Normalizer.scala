@@ -24,10 +24,10 @@ trait Normalizer {
     verb: String,
     path: String,
     params: List[(String, String)],
-    oAuthParams: OAuthParams): String
+    oAuth1Params: OAuth1Params): String
 
-  def apply(req: ProcessedRequest, oAuthParams: OAuthParams): String =
-    apply(req.scheme, req.host, req.port, req.verb, req.path, req.params, oAuthParams)
+  def apply(req: ParsedRequest, oAuth1Params: OAuth1Params): String =
+    apply(req.scheme, req.host, req.port, req.verb, req.path, req.params, oAuth1Params)
 }
 
 /**
@@ -41,7 +41,7 @@ class ConstNormalizer(const: String) extends Normalizer {
     verb: String,
     path: String,
     params: List[(String, String)],
-    oAuthParams: OAuthParams): String = const
+    oAuth1Params: OAuth1Params): String = const
 }
 
 /**
@@ -77,11 +77,11 @@ class StandardNormalizer extends Normalizer {
     verb: String,
     path: String,
     params: List[(String, String)],
-    oAuthParams: OAuthParams): String = {
+    oAuth1Params: OAuth1Params): String = {
 
-    // first, concatenate the params and the oAuthParams together.
+    // first, concatenate the params and the oAuth1Params together.
     // the parameters are already URLEncoded, so we leave them alone
-    val sigParams = params ::: oAuthParams.toList(false)
+    val sigParams = params ::: oAuth1Params.toList(false)
 
     // now turn these back into a standard query string, with keys delimited
     // from values with "=" and pairs delimited from one another by "&"

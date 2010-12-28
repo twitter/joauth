@@ -12,20 +12,22 @@
 
 package com.twitter.joauth
 
-import com.twitter.thrust.server.Request
+trait Request {
+  def authHeader: Option[String]
+  def body: String
+  def contentType: Option[String]
+  def host: String
+  def method: String
+  def path: String
+  def port: Int
+  def queryString: String
+  def scheme: String
 
-object ProcessedRequest {
-  def apply(request: Request, params: List[(String, String)], helper: UnpackerHelper) =
-    new ProcessedRequest(
-      helper.getScheme(request).toUpperCase,
-      request.serverHost,
-      helper.getPort(request),
-      request.method.toString,
-      helper.getPath(request),
-      params)
+  def parsedRequest(params: List[(String, String)]) =
+    new ParsedRequest(scheme.toUpperCase, host, port, method.toUpperCase, path, params)
 }
 
-case class ProcessedRequest(
+case class ParsedRequest(
   scheme: String,
   host: String,
   port: Int,

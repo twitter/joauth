@@ -19,7 +19,7 @@ package com.twitter.joauth
 sealed trait OAuthRequest {
   def token: String
   def oAuthParamMap: Map[String, String]
-  def processedRequest: ProcessedRequest
+  def parsedRequest: ParsedRequest
 }
 
 /**
@@ -35,7 +35,7 @@ case class OAuth1Request(
   signature: String,
   signatureMethod: String,
   version: String,
-  processedRequest: ProcessedRequest,
+  parsedRequest: ParsedRequest,
   normalizedRequest: String) extends OAuthRequest {
 
   import OAuthParams._
@@ -54,8 +54,8 @@ case class OAuth1Request(
 /**
  * models an OAuth 2.0 request. Just a wrapper for the token, really.
  */
-case class OAuth2Request(token: String, processedRequest: ProcessedRequest) extends OAuthRequest {
-  override lazy val oAuthParamMap = Map(OAuthParams.OAUTH_TOKEN -> token)
+case class OAuth2Request(token: String, parsedRequest: ParsedRequest) extends OAuthRequest {
+  override lazy val oAuthParamMap = Map(OAuthParams.ACCESS_TOKEN -> token)
 }
 
 /**
@@ -77,20 +77,20 @@ object OAuth1Request {
 
   @throws(classOf[MalformedRequest])
   def verify(
-    processedRequest: ProcessedRequest,
-    oAuthParams: OAuthParams) {
-      if (processedRequest.scheme == null) throw nullException(SCHEME)
-      else if (processedRequest.host == null) throw nullException(HOST)
-      else if (processedRequest.port < 0) throw nullException(PORT)
-      else if (processedRequest.verb == null) throw nullException(VERB)
-      else if (processedRequest.path == null) throw nullException(PATH)
-      else if (oAuthParams.signatureMethod != OAuthParams.HMAC_SHA1) {
-        throw new MalformedRequest(UNSUPPORTED_METHOD+oAuthParams.signatureMethod)
+    parsedRequest: ParsedRequest,
+    oAuth1Params: OAuth1Params) {
+      if (parsedRequest.scheme == null) throw nullException(SCHEME)
+      else if (parsedRequest.host == null) throw nullException(HOST)
+      else if (parsedRequest.port < 0) throw nullException(PORT)
+      else if (parsedRequest.verb == null) throw nullException(VERB)
+      else if (parsedRequest.path == null) throw nullException(PATH)
+      else if (oAuth1Params.signatureMethod != OAuthParams.HMAC_SHA1) {
+        throw new MalformedRequest(UNSUPPORTED_METHOD+oAuth1Params.signatureMethod)
       }
-      else if (oAuthParams.version != null &&
-          oAuthParams.version != OAuthParams.ONE_DOT_OH &&
-          oAuthParams.version != OAuthParams.ONE_DOT_OH_A) {
-        throw new MalformedRequest(UNSUPPORTED_VERSION+oAuthParams.version)
+      else if (oAuth1Params.version != null &&
+          oAuth1Params.version != OAuthParams.ONE_DOT_OH &&
+          oAuth1Params.version != OAuthParams.ONE_DOT_OH_A) {
+        throw new MalformedRequest(UNSUPPORTED_VERSION+oAuth1Params.version)
       }
       // we don't check the validity of the OAuthParams object, because it must be
       // fully populated in order for the factory to even be called, and we'd like
@@ -99,21 +99,21 @@ object OAuth1Request {
 
   @throws(classOf[MalformedRequest])
   def apply(
-    processedRequest: ProcessedRequest,
-    oAuthParams: OAuthParams,
+    parsedRequest: ParsedRequest,
+    oAuth1Params: OAuth1Params,
     normalize: Normalizer): OAuth1Request = {
 
-    verify(processedRequest, oAuthParams)
+    verify(parsedRequest, oAuth1Params)
 
     new OAuth1Request(
-      UrlDecoder(oAuthParams.token),
-      UrlDecoder(oAuthParams.consumerKey),
-      UrlDecoder(oAuthParams.nonce),
-      oAuthParams.timestampSecs,
-      oAuthParams.signature,
-      oAuthParams.signatureMethod,
-      oAuthParams.version,
-      processedRequest,
-      normalize(processedRequest, oAuthParams))
+      UrlDecoder(oAuth1Params.token),
+      UrlDecoder(oAuth1Params.consumerKey),
+      UrlDecoder(oAuth1Params.nonce),
+      oAuth1Params.timestampSecs,
+      oAuth1Params.signature,
+      oAuth1Params.signatureMethod,
+      oAuth1Params.version,
+      parsedRequest,
+      normalize(parsedRequest, oAuth1Params))
   }
 }

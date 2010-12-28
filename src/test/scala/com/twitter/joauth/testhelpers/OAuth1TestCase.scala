@@ -13,9 +13,7 @@
 package com.twitter.joauth.testhelpers
 
 import com.twitter.joauth.keyvalue.UrlEncodingNormalizingTransformer
-import com.twitter.joauth.{UrlDecoder, MalformedRequest, OAuthParams, OAuth1Request, ProcessedRequest, UnknownAuthType}
-import com.twitter.thrust.protocol.Get
-import com.twitter.thrust.server.{MockRequest, Path, Request}
+import com.twitter.joauth.{UrlDecoder, MalformedRequest, OAuthParams, OAuth1Params, OAuth1Request, ParsedRequest, Request, UnknownAuthType}
 
 case class OAuth1TestCase(
   val testName: String,
@@ -23,7 +21,6 @@ case class OAuth1TestCase(
   val host: String,
   val port: Int,
   val path: String,
-  val namespacedPath: String,
   val parameters: List[(String, String)],
   val token: String,
   val tokenSecret: String,
@@ -46,27 +43,27 @@ case class OAuth1TestCase(
     signature(paramsInPost),
     OAuthParams.HMAC_SHA1,
     OAuthParams.ONE_DOT_OH,
-    ProcessedRequest(
-      scheme.toUpperCase,
-      host,
-      port,
-      if (paramsInPost) "POST" else "GET",
-      path,
-      parameters.map(e => (e._1, UrlEncodingNormalizingTransformer(e._2)))),
+    parsedRequest(paramsInPost),
     normalizedRequest(paramsInPost))
 
-  def oAuthParams(paramsInPost: Boolean) = {
-    val params = OAuthParams()
-    params.token = token
-    params.consumerKey = consumerKey
-    params.nonce = nonce
-    params.timestampSecs = timestampSecs
-    params.timestampStr = timestampSecs.toString
-    params.signature = signature(paramsInPost)
-    params.signatureMethod = OAuthParams.HMAC_SHA1
-    params.version = OAuthParams.ONE_DOT_OH
-    params
-  }
+  def parsedRequest(paramsInPost: Boolean) = ParsedRequest(
+    scheme.toUpperCase,
+    host,
+    port,
+    if (paramsInPost) "POST" else "GET",
+    path,
+    parameters.map(e => (e._1, UrlEncodingNormalizingTransformer(e._2))))
+
+  def oAuth1Params(paramsInPost: Boolean) =
+    OAuth1Params(
+      token,
+      consumerKey,
+      nonce,
+      timestampSecs,
+      timestampSecs.toString,
+      signature(paramsInPost),
+      OAuthParams.HMAC_SHA1,
+      OAuthParams.ONE_DOT_OH)
 
   def normalizedRequest(paramsInPost: Boolean) = if (paramsInPost) normalizedRequestPost else normalizedRequestGet
 
@@ -77,18 +74,18 @@ case class OAuth1TestCase(
     else UrlDecoder(signature)
   }
 
-  def request(oAuthInParam: Boolean, oAuthInHeader: Boolean, useNamespacedPath: Boolean, paramsInPost: Boolean): Request = {
+  def request(oAuthInParam: Boolean, oAuthInHeader: Boolean, paramsInPost: Boolean): Request = {
     val signature = if (paramsInPost) signaturePost else signatureGet
     var request = new MockRequest
-    request.method = Get
+    request.method = "GET"
     request.scheme = scheme
-    request.serverHost = host
-    request.serverPort = port
-    request.uriString = if (useNamespacedPath) namespacedPath else path
+    request.host = host
+    request.port = port
+    request.path = path
 
     if (oAuthInHeader) {
-      request.headers += "Authorization" ->
-        MockRequestFactory.oAuth1Header(token, consumerKey, signature, nonce, timestampSecs.toString, urlEncodeParams)
+      request.authHeader = Some(
+        MockRequestFactory.oAuth1Header(token, consumerKey, signature, nonce, timestampSecs.toString, urlEncodeParams))
     }
     var queryString = ParamHelper.toQueryString(parameters, urlEncodeParams)
     if (oAuthInParam) {
@@ -112,7 +109,6 @@ object OAuth1TestCases {
         "photos.example.net",
         80,
         "/Photos",
-        "/1/userauth/Photos",
         List(("size", "original"), ("file", "vacation.jpg")),
         "nnch734d00sl2jdk",
         "pfkkdhi9sl3r4s00",
@@ -133,7 +129,6 @@ object OAuth1TestCases {
         "photos.example.net",
         3000,
         "/photos",
-        "/1/userauth/photos",
         Nil,
         "nnch734d00sl2jdk",
         "pfkkdhi9sl3r4s00",
@@ -155,7 +150,6 @@ object OAuth1TestCases {
         "photos.example.net",
         3000,
         "/photos/create",
-        "/1/userauth/photos/create",
         Nil,
         null,
         "pfkkdhi9sl3r4s00",
@@ -176,7 +170,6 @@ object OAuth1TestCases {
         "photos.example.net",
         3000,
         "/photos/create",
-        "/1/userauth/photos/create",
         Nil,
         "nnch734d00sl2jdk",
         "pfkkdhi9sl3r4s00",
@@ -199,7 +192,6 @@ object OAuth1TestCases {
     "localhost",
     9080,
     "/1/statuses/filter.json",
-    null,
     List(("track", "%f8ae"), ("delimited", "length"), ("follow", "1")),
     "readkey",
     "readsecret",
@@ -220,7 +212,6 @@ object OAuth1TestCases {
     "localhost",
     9080,
     "/1/statuses/filter.json",
-    null,
     List(("track", "%c3%b8ae"), ("delimited", "length"), ("follow", "1")),
     "readkey",
     "readsecret",
