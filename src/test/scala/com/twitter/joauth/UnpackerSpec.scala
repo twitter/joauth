@@ -20,9 +20,9 @@ import org.specs.Specification
 
 class UnpackerSpec extends Specification with Mockito {
   "Unpacked for OAuth2 Request" should {
-    case class containTheToken(token: String) extends Matcher[OAuthRequest] {
+    case class containTheToken(token: String) extends Matcher[UnpackedRequest] {
       val goodresponse = "oauth request matches token"
-      def apply(r: => OAuthRequest) = {
+      def apply(r: => UnpackedRequest) = {
         val (result, badresponse) = r match {
           case null => (false, "unpacked request is null")
           case u:OAuthRequest => (u.token == token,"unpacked request has incorrect token: " + u.token)
@@ -71,7 +71,7 @@ class UnpackerSpec extends Specification with Mockito {
     val kvHandler = mock[KeyValueHandler]
     val unpacker = StandardUnpacker()
 
-    if (testCase.exception == null) {
+    if (testCase.canBeUnpackedAsOAuth) {
       // KV Handler Called Once Per Param
       getTestName("kvHandler called once per parameter", testCase.testName, oAuthInParams, oAuthInHeader, paramsInPost) in {
         val request = testCase.request(oAuthInParams, oAuthInHeader, paramsInPost)
@@ -89,11 +89,10 @@ class UnpackerSpec extends Specification with Mockito {
         val request = testCase.request(oAuthInParams, oAuthInHeader, paramsInPost)
         val (parsedRequest, oAuthParamsBuilder) = unpacker.parseRequest(request, Seq(kvHandler))
         parsedRequest mustEqual testCase.parsedRequest(paramsInPost)
-        //params.toString must be_==(testCase.parameters.map(e => (UrlEncodingNormalizingTransformer(e._1), UrlEncodingNormalizingTransformer(e._2))).toString)
         oAuthParamsBuilder.oAuth1Params.toString must be_==(testCase.oAuth1Params(paramsInPost).toString)
       }
-      // Auth Result
-      getTestName("produce correct authresult", testCase.testName, oAuthInParams, oAuthInHeader, paramsInPost) in {
+      // Parse request
+      getTestName("parse oauth", testCase.testName, oAuthInParams, oAuthInHeader, paramsInPost) in {
         val request = testCase.request(oAuthInParams, oAuthInHeader, paramsInPost)
         val (parsedRequest, oAuthParamsBuilder) = unpacker.parseRequest(request, Seq(kvHandler))
         unpacker.getOAuth1Request(parsedRequest, oAuthParamsBuilder.oAuth1Params) must be_==(testCase.oAuth1Request(paramsInPost))
@@ -104,17 +103,10 @@ class UnpackerSpec extends Specification with Mockito {
         unpacker(request, Seq(kvHandler)) must be_==(testCase.oAuth1Request(paramsInPost))
       }
     } else {
-      // Throw Exception
-      getTestName("throw exception", testCase.testName, oAuthInParams, oAuthInHeader, paramsInPost) in {
-        // try {
-          val request = testCase.request(oAuthInParams, oAuthInHeader, paramsInPost)
-          unpacker(request) must throwA(testCase.exception)
-        //   fail("should have thrown")
-        // } catch {
-        //   case e => e.toString must be_==(testCase.exception.toString)
-        // }
-        // // for compiler
-        // 1
+      // handle unknown
+      getTestName("handle unknown", testCase.testName, oAuthInParams, oAuthInHeader, paramsInPost) in {
+        val request = testCase.request(oAuthInParams, oAuthInHeader, paramsInPost)
+        unpacker(request) must be_==(UnknownRequest(testCase.parsedRequest(paramsInPost)))
       }
     }
   }

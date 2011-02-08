@@ -33,7 +33,7 @@ case class OAuth1TestCase(
   val normalizedRequestGet: String,
   val normalizedRequestPost: String,
   val urlEncodeParams: Boolean,
-  val exception: Exception) {
+  val canBeUnpackedAsOAuth: Boolean) {
 
   def oAuth1Request(paramsInPost: Boolean) = new OAuth1Request(
     token,
@@ -121,7 +121,7 @@ object OAuth1TestCases {
         "GET&http%3A%2F%2Fphotos.example.net%2FPhotos&file%3Dvacation.jpg%26oauth_consumer_key%3Ddpf43f3p2l4k3l03%26oauth_nonce%3Dkllo9940pd9333jh%26oauth_signature_method%3DHMAC-SHA1%26oauth_timestamp%3D1191242096%26oauth_token%3Dnnch734d00sl2jdk%26oauth_version%3D1.0%26size%3Doriginal",
         "POST&http%3A%2F%2Fphotos.example.net%2FPhotos&file%3Dvacation.jpg%26oauth_consumer_key%3Ddpf43f3p2l4k3l03%26oauth_nonce%3Dkllo9940pd9333jh%26oauth_signature_method%3DHMAC-SHA1%26oauth_timestamp%3D1191242096%26oauth_token%3Dnnch734d00sl2jdk%26oauth_version%3D1.0%26size%3Doriginal",
         true,
-        null
+        true
       ),
       OAuth1TestCase(
         "https/3000/no params",
@@ -141,7 +141,7 @@ object OAuth1TestCases {
         "GET&https%3A%2F%2Fphotos.example.net%3A3000%2Fphotos&oauth_consumer_key%3Ddpf43f3p2l4k3l03%26oauth_nonce%3Dkllo9940pd9333jh%26oauth_signature_method%3DHMAC-SHA1%26oauth_timestamp%3D1191242096%26oauth_token%3Dnnch734d00sl2jdk%26oauth_version%3D1.0",
         "POST&https%3A%2F%2Fphotos.example.net%3A3000%2Fphotos&oauth_consumer_key%3Ddpf43f3p2l4k3l03%26oauth_nonce%3Dkllo9940pd9333jh%26oauth_signature_method%3DHMAC-SHA1%26oauth_timestamp%3D1191242096%26oauth_token%3Dnnch734d00sl2jdk%26oauth_version%3D1.0",
         true,
-        null
+        true
       ),
       // these two are to test throw behavior for malformed requests. skip them by wrapping your in in a test for testCase.exception == null
       OAuth1TestCase(
@@ -162,7 +162,7 @@ object OAuth1TestCases {
         "GET&https%3A%2F%2Fphotos.example.net%3A3000%2Fphotos%2Fcreate&oauth_consumer_key%3Ddpf43f3p2l4k3l03%26oauth_nonce%3Dkllo9940pd9333jh%26oauth_signature_method%3DHMAC-SHA1%26oauth_timestamp%3D1191242096%26oauth_token%3Dnnch734d00sl2jdk%26oauth_version%3D1.0",
         "POST&https%3A%2F%2Fphotos.example.net%3A3000%2Fphotos%2Fcreate&oauth_consumer_key%3Ddpf43f3p2l4k3l03%26oauth_nonce%3Dkllo9940pd9333jh%26oauth_signature_method%3DHMAC-SHA1%26oauth_timestamp%3D1191242096%26oauth_token%3Dnnch734d00sl2jdk%26oauth_version%3D1.0",
         true,
-        new UnknownAuthType("could not determine the authentication type")
+        false
       ),
       OAuth1TestCase(
         "null client key",
@@ -182,7 +182,7 @@ object OAuth1TestCases {
         "GET&https%3A%2F%2Fphotos.example.net%3A3000%2Fphotos%2Fcreate&oauth_consumer_key%3Ddpf43f3p2l4k3l03%26oauth_nonce%3Dkllo9940pd9333jh%26oauth_signature_method%3DHMAC-SHA1%26oauth_timestamp%3D1191242096%26oauth_token%3Dnnch734d00sl2jdk%26oauth_version%3D1.0",
         "POST&https%3A%2F%2Fphotos.example.net%3A3000%2Fphotos%2Fcreate&oauth_consumer_key%3Ddpf43f3p2l4k3l03%26oauth_nonce%3Dkllo9940pd9333jh%26oauth_signature_method%3DHMAC-SHA1%26oauth_timestamp%3D1191242096%26oauth_token%3Dnnch734d00sl2jdk%26oauth_version%3D1.0",
         true,
-        new UnknownAuthType("could not determine the authentication type")
+        false
       )
     )
   }
@@ -204,7 +204,7 @@ object OAuth1TestCases {
     "GET&http%3A%2F%2Flocalhost%3A9080%2F1%2Fstatuses%2Ffilter.json&delimited%3Dlength%26follow%3D1%26oauth_consumer_key%3Dwritekey%26oauth_nonce%3DZSArLiUsGgwwtE4q9Y7nl2Q89jZvqo8wCepxbQbcQg%26oauth_signature_method%3DHMAC-SHA1%26oauth_timestamp%3D1282246407%26oauth_token%3Dreadkey%26oauth_version%3D1.0%26track%3D%25F8ae",
     null,
     false,
-    null
+    true
   )
   val oAuthSpecialCasePost = OAuth1TestCase(
     "special char in POST",
@@ -224,6 +224,6 @@ object OAuth1TestCases {
     null,
     "POST&http%3A%2F%2Flocalhost%3A9080%2F1%2Fstatuses%2Ffilter.json&delimited%3Dlength%26follow%3D1%26oauth_consumer_key%3Dwritekey%26oauth_nonce%3DBMJXoQz754IpxjHNJsm06ZeXVjsitznhpSRqampxzs%26oauth_signature_method%3DHMAC-SHA1%26oauth_timestamp%3D1282246447%26oauth_token%3Dreadkey%26oauth_version%3D1.0%26track%3D%25C3%25B8ae",
     false,
-    null
+    true
   )
 }

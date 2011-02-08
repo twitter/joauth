@@ -28,7 +28,7 @@ class NormalizerSpec extends Specification {
   "Normalizer" should {
     "normalize correctly" in {
       OAuth1TestCases().foreach { (testCase) =>
-        if (testCase.exception == null) {
+        if (testCase.canBeUnpackedAsOAuth) {
           for ((post) <- List(true, false)) {
             val verb = if (post) "POST" else "GET"
             "normalize %s/%s".format(post, testCase.testName) in {
