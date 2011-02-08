@@ -13,7 +13,7 @@
 package com.twitter.joauth.testhelpers
 
 import com.twitter.joauth.keyvalue.UrlEncodingNormalizingTransformer
-import com.twitter.joauth.{UrlDecoder, MalformedRequest, OAuthParams, OAuth1Params, OAuth1Request, ParsedRequest, Request, UnknownAuthType}
+import com.twitter.joauth.{UrlDecoder, MalformedRequest, OAuthParams, OAuth1Params, OAuth1Request, ParsedRequest, Request}
 
 case class OAuth1TestCase(
   val testName: String,
