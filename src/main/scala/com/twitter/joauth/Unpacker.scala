@@ -23,14 +23,14 @@ import java.io.ByteArrayOutputStream
  */
 trait Unpacker {
   @throws(classOf[UnpackerException])
-  def apply(request: Request): OAuthRequest = apply(request, Seq())
+  def apply(request: Request): UnpackedRequest = apply(request, Seq())
 
   @throws(classOf[UnpackerException])
-  def apply(request: Request, kvHandler: KeyValueHandler): OAuthRequest =
+  def apply(request: Request, kvHandler: KeyValueHandler): UnpackedRequest =
     apply(request, Seq(kvHandler))
 
   @throws(classOf[UnpackerException])
-  def apply(request: Request, kvHandlers: Seq[KeyValueHandler]): OAuthRequest
+  def apply(request: Request, kvHandlers: Seq[KeyValueHandler]): UnpackedRequest
 }
 
 /**
@@ -92,7 +92,7 @@ class StandardUnpacker(
   import StandardUnpacker._
 
   @throws(classOf[UnpackerException])
-  override def apply(request: Request, kvHandlers: Seq[KeyValueHandler]): OAuthRequest = {
+  override def apply(request: Request, kvHandlers: Seq[KeyValueHandler]): UnpackedRequest = {
     try {
       val (parsedRequest, oAuthParamsBuilder) = parseRequest(request, kvHandlers)
 
@@ -100,7 +100,7 @@ class StandardUnpacker(
         getOAuth2Request(parsedRequest, oAuthParamsBuilder.oAuth2Token)
       } else if (oAuthParamsBuilder.isOAuth1) {
         getOAuth1Request(parsedRequest, oAuthParamsBuilder.oAuth1Params)
-      } else throw new UnknownAuthType("could not determine the authentication type")
+      } else UnknownRequest(parsedRequest)
 
     } catch {
       // just rethrow UnpackerExceptions

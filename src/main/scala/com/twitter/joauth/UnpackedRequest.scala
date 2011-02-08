@@ -12,14 +12,19 @@
 
 package com.twitter.joauth
 
+sealed trait UnpackedRequest {
+  def parsedRequest: ParsedRequest
+}
+
+case class UnknownRequest(parsedRequest: ParsedRequest) extends UnpackedRequest
+
 /**
  * Both OAuth 1.0a and 2.0 requests have access tokens,
  * so it's convenient to combine them into a single trait
  */
-sealed trait OAuthRequest {
+sealed trait OAuthRequest extends UnpackedRequest {
   def token: String
   def oAuthParamMap: Map[String, String]
-  def parsedRequest: ParsedRequest
 }
 
 /**
@@ -41,14 +46,14 @@ case class OAuth1Request(
   import OAuthParams._
 
   override lazy val oAuthParamMap = Map(
-      OAUTH_TOKEN -> token,
-      OAUTH_CONSUMER_KEY -> consumerKey,
-      OAUTH_NONCE -> nonce,
-      OAUTH_TIMESTAMP -> timestampSecs.toString,
-      OAUTH_SIGNATURE_METHOD -> signatureMethod,
-      OAUTH_SIGNATURE -> signature,
-      OAUTH_VERSION -> (if (version == null) ONE_DOT_OH else version),
-      NORMALIZED_REQUEST -> normalizedRequest)
+    OAUTH_TOKEN -> token,
+    OAUTH_CONSUMER_KEY -> consumerKey,
+    OAUTH_NONCE -> nonce,
+    OAUTH_TIMESTAMP -> timestampSecs.toString,
+    OAUTH_SIGNATURE_METHOD -> signatureMethod,
+    OAUTH_SIGNATURE -> signature,
+    OAUTH_VERSION -> (if (version == null) ONE_DOT_OH else version),
+    NORMALIZED_REQUEST -> normalizedRequest)
 }
 
 /**
