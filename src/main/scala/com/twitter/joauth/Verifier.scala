@@ -75,8 +75,8 @@ extends Verifier {
 
   def validateTimestampSecs(timestampSecs: Long): Boolean = {
     val nowSecs = System.currentTimeMillis / 1000
-    (maxClockFloatBehindMins < 0 || (timestampSecs >= nowSecs - maxClockFloatBehindMins)) &&
-    (maxClockFloatAheadMins < 0 || (timestampSecs <= nowSecs + maxClockFloatAheadMins))
+    (maxClockFloatBehindMins < 0 || (timestampSecs >= nowSecs - maxClockFloatBehindSecs)) &&
+    (maxClockFloatAheadMins < 0 || (timestampSecs <= nowSecs + maxClockFloatAheadSecs))
   }
 
   def validateSignature(

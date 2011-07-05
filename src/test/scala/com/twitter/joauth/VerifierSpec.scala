@@ -21,9 +21,10 @@ class VerifierSpec extends Specification with Mockito {
   val signer = mock[Signer]
   val request = mock[OAuth1Request]
 
-  // 10 minutes ago
   val nowSecs = (new Date).getTime / 1000
+  // 10 minutes ago
   val longAgoSecs = nowSecs - (10 * 60)
+  // 10 minutes fromNow
   val farAheadSecs = nowSecs + (10 * 60)
 
   val verify = new StandardVerifier(signer, 5, 5, checkNonce)
@@ -33,7 +34,12 @@ class VerifierSpec extends Specification with Mockito {
       verify.validateTimestampSecs(longAgoSecs) must beFalse
     }
     "return true for timestamp that is new enough" in {
-      verify.validateTimestampSecs((new Date).getTime / 1000) must beTrue
+      val fourMinutesAgo = nowSecs - (4 * 60)
+      verify.validateTimestampSecs(fourMinutesAgo) must beTrue
+    }
+    "return true for timestamp that is new enough" in {
+      val fourMinutesFromNow = nowSecs + (4 * 60)
+      verify.validateTimestampSecs(fourMinutesFromNow) must beTrue
     }
     "return false for timestamp that too new" in {
       verify.validateTimestampSecs(farAheadSecs) must beFalse
