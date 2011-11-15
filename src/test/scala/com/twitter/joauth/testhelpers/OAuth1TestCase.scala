@@ -74,7 +74,7 @@ case class OAuth1TestCase(
     else UrlDecoder(signature)
   }
 
-  def request(oAuthInParam: Boolean, oAuthInHeader: Boolean, paramsInPost: Boolean): Request = {
+  def request(oAuthInParam: Boolean, oAuthInHeader: Boolean, paramsInPost: Boolean): MockRequest = {
     val signature = if (paramsInPost) signaturePost else signatureGet
     var request = new MockRequest
     request.method = "GET"

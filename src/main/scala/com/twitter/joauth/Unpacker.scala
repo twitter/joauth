@@ -158,6 +158,7 @@ class StandardUnpacker(
       queryParser(request.body, handlerSeq)
     }
 
+    // parse the header, if present
     parseHeader(request.authHeader, filteredOAuthKvHandler)
 
     // now we just return the accumulated parameters and OAuthParams
@@ -198,7 +199,7 @@ class StandardUnpacker(
           }
         }
       }
-      case None =>
+      case _ =>
     }
   }
 }
