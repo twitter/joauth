@@ -12,5 +12,5 @@ class JoauthProject(info: ProjectInfo)
   val specs = "org.scala-tools.testing" %% "specs" % "1.6.6" % "test"
   val mockitoall = "org.mockito" % "mockito-all" % "1.8.4" % "test"
 
-  override def subversionRepository = Some("http://svn.local.twitter.com/maven-public")
+  override def subversionRepository = Some("https://svn.twitter.biz/maven-public")
 }
