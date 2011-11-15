@@ -94,7 +94,7 @@ object OAuth1Request {
       }
       else if (oAuth1Params.version != null &&
           oAuth1Params.version != OAuthParams.ONE_DOT_OH &&
-          oAuth1Params.version != OAuthParams.ONE_DOT_OH_A) {
+          oAuth1Params.version.toLowerCase != OAuthParams.ONE_DOT_OH_A) {
         throw new MalformedRequest(UNSUPPORTED_VERSION+oAuth1Params.version)
       }
       // we don't check the validity of the OAuthParams object, because it must be
