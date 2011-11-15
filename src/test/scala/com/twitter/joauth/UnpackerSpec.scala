@@ -52,6 +52,12 @@ class UnpackerSpec extends Specification with Mockito {
       request.scheme = "https"
       unpacker(request) must containTheToken("a")
     }
+    "unpack request with token in params HTTPS and junk Auth header" in {
+      val request = MockRequestFactory.oAuth2RequestInParams("a")
+      request.scheme = "https"
+      request.authHeader = Some("BLARG")
+      unpacker(request) must containTheToken("a")
+    }
     "unpack request with token in params HTTPS in POST" in {
       val request = MockRequestFactory.postRequest(MockRequestFactory.oAuth2RequestInParams("a"))
       request.scheme = "https"
@@ -96,6 +102,16 @@ class UnpackerSpec extends Specification with Mockito {
         val request = testCase.request(oAuthInParams, oAuthInHeader, paramsInPost)
         val (parsedRequest, oAuthParamsBuilder) = unpacker.parseRequest(request, Seq(kvHandler))
         unpacker.getOAuth1Request(parsedRequest, oAuthParamsBuilder.oAuth1Params) must be_==(testCase.oAuth1Request(paramsInPost))
+      }
+      // make sure get/post parsing still works with junky auth header
+      if (!oAuthInHeader) {
+        // Parse request
+        getTestName("parse oauth with junk auth header", testCase.testName, oAuthInParams, false, paramsInPost) in {
+          val request = testCase.request(oAuthInParams, oAuthInHeader, paramsInPost)
+          request.authHeader = Some("BLARG")
+          val (parsedRequest, oAuthParamsBuilder) = unpacker.parseRequest(request, Seq(kvHandler))
+          unpacker.getOAuth1Request(parsedRequest, oAuthParamsBuilder.oAuth1Params) must be_==(testCase.oAuth1Request(paramsInPost))
+        }
       }
       // Unpack Request
       val request = testCase.request(oAuthInParams, oAuthInHeader, paramsInPost)
