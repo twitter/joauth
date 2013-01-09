@@ -23,6 +23,7 @@ case class UnknownRequest(parsedRequest: ParsedRequest) extends UnpackedRequest
  * so it's convenient to combine them into a single trait
  */
 sealed trait OAuthRequest extends UnpackedRequest {
+  def oAuthVersionString: String
   def token: String
   def oAuthParamMap: Map[String, String]
 }
@@ -45,6 +46,8 @@ case class OAuth1Request(
 
   import OAuthParams._
 
+  override val oAuthVersionString = "oauth1"
+
   override lazy val oAuthParamMap = Map(
     OAUTH_TOKEN -> token,
     OAUTH_CONSUMER_KEY -> consumerKey,
@@ -59,8 +62,21 @@ case class OAuth1Request(
 /**
  * models an OAuth 2.0 request. Just a wrapper for the token, really.
  */
-case class OAuth2Request(token: String, parsedRequest: ParsedRequest) extends OAuthRequest {
+@deprecated("Use OAuth2Request instead")
+case class OAuth2d11Request(token: String, parsedRequest: ParsedRequest) extends OAuthRequest {
+  override val oAuthVersionString = "oauth2d11"
+
   override lazy val oAuthParamMap = Map(OAuthParams.ACCESS_TOKEN -> token)
+}
+
+/**
+ * models an OAuth 2.0 rev 25 request. Just a wrapper for the token, really.
+ */
+case class OAuth2Request(token: String, parsedRequest: ParsedRequest, clientId: String = "") extends OAuthRequest {
+  override val oAuthVersionString = "oauth2"
+
+  override lazy val oAuthParamMap = Map(OAuthParams.ACCESS_TOKEN -> token,
+                                        OAuthParams.CLIENT_ID -> clientId)
 }
 
 /**
@@ -77,6 +93,8 @@ object OAuth1Request {
   val PATH = "path"
   val UNSUPPORTED_METHOD = "unsupported signature method: "
   val UNSUPPORTED_VERSION = "unsupported oauth version: "
+  val MALFORMED_TOKEN = "malformed oauth token: "
+  val MaxTokenLength = 50   // This is limited by DB schema
 
   def nullException(name: String) = new MalformedRequest(NO_VALUE_FOR+name)
 
@@ -96,6 +114,10 @@ object OAuth1Request {
           oAuth1Params.version != OAuthParams.ONE_DOT_OH &&
           oAuth1Params.version.toLowerCase != OAuthParams.ONE_DOT_OH_A) {
         throw new MalformedRequest(UNSUPPORTED_VERSION+oAuth1Params.version)
+      }
+      else if (oAuth1Params.token != null &&
+          (oAuth1Params.token.indexOf(' ') > 0 || oAuth1Params.token.length > MaxTokenLength)) {
+        throw new MalformedRequest(MALFORMED_TOKEN+oAuth1Params.token)
       }
       // we don't check the validity of the OAuthParams object, because it must be
       // fully populated in order for the factory to even be called, and we'd like

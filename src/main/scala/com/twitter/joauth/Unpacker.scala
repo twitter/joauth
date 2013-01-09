@@ -13,7 +13,6 @@
 package com.twitter.joauth
 
 import com.twitter.joauth.keyvalue._
-import java.io.ByteArrayOutputStream
 
 /**
  * An Unpacker takes an Request and optionally a Seq[KeyValueHandler],
@@ -94,10 +93,13 @@ class StandardUnpacker(
   @throws(classOf[UnpackerException])
   override def apply(request: Request, kvHandlers: Seq[KeyValueHandler]): UnpackedRequest = {
     try {
-      val (parsedRequest, oAuthParamsBuilder) = parseRequest(request, kvHandlers)
+      val oAuthParamsBuilder = parseRequest(request, kvHandlers)
+      val parsedRequest = request.parsedRequest(oAuthParamsBuilder.otherParams)
 
       if (oAuthParamsBuilder.isOAuth2) {
         getOAuth2Request(parsedRequest, oAuthParamsBuilder.oAuth2Token)
+      } else if (oAuthParamsBuilder.isOAuth2d11) {
+        getOAuth2d11Request(parsedRequest, oAuthParamsBuilder.oAuth2Token)
       } else if (oAuthParamsBuilder.isOAuth1) {
         getOAuth1Request(parsedRequest, oAuthParamsBuilder.oAuth1Params)
       } else UnknownRequest(parsedRequest)
@@ -117,70 +119,83 @@ class StandardUnpacker(
     OAuth1Request(parsedRequest, oAuth1Params, normalizer)
 
   @throws(classOf[MalformedRequest])
-  def getOAuth2Request(parsedRequest: ParsedRequest, token: String): OAuth2Request = {
+  def getOAuth2d11Request(parsedRequest: ParsedRequest, token: String): OAuth2d11Request = {
     // OAuth 2.0 requests are totally insecure with SSL, so depend on HTTPS to provide
     // protection against replay and man-in-the-middle attacks. If you need to run
     // an authorization service that can't do HTTPS for some reason, you can define
     // a custom UriSchemeGetter to make the scheme pretend to be HTTPS for the purposes
     // of request validation
+    if (parsedRequest.scheme == HTTPS) OAuth2d11Request(UrlDecoder(token), parsedRequest)
+    else throw new MalformedRequest("OAuth 2.0 requests must use HTTPS")
+  }
+
+  @throws(classOf[MalformedRequest])
+  def getOAuth2Request(parsedRequest: ParsedRequest, token: String): OAuth2Request = {
+    // OAuth 2.0 requests are totally insecure without SSL, so depend on HTTPS to provide
+    // protection against replay and man-in-the-middle attacks.
     if (parsedRequest.scheme == HTTPS) OAuth2Request(UrlDecoder(token), parsedRequest)
     else throw new MalformedRequest("OAuth 2.0 requests must use HTTPS")
   }
 
-  def parseRequest(request: Request, kvHandlers: Seq[KeyValueHandler]) = {
-    // get all key/value pairs, allow duplicate values for keys
-    val kvHandler = new DuplicateKeyValueHandler
-
-    // filter out all the OAuth fields, which we'll collect separately
-    val filteredKvHandler = new NotOAuthKeyValueHandler(kvHandler)
-
-    // use an OAuthParams instance to accumulate OAuth key/values from
-    // the query string, the POST (if the appropriate Content-Type), and
-    // the Authorization header, if any.
-    val oAuthParamsBuilder = OAuthParamsBuilder(helper)
-
-    // filter out non-OAuth keys, and empty values
-    val filteredOAuthKvHandler = new OAuthKeyValueHandler(oAuthParamsBuilder)
-
-    // add our handlers to the passed-in handlers, to which
-    // we'll only send non-oauth key/values.
-    val handlerSeq = Seq(filteredKvHandler, filteredOAuthKvHandler) ++
-      kvHandlers.map(h => new NotOAuthKeyValueHandler(h))
-
-    // parse the GET query string
-    queryParser(request.queryString, handlerSeq)
-
-    // parse the POST if the Content-Type is appropriate. Use the same
-    // set of KeyValueHandlers that we used to parse the query string.
-    if (request.method.toUpperCase == POST &&
-        request.contentType.isDefined &&
-        request.contentType.get.startsWith(WWW_FORM_URLENCODED)) {
-      queryParser(request.body, handlerSeq)
-    }
-
-    // parse the header, if present
-    parseHeader(request.authHeader, filteredOAuthKvHandler)
-
-    // now we just return the accumulated parameters and OAuthParams
-    (request.parsedRequest(kvHandler.toList), oAuthParamsBuilder)
+  protected[this] def transformingKeyValueHandler(kvHandler: KeyValueHandler) = {
+    new KeyTransformingKeyValueHandler(
+      new TrimmingKeyValueHandler(new UrlEncodingNormalizingKeyValueHandler(kvHandler)),
+      helper.processKey _)
   }
 
-  def parseHeader(header: Option[String], handler: KeyValueHandler): Unit = {
+  def parseRequest(request: Request, kvHandlers: Seq[KeyValueHandler]): OAuthParamsBuilder = {
+    // use an oAuthParamsBuilder instance to accumulate key/values from
+    // the query string, the POST (if the appropriate Content-Type), and
+    // the Authorization header, if any.
+    val oAuthParamsBuilder = new OAuthParamsBuilder(helper)
+
+    // parse the header, if present
+    parseHeader(request.authHeader, oAuthParamsBuilder.headerHandler)
+
+    // If it is an oAuth2 we do not need to process any further
+    if (!oAuthParamsBuilder.isOAuth2) {
+      val queryHandler = transformingKeyValueHandler(oAuthParamsBuilder.queryHandler)
+
+      // add our handlers to the passed-in handlers, to which
+      // we'll only send non-oauth key/values.
+      val queryHandlers: Seq[KeyValueHandler] = queryHandler +: kvHandlers
+
+      // parse the GET query string
+      queryParser(request.queryString, queryHandlers)
+
+      // parse the POST if the Content-Type is appropriate. Use the same
+      // set of KeyValueHandlers that we used to parse the query string.
+      if (request.method.toUpperCase == POST &&
+          request.contentType.isDefined &&
+          request.contentType.get.startsWith(WWW_FORM_URLENCODED)) {
+        queryParser(request.body, queryHandlers)
+      }
+    }
+
+    // now we just return the accumulated parameters and OAuthParams
+    oAuthParamsBuilder
+  }
+
+  def parseHeader(header: Option[String], nonTransformingHandler: KeyValueHandler): Unit = {
+    // trim, normalize encodings
+    val handler = transformingKeyValueHandler(nonTransformingHandler)
+
     // check for OAuth credentials in the header. OAuth 1.0a and 2.0 have
     // different header schemes, so match first on the auth scheme.
     header match {
       case Some(AUTH_HEADER_REGEX(authType, authString)) => {
-        val shouldParse = authType.toLowerCase match {
-          case OAuthParams.OAUTH2_HEADER_AUTHTYPE => true
-          case OAuthParams.OAUTH1_HEADER_AUTHTYPE => true
-          case _ => false
+        val (shouldParse, oauth2) = authType.toLowerCase match {
+          case OAuthParams.OAUTH2_HEADER_AUTHTYPE => (false, true)
+          case OAuthParams.OAUTH2D11_HEADER_AUTHTYPE => (true, false)
+          case OAuthParams.OAUTH1_HEADER_AUTHTYPE => (true, false)
+          case _ => (false, false)
         }
         if (shouldParse) {
           // if we were able match an appropriate auth header,
-          // we'll wrap that handler with a QuotedValueKeyValueHandler,
-          // which will only pass quoted values to the underlying handler,
-          // stripping the quotes on the way.
-          val quotedHandler = new QuotedValueKeyValueHandler(handler)
+          // we'll wrap that handler with a MaybeQuotedValueKeyValueHandler,
+          // which will strip quotes from quoted values before passing
+          // to the underlying handler
+          val quotedHandler = new MaybeQuotedValueKeyValueHandler(handler)
 
           // oauth2 allows specification of the access token alone,
           // without a key, so we pass in a kvHandler that can detect this case
@@ -197,6 +212,8 @@ class StandardUnpacker(
             case Some(token) => handler(OAuthParams.ACCESS_TOKEN, token)
             case None =>
           }
+        } else if (oauth2) {
+          nonTransformingHandler(OAuthParams.BEARER_TOKEN, authString)
         }
       }
       case _ =>

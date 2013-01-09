@@ -1,15 +1,10 @@
-# JOAuth
+# JOAuth [![Build Status](https://travis-ci.org/twitter/joauth.png?branch=master)](https://travis-ci.org/twitter/joauth)
 
 A Scala/JVM library for authenticating HTTP Requests using OAuth
 
-## License
-
-Copyright 2010 Twitter, Inc. See included LICENSE file.
-
 ## Features
 
-* Supports OAuth 1.0a and 2.0
-* Uses [thrust](http://github.com/twitter/thrust).[HttpRequest](https://github.com/twitter/thrust/blob/master/thrust-core/src/main/scala/com/twitter/thrust/Request.scala), which can be used to wrap HttpServletRequests or other HTTP Request representations
+* Supports OAuth 1.0a and 2.0 (draft 25)
 * Unpacks Requests, extracts and verifies OAuth parameters from headers, GET, and POST
 * Incidentally parses Non-OAuth GET and POST parameters and makes them accessible via a callback
 * Custom callbacks to obtain scheme and path from the request in a non-standard way
@@ -27,21 +22,25 @@ The Github source repository is [here](http://github.com/9len/joauth/). Patches 
 
 ## Building
 
-**v.1.1.2 is the last version that can be built using scala 2.7.7, and now resides in the scala27 branch. v1.2 and above require scala > 2.8.1**
+**v.1.1.2 is the last version that can be built using scala 2.7.7, and now resides in the scala27 branch. v1.2 and above require scala > 2.8.1. v3.0.1 and above uses maven instead of sbt, and require scala 2.9.2 **
 
-*Dependencies*: servlet-api, commons-codec, and thrust (specs & mockito-all to run the tests). These dependencies are managed by the build system.
+*Dependencies*: servlet-api, commons-codec, and util-core (specs & mockito-all to run the tests). These dependencies are managed by the build system.
 
-Use sbt (simple-build-tool) to build:
+Below v3.0.1 - Use sbt (simple-build-tool) to build:
 
-    % sbt clean update package-dist
+    % sbt clean update compile
 
 The finished jar will be in `dist/`.
+
+v3.0.1 and higher - Use maven to build:
+
+    % mvn clean install
 
 ## Understanding the Implementation
 
 JOAuth consists of five traits, each of which is invoked with an apply method.
 
-* The OAuthRequest trait models the data needed to validate a request. There are two concrete subclasses, OAuth1Request and OAuth2Request.
+* The OAuthRequest trait models the data needed to validate a request. There are two concrete subclasses, OAuth1Request and OAuth2Request. The deprecated OAuth2d11Request class implements OAuth2 Draft 11.
 * The Unpacker trait unpacks the HttpServletRequest into an OAuthRequest, which models the data needed to validate the request
 * The Normalizer trait produces a normalized String representation of the request, used for signature calculation
 * The Signer trait signs a String, using the OAuth token secret and consumer secret.
@@ -53,7 +52,7 @@ There are "Standard" and "Const" implementations of the Unpacker, Normalizer, Si
 
 ### Basic Usage
 
-Create an unpacker, and use it to unpack the thrust.Request. The Unpacker will either return an OAuth1Request or OAuth2Request object or throw an UnpackerException.
+Create an unpacker, and use it to unpack the Request. The Unpacker will either return an OAuth1Request or OAuth2Request object or throw an UnpackerException.
 
     import com.twitter.joauth.Unpacker
 
@@ -94,7 +93,6 @@ If you're building an internal authentication service, it may serve multiple end
 For example, if you have an authentication service that responded to the /auth endpoint, and you are authenticating requests to an external server serving the /foo endpoint, the path of the request the authentication service receives is /auth/foo. This won't do, because the signature of the request depends on the path being /foo. We can construct a PathGetter that strips /auth out of the path.
 
     import com.twitter.joauth.PathGetter
-    import com.twitter.thrust.Request
 
     object MyPathGetter extends PathGetter {
       def apply(request: Request): String = {
@@ -105,10 +103,9 @@ For example, if you have an authentication service that responded to the /auth e
       }
     }
 
-If you're running a high throughput authentication service, you might want to avoid using SSL, and listen only for HTTP. Unfortunately, the URI Scheme is part of the signature as well, so you need a way to force the Unpacker to treat the request as HTTPS, even though it isn't. One approach would be for your authentication service to take a custom header to indicate the scheme of the originating request. You can then use the UrlSchemeGetter trait to pull this header out of the request.
+If you're running a high throughput authentication service and only using OAuth1, you might want to avoid using SSL, and listen only for HTTP. Unfortunately, the URI Scheme is part of the signature as well, so you need a way to force the Unpacker to treat the request as HTTPS, even though it isn't. One approach would be for your authentication service to take a custom header to indicate the scheme of the originating request. You can then use the UrlSchemeGetter trait to pull this header out of the request.
 
     import com.twitter.joauth.UriSchemeGetter
-    import com.twitter.thrust.Request
 
     object MySchemeGetter extends UrlSchemeGetter {
       def apply(request; Request): String = {
@@ -207,19 +204,10 @@ The Github issue tracker is [here](http://github.com/9len/joauth/issues).
 * Mark McBride
 * Marcel Molina
 * Glen Sanford
+* Fiaz Hossain
 
-## Copyright and License
+## License
 
-Copyright 2011 Twitter, Inc.
+Copyright 2010-2013 Twitter, Inc.
 
-   Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this work except in compliance with the License.
-   You may obtain a copy of the License in the LICENSE file, or at:
-
-       http://www.apache.org/licenses/LICENSE-2.0
-
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License.
+Licensed under the Apache License, Version 2.0: http://www.apache.org/licenses/LICENSE-2.0

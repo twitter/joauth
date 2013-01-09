@@ -12,18 +12,23 @@
 
 package com.twitter.joauth
 
+import com.twitter.joauth.keyvalue.UrlEncodingNormalizingTransformer
 import com.twitter.joauth.testhelpers.OAuth1TestCases
-import org.specs.Specification
+import org.specs.SpecificationWithJUnit
 
-class NormalizerSpec extends Specification {
+class NormalizerSpec extends SpecificationWithJUnit {
   val normalize = StandardNormalizer
-  "Get Port String" should {
-    "skip port for  80/HTTP" in { normalize.getPortString(80, "http") must be_==("") }
-    "return port for 80/HTTPS" in { normalize.getPortString(80, "https") must be_==(":80") }
-    "return port for 443/HTTP" in { normalize.getPortString(443, "http") must be_==(":443") }
-    "skip port for 443/HTTPS" in { normalize.getPortString(443, "https") must be_==("") }
-    "return port for 3000/HTTP" in { normalize.getPortString(3000, "http") must be_==(":3000") }
-    "return port for 3000/HTTPS" in { normalize.getPortString(3000, "https") must be_==(":3000") }
+  "Include Port String" should {
+    "skip port for 80/HTTP" in { normalize.includePortString(80, "http") must beFalse }
+    "skip port for 80/hTtP" in { normalize.includePortString(80, "hTtP") must beFalse }
+    "return port for 80/HTTPS" in { normalize.includePortString(80, "https") must beTrue }
+    "return port for 80/hTtPs" in { normalize.includePortString(80, "hTtPs") must beTrue }
+    "return port for 443/HTTP" in { normalize.includePortString(443, "http") must beTrue }
+    "return port for 443/hTtP" in { normalize.includePortString(443, "hTtP") must beTrue }
+    "skip port for 443/HTTPS" in { normalize.includePortString(443, "https") must beFalse }
+    "skip port for 443/hTtpS" in { normalize.includePortString(443, "hTtpS") must beFalse }
+    "return port for 3000/HTTP" in { normalize.includePortString(3000, "http") must beTrue }
+    "return port for 3000/HTTPS" in { normalize.includePortString(3000, "https") must beTrue }
   }
   "Normalizer" should {
     "normalize correctly" in {
@@ -38,8 +43,10 @@ class NormalizerSpec extends Specification {
                 testCase.port,
                 verb,
                 testCase.path,
-                testCase.parameters,
-                testCase.oAuth1Params(post)) must be_==(testCase.normalizedRequest(post))
+                testCase.parameters.map { case (k, v) =>
+                  UrlEncodingNormalizingTransformer(k) -> UrlEncodingNormalizingTransformer(v)
+                },
+                testCase.oAuth1Params(post)) must be_==(testCase.normalizedRequest(post, false))
             }
           }
         }

@@ -18,18 +18,30 @@ import scala.util.Random
 object MockRequestFactory {
   val random = new Random()
 
-  def oAuth1Header(token: String, clientKey: String, signature: String, nonce: String, timestamp: String, urlEncodeSig: Boolean): String = {
+  def oAuth1Header(
+    token: String,
+    clientKey: String,
+    signature: String,
+    nonce: String,
+    timestamp: String,
+    urlEncodeSig: Boolean,
+    extraHeaderParams: Seq[(String, String)] = Nil,
+    quotedHeaderValues: Boolean = true): String = {
+
+    def maybeQuote(str: String) = if (quotedHeaderValues) "\"%s\"".format(str) else str
+
     val encodedSignature = if (signature == null || !urlEncodeSig) signature else UrlEncoder(signature)
-    "OAuth " + (oAuth1ParameterMap(token, clientKey, encodedSignature, nonce, timestamp).flatMap { (e) =>
-      if (e._2 == null) None
-      else Some(getRandomWhitespace + e._1 + getRandomWhitespace + "=" + getRandomWhitespace + quote(e._2) + getRandomWhitespace)
-    }).mkString(",")
+    val params = oAuth1ParameterMap(token, clientKey, encodedSignature, nonce, timestamp) ++ extraHeaderParams
+    val paramString = params.filter(_._2 != null).map { case (k, v) =>
+      getRandomWhitespace + k + getRandomWhitespace + "=" + getRandomWhitespace + maybeQuote(v) + getRandomWhitespace
+    }
+    "OAuth " + paramString.mkString(",")
   }
 
-  def oAuth2Header(token: String) = "OAuth2 %s".format(token)
-  def oAuth2HeaderWithKey(token: String) = "OAuth2 access_token=\"%s\"".format(token)
+  def oAuth2d11Header(token: String) = "OAuth2 %s".format(token)
+  def oAuth2d11HeaderWithKey(token: String) = "OAuth2 access_token=\"%s\"".format(token)
 
-  def quote(str: String) ="\"%s\"".format(str)
+  def oAuth2Header(token: String) = "Bearer %s".format(token)
 
   def oAuth1QueryString(token: String, clientKey: String, signature: String, nonce: String, timestamp: String, urlEncode: Boolean) =
     ParamHelper.toQueryString(oAuth1ParameterMap(token, clientKey, signature, nonce, timestamp), urlEncode)
@@ -39,8 +51,8 @@ object MockRequestFactory {
     clientKey: String,
     signature: String,
     nonce: String,
-    timestamp: String): Map[String, String] = {
-    Map(
+    timestamp: String): Seq[(String, String)] = {
+    Seq(
       "oauth_token" -> token,
       "oauth_consumer_key" -> clientKey,
       "oauth_signature" -> signature,
@@ -83,4 +95,6 @@ object MockRequestFactory {
     request.method = "POST"
     request
   }
+
+  def oAuth2nRequestInHeader(token: String) = requestWithAuthHeader(oAuth2Header(token))
 }

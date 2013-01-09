@@ -12,10 +12,11 @@
 
 package com.twitter.joauth.keyvalue
 
+import com.twitter.joauth.StandardOAuthParamsHelper
 import org.specs.mock.Mockito
-import org.specs.Specification
+import org.specs.SpecificationWithJUnit
 
-class KeyValueHandlerSpec extends Specification with Mockito {
+class KeyValueHandlerSpec extends SpecificationWithJUnit with Mockito {
   "SingleKeyValueHandler" should {
     val handler = new SingleKeyValueHandler
     "use last value for key" in {
@@ -34,16 +35,18 @@ class KeyValueHandlerSpec extends Specification with Mockito {
       handler.toList must haveTheSameElementsAs(List(("foo", "bar"), ("foo", "baz"), ("a", "b")))
     }
   }
-  "QuotedValueKeyValueHandler" should {
+  "MaybeQuotedValueKeyValueHandler" should {
     val underlying = mock[KeyValueHandler]
-    val handler = new QuotedValueKeyValueHandler(underlying)
+    val handler = new MaybeQuotedValueKeyValueHandler(underlying)
     "only parse quoted values" in {
       handler("foo", "\"baz\"")
       handler("foo", "   \"baz\"  ")
-      handler("bar" ,"bar")
-      there were two(underlying).apply("foo", "baz")
-      there was no(underlying).apply("bar", "bar")
-      there were two(underlying).apply(any[String], any[String])
+      handler("foo" , "baz")
+      // doesn't trim for unquoted values
+      handler("foo" , "   baz  ")
+      there were 3.times(underlying).apply("foo", "baz")
+      there was one(underlying).apply("foo", "   baz  ")
+      there were 4.times(underlying).apply(any, any)
     }
 
   }
@@ -65,28 +68,6 @@ class KeyValueHandlerSpec extends Specification with Mockito {
       handler("foo", "")
       handler("foo", "")
       handler.key must beNone
-    }
-  }
-  "OAuthKeyValueHandler" should {
-    val underlying = mock[KeyValueHandler]
-    val handler = new OAuthKeyValueHandler(underlying)
-    "filter non oauth1 fields" in {
-      handler("  oauth_token", "foo  ")
-      handler("foo", "bar")
-      there was one(underlying).apply("oauth_token", "foo")
-      there was no(underlying).apply("foo", "bar")
-      there was one(underlying).apply(any[String], any[String])
-    }
-  }
-  "NotOAuthKeyValueHandler" should {
-    val underlying = mock[KeyValueHandler]
-    val handler = new NotOAuthKeyValueHandler(underlying)
-    "filter non oauth1 fields" in {
-      handler("oauth_token", "foo")
-      handler("  foo", "bar  ")
-      there was no(underlying).apply("oauth_token", "foo")
-      there was one(underlying).apply("  foo", "bar  ")
-      there was one(underlying).apply(any[String], any[String])
     }
   }
 }

@@ -12,7 +12,7 @@
 
 package com.twitter.joauth
 
-import java.util.Date
+import java.util.{Arrays, Date}
 
 /**
  * A Validator takes an OAuth1 request, a token secret, and a consumer secret,
@@ -57,7 +57,7 @@ object Verifier {
  * allowed for a timestamp, and a NonceValidator.
  */
 class StandardVerifier(
-  sign: Signer,
+  signer: Signer,
   maxClockFloatAheadMins: Int,
   maxClockFloatBehindMins: Int,
   validateNonce: NonceValidator)
@@ -83,6 +83,8 @@ extends Verifier {
     request: OAuth1Request,
     tokenSecret: String,
     consumerSecret: String): Boolean = {
-    request.signature == sign(request.normalizedRequest, tokenSecret, consumerSecret)
+    Base64Util.equals(UrlDecoder(request.signature).trim,
+      signer.getBytes(request.normalizedRequest, tokenSecret, consumerSecret))
   }
 }
+

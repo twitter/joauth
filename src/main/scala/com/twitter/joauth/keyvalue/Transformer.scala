@@ -12,13 +12,13 @@
 
 package com.twitter.joauth.keyvalue
 
-import com.twitter.joauth.OAuthParams
+import com.twitter.joauth.UrlEncoder
 
 /**
  * The Transformer trait describes the transformation function
  * from a string to a derived string
  */
-trait Transformer extends ((String) => String)
+trait Transformer extends (String => String)
 
 /**
  * The TrimTransformer trims the string
@@ -29,24 +29,10 @@ object TrimTransformer extends Transformer {
 
 /**
  * The UrlEncodingNormalizingTransformer capitializes all of the
- * URLEncoded entities in a string. It will do strange things to
+ * URLEncoded entities in a string, replaces +'s with %20s, and
+ * un-encodes dashes and underscores. It will do strange things to
  * a string that is not actually URLEncoded.
  */
 object UrlEncodingNormalizingTransformer extends Transformer {
-  def apply(s: String) = {
-    val normalized = new StringBuilder()
-    var percented = 0
-    s.foreach {char =>
-      if (percented > 0) {
-        normalized.append(Character.toUpperCase(char))
-        percented -= 1
-      } else if (char == '%') {
-        percented = 2
-        normalized.append(char)
-      } else {
-        normalized.append(char)
-      }
-    }
-    normalized.toString
-  }
+  def apply(s: String) = UrlEncoder.normalize(s)
 }

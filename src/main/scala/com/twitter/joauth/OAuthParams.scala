@@ -12,7 +12,8 @@
 
 package com.twitter.joauth
 
-import com.twitter.joauth.keyvalue.KeyValueHandler
+import com.twitter.joauth.keyvalue.{KeyValueHandler, DuplicateKeyValueHandler, SingleKeyValueHandler}
+import scala.collection.mutable.ListBuffer
 
 trait OAuthParamsHelper {
   /**
@@ -26,6 +27,11 @@ trait OAuthParamsHelper {
    * allows custom processing of the OAuth 1.0 signature obtained from the request.
    */
   def processSignature(str: String): String
+
+  /**
+   * allows custom processing of keys obtained from the request
+   */
+  def processKey(str: String): String
 }
 
 /**
@@ -40,7 +46,8 @@ class StandardOAuthParamsHelper extends OAuthParamsHelper {
   } catch {
     case _ => None
   }
-  override def processSignature(str: String): String = UrlDecoder(str)
+  override def processKey(str: String) = str
+  override def processSignature(str: String): String = str
 }
 
 /**
@@ -55,6 +62,8 @@ object StandardOAuthParamsHelper extends StandardOAuthParamsHelper
  */
 object OAuthParams {
   val ACCESS_TOKEN = "access_token"
+  val BEARER_TOKEN = "Bearer"
+  val CLIENT_ID = "client_id"
   val OAUTH_TOKEN = "oauth_token"
   val OAUTH_CONSUMER_KEY = "oauth_consumer_key"
   val OAUTH_SIGNATURE = "oauth_signature"
@@ -64,13 +73,17 @@ object OAuthParams {
   val OAUTH_VERSION = "oauth_version"
   val NORMALIZED_REQUEST = "normalized_request"
   val UNSET = "(unset)"
+  val OAUTH_2D11 = "oauth2d11"
+
+  val OAUTH_PREFIX_REGEX = "^oauth_[a-z_]+$".r
 
   val HMAC_SHA1 = "HMAC-SHA1"
   val ONE_DOT_OH = "1.0"
   val ONE_DOT_OH_A = "1.0a"
 
   val OAUTH1_HEADER_AUTHTYPE = "oauth"
-  val OAUTH2_HEADER_AUTHTYPE = "oauth2"
+  val OAUTH2D11_HEADER_AUTHTYPE = "oauth2"
+  val OAUTH2_HEADER_AUTHTYPE = "bearer"
 
   def isOAuthParam(field: String): Boolean = {
     field == ACCESS_TOKEN ||
@@ -101,15 +114,17 @@ case class OAuth1Params(
 
   import OAuthParams._
 
-  def toList(includeSig: Boolean): List[(String, String)] =
-    List(
-      OAUTH_TOKEN -> token,
-      OAUTH_CONSUMER_KEY -> consumerKey,
-      OAUTH_NONCE -> nonce,
-      OAUTH_TIMESTAMP -> timestampStr,
-      OAUTH_SIGNATURE_METHOD -> signatureMethod) :::
-    (if (includeSig) List(OAUTH_SIGNATURE -> signature) else Nil) :::
-    (if (version == null) Nil else List(OAUTH_VERSION -> version))
+  def toList(includeSig: Boolean): List[(String, String)] = {
+    val buf = new ListBuffer[(String, String)]
+    buf += OAUTH_CONSUMER_KEY -> consumerKey
+    buf += OAUTH_NONCE -> nonce
+    buf += OAUTH_TOKEN -> token
+    if (includeSig) buf += OAUTH_SIGNATURE -> signature
+    buf += OAUTH_SIGNATURE_METHOD -> signatureMethod
+    buf += OAUTH_TIMESTAMP -> timestampStr
+    if (version != null) buf += OAUTH_VERSION -> version
+    buf.toList
+  }
 
   // we use String.format here, because we're probably not that worried about
   // effeciency when printing the class for debugging
@@ -124,68 +139,94 @@ case class OAuth1Params(
     OAUTH_VERSION, valueOrUnset(version))
 }
 
-object OAuthParamsBuilder {
-  def apply() = new OAuthParamsBuilder(StandardOAuthParamsHelper)
-  def apply(helper: OAuthParamsHelper) = new OAuthParamsBuilder(helper)
-}
-
 /**
- * It's a KeyValueHandler so that it can be easily populated by a
- * KeyValueParser. There are convenience methods for determining
- * if it has all parameters set, just the token set, and for obtaining
- * a list of the params for use in producing the normalized request.
+ * A collector for OAuth and other params. There are convenience methods for determining
+ * if it has all OAuth parameters set, just the token set, and for obtaining
+ * a list of all params for use in producing the normalized request.
  */
 
-class OAuthParamsBuilder(helper: OAuthParamsHelper)
-extends KeyValueHandler {
+class OAuthParamsBuilder(helper: OAuthParamsHelper) {
   import OAuthParams._
 
-  var v2Token: String = null
-  var token: String = null
-  var consumerKey: String = null
-  var nonce: String = null
-  var timestampSecs: Long = -1
-  var timestampStr: String = null
-  var signature: String = null
-  var signatureMethod: String = null
-  var version: String = null
+  private[joauth] var v2Token: String = null
+  private[joauth] var oauth2d11: Boolean = true
+  private[joauth] var token: String = null
+  private[joauth] var consumerKey: String = null
+  private[joauth] var nonce: String = null
+  private[joauth] var timestampSecs: Long = -1
+  private[joauth] var timestampStr: String = null
+  private[joauth] var signature: String = null
+  private[joauth] var signatureMethod: String = null
+  private[joauth] var version: String = null
 
-  def apply(k: String, v: String): Unit = {
-    k match {
-      case ACCESS_TOKEN => v2Token = v
-      case OAUTH_TOKEN => token = v
-      case OAUTH_CONSUMER_KEY => consumerKey = v
-      case OAUTH_NONCE => nonce = v
-      case OAUTH_TIMESTAMP => helper.parseTimestamp(v) match {
-        case Some(t: Long) => {
-          timestampSecs = t
-          timestampStr = v
-        }
-        case None => // ignore
+  private[joauth] var paramsHandler = new DuplicateKeyValueHandler
+  private[joauth] var otherOAuthParamsHandler = new SingleKeyValueHandler
+
+  val headerHandler: KeyValueHandler = new KeyValueHandler {
+    override def apply(k: String, v: String) = handleKeyValue(k, v, true)
+  }
+
+  val queryHandler: KeyValueHandler = new KeyValueHandler {
+    override def apply(k: String, v: String) = handleKeyValue(k, v, false)
+  }
+
+  private[this] def handleKeyValue(k: String, v: String, fromHeader: Boolean): Unit = {
+    def ifNonEmpty(value: String)(f: => Unit) {
+      if (value != null && value != "") {
+        f
       }
-      case OAUTH_SIGNATURE => signature = helper.processSignature(v)
-      case OAUTH_SIGNATURE_METHOD => signatureMethod = v
-      case OAUTH_VERSION => version = v
-      case _ => // ignore
+    }
+
+    k match {
+      // empty values for these keys are swallowed
+      case ACCESS_TOKEN => ifNonEmpty(v) { v2Token = v }
+      case BEARER_TOKEN => ifNonEmpty(v) {
+        if (fromHeader) {
+          v2Token = v
+          oauth2d11 = false
+        }
+      }
+      case CLIENT_ID => ifNonEmpty(v) { if(fromHeader) consumerKey = v }
+      case OAUTH_TOKEN => ifNonEmpty(v) { token = v.trim }
+      case OAUTH_CONSUMER_KEY => ifNonEmpty(v) { consumerKey = v }
+      case OAUTH_NONCE => ifNonEmpty(v) { nonce = v }
+      case OAUTH_TIMESTAMP => ifNonEmpty(v) {
+        helper.parseTimestamp(v) match {
+          case Some(t: Long) => {
+            timestampSecs = t
+            timestampStr = v
+          }
+          case None => // ignore
+        }
+      }
+      case OAUTH_SIGNATURE => ifNonEmpty(v) { signature = helper.processSignature(v) }
+      case OAUTH_SIGNATURE_METHOD => ifNonEmpty(v) { signatureMethod = v }
+      case OAUTH_VERSION => ifNonEmpty(v) { version = v }
+      // send oauth_prefixed to a uniquekey handler
+      case OAUTH_PREFIX_REGEX() => otherOAuthParamsHandler(k, v)
+      // send other params to the handler, but only if they didn't come from the header
+      case _ => if (!fromHeader) paramsHandler(k, v)
     }
   }
 
   // we use String.format here, because we're probably not that worried about
   // effeciency when printing the class for debugging
   override def toString: String =
-    "%s=%s,%s=%s,%s=%s,%s=%s,%s=%s(->%s),%s=%s,%s=%s,%s=%s".format(
-    ACCESS_TOKEN, valueOrUnset(v2Token),
-    OAUTH_TOKEN, valueOrUnset(token),
-    OAUTH_CONSUMER_KEY, valueOrUnset(consumerKey),
-    OAUTH_NONCE, valueOrUnset(nonce),
-    OAUTH_TIMESTAMP, timestampStr, timestampSecs,
-    OAUTH_SIGNATURE, valueOrUnset(signature),
-    OAUTH_SIGNATURE_METHOD, valueOrUnset(signatureMethod),
-    OAUTH_VERSION, valueOrUnset(version))
+    "%s=%s,%s=%s,%s=%s,%s=%s,%s=%s,%s=%s(->%s),%s=%s,%s=%s,%s=%s".format(
+      OAUTH_2D11, oauth2d11,
+      ACCESS_TOKEN, valueOrUnset(v2Token),
+      OAUTH_TOKEN, valueOrUnset(token),
+      OAUTH_CONSUMER_KEY, valueOrUnset(consumerKey),
+      OAUTH_NONCE, valueOrUnset(nonce),
+      OAUTH_TIMESTAMP, timestampStr, timestampSecs,
+      OAUTH_SIGNATURE, valueOrUnset(signature),
+      OAUTH_SIGNATURE_METHOD, valueOrUnset(signatureMethod),
+      OAUTH_VERSION, valueOrUnset(version))
 
   def valueOrUnset(value: String) = if (value == null) UNSET else value
 
-  def isOAuth2: Boolean = v2Token != null && !isOAuth1
+  def isOAuth2: Boolean = v2Token != null && !oauth2d11
+  def isOAuth2d11: Boolean = v2Token != null && !isOAuth1 && oauth2d11
 
   def isOAuth1: Boolean =
     token != null &&
@@ -197,6 +238,8 @@ extends KeyValueHandler {
     // version is optional, so not included here
 
   def oAuth2Token = v2Token
+
+  def otherParams = paramsHandler.toList ++ otherOAuthParamsHandler.toList
 
   // make an immutable params instance
   def oAuth1Params = OAuth1Params(

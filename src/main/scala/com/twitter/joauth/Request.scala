@@ -24,7 +24,13 @@ trait Request {
   def scheme: String
 
   def parsedRequest(params: List[(String, String)]) =
-    new ParsedRequest(scheme.toUpperCase, host, port, method.toUpperCase, path, params)
+    new ParsedRequest(
+      if (scheme ne null) scheme.toUpperCase else null,
+      host,
+      port,
+      if (method ne null) method.toUpperCase else null,
+      path,
+      params)
 }
 
 case class ParsedRequest(
