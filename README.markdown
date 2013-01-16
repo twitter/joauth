@@ -185,9 +185,9 @@ The parameters are passed as a List[(String, String)], and the OAuth params are 
 
 ## Running Tests
 
-The tests are completely self contained, and can be run using sbt:
+The tests are completely self contained, and can be run using Maven:
 
-    % sbt test
+    % mvn test
 
 ## Reporting problems
 
