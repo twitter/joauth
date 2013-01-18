@@ -10,7 +10,7 @@ A Scala/JVM library for authenticating HTTP Requests using OAuth
 * Custom callbacks to obtain scheme and path from the request in a non-standard way
 * Configurable timestamp checking
 * Correctly works around various weird URLEncoder bugs in the JVM
-* Written in Scala, with Java bindings
+* Written in Scala, but should work pretty well with Java
 
 The Github source repository is [here](http://github.com/9len/joauth/). Patches and contributions are welcome.
 
@@ -22,19 +22,19 @@ The Github source repository is [here](http://github.com/9len/joauth/). Patches 
 
 ## Building
 
-*Dependencies*: commons-codec (specs & mockito-all to run the tests). These dependencies are managed by the build system.
-
-v3.0.1 and higher - Use maven to build:
-
-    % mvn clean install
-
 **v.1.1.2 is the last version that can be built using scala 2.7.7, and now resides in the scala27 branch. v1.2 and above require scala > 2.8.1. v3.0.1 and above uses maven instead of sbt, and require scala 2.9.2 **
+
+*Dependencies*: servlet-api, commons-codec, and util-core (specs & mockito-all to run the tests). These dependencies are managed by the build system.
 
 Below v3.0.1 - Use sbt (simple-build-tool) to build:
 
     % sbt clean update compile
 
 The finished jar will be in `dist/`.
+
+v3.0.1 and higher - Use maven to build:
+
+    % mvn clean install
 
 ## Understanding the Implementation
 
@@ -85,6 +85,41 @@ Once the request is unpacked, the credentials need to be validated. For an OAuth
 That's it!
 
 ### Advanced Usage
+
+#### Overriding Path and Scheme
+
+If you're building an internal authentication service, it may serve multiple endpoints, and need to calculate signatures for all of them. it may also live on a server hosting multiple services on the same port, in which case you'll need a specific endpoint for your authentication service, while simultaneously needing to validate requests as if they had their original endpoints. You can accommodate this by passing in a method for extracting the path from the HttpServletRequest, via the PathGetter trait.
+
+For example, if you have an authentication service that responded to the /auth endpoint, and you are authenticating requests to an external server serving the /foo endpoint, the path of the request the authentication service receives is /auth/foo. This won't do, because the signature of the request depends on the path being /foo. We can construct a PathGetter that strips /auth out of the path.
+
+    import com.twitter.joauth.PathGetter
+
+    object MyPathGetter extends PathGetter {
+      def apply(request: Request): String = {
+        request.getPathInfo.match {
+          case "^/auth/(/*)$".r(realPath) => realPath
+          case => // up to you whether to return path or throw here, depends on your circumstances
+        }
+      }
+    }
+
+If you're running a high throughput authentication service and only using OAuth1, you might want to avoid using SSL, and listen only for HTTP. Unfortunately, the URI Scheme is part of the signature as well, so you need a way to force the Unpacker to treat the request as HTTPS, even though it isn't. One approach would be for your authentication service to take a custom header to indicate the scheme of the originating request. You can then use the UrlSchemeGetter trait to pull this header out of the request.
+
+    import com.twitter.joauth.UriSchemeGetter
+
+    object MySchemeGetter extends UrlSchemeGetter {
+      def apply(request; Request): String = {
+        val header = request.getHeader("X-My-Scheme-Header")
+        if (header == null) request.getScheme
+        else header.toUpperCase
+      }
+    }
+
+You can now construct your unpacker with your Getters.
+
+    val unpack = Unpacker(new MySchemeGetter, new MyPathGetter)
+
+if you only want to pass in one or the other, you can use the StandardSchemeGetter and StandardPathGetter classes when calling the two-argument Unpacker.apply.
 
 #### Getting Parameter Key/Values
 
@@ -170,11 +205,9 @@ The Github issue tracker is [here](http://github.com/9len/joauth/issues).
 * Marcel Molina
 * Glen Sanford
 * Fiaz Hossain
-* Steven Liu
 
 ## License
 
 Copyright 2010-2013 Twitter, Inc.
 
 Licensed under the Apache License, Version 2.0: http://www.apache.org/licenses/LICENSE-2.0
-
