@@ -28,7 +28,7 @@ v3.0.1 and higher - Use maven to build:
 
     % mvn clean install
 
-**v.1.1.2 is the last version that can be built using scala 2.7.7, and now resides in the scala27 branch. v1.2 and above require scala > 2.8.1. v3.0.1 and above uses maven instead of sbt, and require scala 2.9.2 **
+**v.1.1.2 is the last version that can be built using scala 2.7.7, and now resides in the scala27 branch. v1.2 and above require scala > 2.8.1. v3.0.1 and above uses maven instead of sbt, and require scala 2.9.2**
 
 Below v3.0.1 - Use sbt (simple-build-tool) to build:
 
@@ -68,8 +68,6 @@ Create an unpacker, and use it to unpack the Request. The Unpacker will either r
       case _ => // handle or rethrow
     }
 
-**WARNING**: The StandardUnpacker will call the HttpRequest.getInputStream method if the method of the request is POST and the Content-Type is "application/x-www-form-urlencoded." *If you need to read the POST yourself, this will cause you problems, since getInputStream/getReader can only be called once.* There are two solutions: (1) Write an HttpServletWrapper to buffer the POST data and allow multiple calls to getInputStream, and pass the HttpServletWrapper into the Unpacker. (2) Pass a KeyValueHandler into the unpacker call (See "Getting Parameter Key/Values" below for more), which will let you get the parameters in the POST as a side effect of unpacking.
-
 Once the request is unpacked, the credentials need to be validated. For an OAuth2Request, the OAuth Access Token must be retrieved and validated by your authentication service. For an OAuth1Request the Access Token, the Consumer Key, and their respective secrets must be retrieved, and then passed to the Verifier for validation.
 
     import com.twitter.joauth.{Verifier, VerifierResult}
@@ -88,7 +86,7 @@ That's it!
 
 #### Getting Parameter Key/Values
 
-There are two apply methods in the Unpacker trait. The one-argument version takes an HttpRequestServlet, and the two-argument version takes an HttpRequestServlet and a Seq[KeyValueHandler]. A KeyValueHandler is a simple trait that the Unpacker uses as a callback for every Key/Value pair encountered in either the query string or POST data (if the Content-Type is application/x-www-form-urlencoded). If there are duplicate keys, the KeyValueHandler will get invoked for each.
+There are two apply methods in the Unpacker trait. The one-argument version takes a Request, and the two-argument version takes a Request and a Seq[KeyValueHandler]. A KeyValueHandler is a simple trait that the Unpacker uses as a callback for every Key/Value pair encountered in either the query string or POST data (if the Content-Type is application/x-www-form-urlencoded). If there are duplicate keys, the KeyValueHandler will get invoked for each.
 
 The JOAuth library provides a few basic KeyValueHandlers, and it's easy to add your own. For example, suppose you want to get a list of key/values, including duplicates, from the request you're unpacking. You can do this by passing a DuplicateKeyValueHandler to the unpacker.
 
@@ -99,13 +97,16 @@ The JOAuth library provides a few basic KeyValueHandlers, and it's easy to add y
 
 The DuplicateKeyValueHandler is invoked for each key/value pair encountered, and a List[(String, String)] can be extracted afterwards.
 
-You can also construct your own KeyValueHandlers, and there are a few useful KeyValueHandlers already defined. There's a FilteredKeyValueHandler, which wraps an underlying KeyValueHandler so that it is invoked only when certain key/values are encountered. There's a TransformingKeyValueHandler, which wraps an underlying KeyValueHandler such that either the key or value or both are transformed before the underlying handler is invoked.
+You can also construct your own KeyValueHandlers, and there are a few useful KeyValueHandlers already defined. There's a TransformingKeyValueHandler, which wraps an underlying KeyValueHandler such that either the key or value or both are transformed before the underlying handler is invoked.
 
 For example, suppose you want to get all values of a single parameter, and you want it UrlDecoded first.
 
-    class ValuesOnlyKeyValueHandler extends KeyValueHandler {
+    class ValuesOnlyKeyValueHandler(key: String) extends KeyValueHandler {
       val buffer = new ArrayBuffer[String]
-      def apply(k: String, v: String) = buffer += v
+      def apply(k: String, v: String) {
+        if (k == key)
+          buffer += v
+      }
       def toList = buffer.toList
     }
 
@@ -113,17 +114,11 @@ For example, suppose you want to get all values of a single parameter, and you w
       def apply(str: String) = URLDecoder.decode(str)
     }
 
-    object MyFilter extends KeyValueFilter {
-      def apply(k: String, v: String) = k == "SpecialKey"
-    }
-
-    class UrlDecodedMyValueOnlyKeyValueHandler(underlying: KeyValueHandler)
-      extends FilteredKeyValueHandler(
-        MyFilter,
-        new TransformingKeyValueHandler(UrlDecodingTransformer, underlying)
+    class UrlDecodedKeyValueHandler(underlying: KeyValueHandler)
+      extends TransformingKeyValueHandler(underlying, UrlDecodingTransformer, UrlDecodingTransformer)
 
     val unpack = Unpacker()
-    val handler = new ValuesOnlyKeyValueHandler
+    val handler = new ValuesOnlyKeyValueHandler("SpecialKey")
     val wrappedHandler = UrlDecodedMyValueOnlyKeyValueHandler(handler)
     val unpackedRequest = unpack(request, Seq(wrappedHandler))
     doSomethingWith(handler.toList)

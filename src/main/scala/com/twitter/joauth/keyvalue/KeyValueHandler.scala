@@ -70,10 +70,7 @@ class OneKeyOnlyKeyValueHandler extends KeyValueHandler {
 
 /**
  * The MaybeQuotedValueKeyValueHandler passes quoted and unquoted values,
- * removing quotes along the way. Note that this could have been
- * implemented as a composition of a FilteringKeyValueHandler and a
- * TransformingKeyValueHandler, but it was easier to do the filter
- * and transform in a single pass
+ * removing quotes along the way.
  */
 object MaybeQuotedSingleKeyValueHandler {
   val QUOTED_REGEX = """^\s*\"(.*)\"\s*$""".r
