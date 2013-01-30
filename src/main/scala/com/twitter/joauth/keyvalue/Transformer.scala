@@ -12,7 +12,7 @@
 
 package com.twitter.joauth.keyvalue
 
-import com.twitter.joauth.UrlEncoder
+import com.twitter.joauth.{UrlDecoder, UrlEncoder}
 
 /**
  * The Transformer trait describes the transformation function
@@ -30,9 +30,8 @@ object TrimTransformer extends Transformer {
 /**
  * The UrlEncodingNormalizingTransformer capitializes all of the
  * URLEncoded entities in a string, replaces +'s with %20s, and
- * un-encodes dashes and underscores. It will do strange things to
- * a string that is not actually URLEncoded.
+ * un-encodes dashes and underscores.
  */
 object UrlEncodingNormalizingTransformer extends Transformer {
-  def apply(s: String) = UrlEncoder.normalize(s)
+  def apply(s: String) = UrlEncoder(UrlDecoder(s))
 }

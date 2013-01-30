@@ -73,14 +73,6 @@ object StandardUnpacker {
 
 /**
  * the standard implmenentation of the Unpacker trait.
- *
- * WARNING: The StandardUnpacker will call the HttpRequest.getInputStream method if the method
- * of the request is POST and the Content-Type is "application/x-www-form-urlencoded." If you
- * need to read the POST yourself, this will cause you problems, since getInputStream/getReader
- * can only be called once. There are two solutions: (1) Write an HttpServletWrapper to buffer
- * the POST data and allow multiple calls to getInputStream, and pass the HttpServletWrapper
- * into the Unpacker. (2) Pass a KeyValueHandler into the unpacker call, which will let you
- * get the parameters in the POST as a side effect of unpacking.
  */
 class StandardUnpacker(
     helper: OAuthParamsHelper,

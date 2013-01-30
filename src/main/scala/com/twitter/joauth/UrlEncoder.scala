@@ -57,7 +57,9 @@ object UrlEncoder {
         }
 
         for (b <- c.toString.getBytes(UTF_8_CHARSET)) {
-          sb.append("%").append(b.toInt.toHexString.toUpperCase)
+          // turn the Byte into an int into the hex string, but be sure to mask out the unneeded bits
+          // to avoid nastiness with converting to a negative int
+          sb.append("%").append((b & 0xff).toHexString.toUpperCase)
         }
       }
     }

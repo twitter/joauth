@@ -208,4 +208,11 @@ class UnpackerSpec extends SpecificationWithJUnit with Mockito {
       }
     }
   }
+  "Unpacker for OAuth1 Special Case GET with any unencoded params" should {
+    for ((oAuthInParams, oAuthInHeader) <- List((true, false), (false, true))) {
+      OAuth1TestCases.otherUnencodedCases().foreach {
+        doOAuth1Tests(_, oAuthInParams, oAuthInHeader, false)
+      }
+    }
+  }
 }
