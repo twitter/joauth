@@ -291,16 +291,16 @@ object OAuth1TestCases {
     "localhost",
     9080,
     "/1/statuses/filter.json",
-    List(("track", "%c3%b8ae"), ("delimited", "length"), ("follow", "1")),
+    List(("track", "%f8ae"), ("delimited", "length"), ("follow", "1")),
     "readkey",
     "readsecret",
     "writekey",
     "writesecret",
-    "IIboMw6aud8KVYwSaOZPh9I5w5Y%3D",
+    "ChPMC8K%2BpTpS8vg%2B6%2B0ssLeHBZA%3D",
     null,
     "ZSArLiUsGgwwtE4q9Y7nl2Q89jZvqo8wCepxbQbcQg",
     1282246407,
-    "GET&http%3A%2F%2Flocalhost%3A9080%2F1%2Fstatuses%2Ffilter.json&delimited%3Dlength%26follow%3D1%26oauth_consumer_key%3Dwritekey%26oauth_nonce%3DZSArLiUsGgwwtE4q9Y7nl2Q89jZvqo8wCepxbQbcQg%26oauth_signature_method%3DHMAC-SHA1%26oauth_timestamp%3D1282246407%26oauth_token%3Dreadkey%26oauth_version%3D1.0%26track%3D%25C3%25B8ae",
+    "GET&http%3A%2F%2Flocalhost%3A9080%2F1%2Fstatuses%2Ffilter.json&delimited%3Dlength%26follow%3D1%26oauth_consumer_key%3Dwritekey%26oauth_nonce%3DZSArLiUsGgwwtE4q9Y7nl2Q89jZvqo8wCepxbQbcQg%26oauth_signature_method%3DHMAC-SHA1%26oauth_timestamp%3D1282246407%26oauth_token%3Dreadkey%26oauth_version%3D1.0%26track%3D%25F8ae",
     null,
     false,
     true,
@@ -391,6 +391,7 @@ object OAuth1TestCases {
   /**
    * Similar to the above test cases, these test make sure that we are lenient for '[' and ']' in the query string.
    */
+
   def bracketTestCases(): Seq[OAuth1TestCase] = {
     def bracketTestCases(params: List[(String, String)]): OAuth1TestCase = {
       OAuth1TestCase(
@@ -419,37 +420,6 @@ object OAuth1TestCases {
       bracketTestCases(List(("include_entities", "true"), ("log%5B%5D", "xxx"))),  // encoded
       bracketTestCases(List(("include_entities", "true"), ("log[]", "xxx"))),      // raw
       bracketTestCases(List(("include_entities", "true"), ("log%5B]", "xxx")))     // mixed
-    )
-  }
-
-  def otherUnencodedCases(): Seq[OAuth1TestCase] = {
-    def otherUnencodedCases(param: String): OAuth1TestCase = {
-      OAuth1TestCase(
-        "Unencoded params in GET query string",
-        "https",
-        "api.twitter.com",
-        443,
-        "/1/account/verify_credentials.json",
-        List(("log", param)),
-        "readkey",
-        "readsecret",
-        "writekey",
-        "writesecret",
-        "5V7gbbcn%2Bo%2BP0VWCsaGW%2B8R7Cpo%3D",
-        null,
-        "BMJXoQz754IpxjHNJsm06ZeXVjsitznhpSRqampxzs",
-        1359496432,
-        "GET&https%3A%2F%2Fapi.twitter.com%2F1%2Faccount%2Fverify_credentials.json&log%3D%255B%257B%2522_category_%2522%253A%2522cat%2522%252C%2522format_version%2522%253A2%252C%2522product%2522%253A%2522product_name%2522%252C%2522duration_ms%2522%253A3517%252C%2522description%2522%253A%2522image%253Adownload%253Asomedomain.net%253A9000%2522%257D%255D%26oauth_consumer_key%3Dwritekey%26oauth_nonce%3DBMJXoQz754IpxjHNJsm06ZeXVjsitznhpSRqampxzs%26oauth_signature_method%3DHMAC-SHA1%26oauth_timestamp%3D1359496432%26oauth_token%3Dreadkey%26oauth_version%3D1.0",
-        null,
-        false,
-        true,
-        None
-      )
-    }
-    Seq(
-      otherUnencodedCases("[{\"_category_\":\"cat\",\"format_version\":2,\"product\":\"product_name\",\"duration_ms\":3517,\"description\":\"image:download:somedomain.net:9000\"}]"),  // unencoded
-      otherUnencodedCases("%5B%7B%22_category_%22%3A%22cat%22%2C%22format_version%22%3A2%2C%22product%22%3A%22product_name%22%2C%22duration_ms%22%3A3517%2C%22description%22%3A%22image%3Adownload%3Asomedomain.net%3A9000%22%7D%5D"),  // encoded
-      otherUnencodedCases("[{\"_category_%22%3A%22cat%22%2C%22format_version\":2,\"product%22%3A%22product_name%22%2C%22duration_ms%22%3A3517%2C%22description%22%3A%22image%3Adownload%3Asomedomain.net%3A9000%22%7D%5D")  // mixed
     )
   }
 }

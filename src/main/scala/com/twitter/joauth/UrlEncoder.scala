@@ -84,16 +84,21 @@ object UrlEncoder {
           sb.append(s.substring(0, i))
         }
         if (c == '%') {
-          val toAppend = s.substring(i, i + 3).toUpperCase match {
-            case ENCODED_UNDERSCORE => UNDERSCORE
-            case ENCODED_DASH => DASH
-            case ENCODED_TILDE => TILDE
-            case ENCODED_PERIOD => PERIOD
-            case o => o
-          }
+          if (i + 3 <= length) {
+            // TODO: look into reducing garbage here
+            val toAppend = s.substring(i, i + 3).toUpperCase match {
+              case ENCODED_UNDERSCORE => UNDERSCORE
+              case ENCODED_DASH => DASH
+              case ENCODED_TILDE => TILDE
+              case ENCODED_PERIOD => PERIOD
+              case o => o
+            }
 
-          sb.append(toAppend)
-          i += 2
+            sb.append(toAppend)
+            i += 2
+          } else {
+            sb.append(c)
+          }
         } else if (c == ',') {
           sb.append(ENCODED_COMMA)
         } else if (c == '+') {
