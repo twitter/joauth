@@ -12,6 +12,7 @@
 
 package com.twitter.joauth
 
+import java.nio.charset.Charset
 import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
 import org.apache.commons.codec.binary.Base64
@@ -56,7 +57,9 @@ object Signer {
 /**
  * a singleton of the StandardSigner class
  */
-object StandardSigner extends StandardSigner
+object StandardSigner extends StandardSigner {
+  private val UTF_8 = Charset.forName("UTF-8")
+}
 
 /**
  * the standard implmenentation of the Signer trait. Though stateless and threadsafe,
@@ -69,12 +72,12 @@ class StandardSigner extends Signer {
 
   override def getBytes(str: String, tokenSecret: String, consumerSecret: String): Array[Byte] = {
     val key = consumerSecret+Normalizer.AND+tokenSecret
-    val signingKey = new SecretKeySpec(key.getBytes, Signer.HMACSHA1)
+    val signingKey = new SecretKeySpec(key.getBytes(StandardSigner.UTF_8), Signer.HMACSHA1)
 
     // TODO: consider synchronizing this, apparently Mac may not be threadsafe
     val mac = Mac.getInstance(Signer.HMACSHA1)
     mac.init(signingKey)
-    mac.doFinal(str.getBytes)
+    mac.doFinal(str.getBytes(StandardSigner.UTF_8))
   }
 
   override def toBytes(signature: String): Array[Byte] =
