@@ -24,5 +24,11 @@ class UrlEncoderSpec extends SpecificationWithJUnit with Mockito {
       UrlEncoder(UrlDecoder("%c3%b8")) mustEqual "%C3%B8"
       UrlEncoder("ø") mustEqual "%C3%B8"
     }
+
+    "properly encode CR, LF, and other utf-8 characters whose first byte is 0" in {
+      UrlEncoder("\n") mustEqual "%0A"
+      UrlEncoder("\r") mustEqual "%0D"
+      UrlEncoder("\0") mustEqual "%00"
+    }
   }
 }
