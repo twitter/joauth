@@ -15,6 +15,7 @@ package com.twitter.joauth
 import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
 import org.apache.commons.codec.binary.Base64
+import java.nio.charset.Charset
 
 /**
  * A Signer takes a string, a token secret and a consumer secret, and produces a signed string
@@ -56,7 +57,9 @@ object Signer {
 /**
  * a singleton of the StandardSigner class
  */
-object StandardSigner extends StandardSigner
+object StandardSigner extends StandardSigner {
+  private val UTF_8 = Charset.forName("UTF-8")
+}
 
 /**
  * the standard implmenentation of the Signer trait. Though stateless and threadsafe,
@@ -65,7 +68,7 @@ object StandardSigner extends StandardSigner
  */
 class StandardSigner extends Signer {
   override def getString(str: String, tokenSecret: String, consumerSecret: String): String =
-    UrlEncoder(Base64.encodeBase64String(getBytes(str, tokenSecret, consumerSecret)))
+    UrlEncoder(new String(Base64.encodeBase64(getBytes(str, tokenSecret, consumerSecret), false), StandardSigner.UTF_8))
 
   override def getBytes(str: String, tokenSecret: String, consumerSecret: String): Array[Byte] = {
     val key = consumerSecret+Normalizer.AND+tokenSecret
