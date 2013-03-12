@@ -13,6 +13,7 @@
 package com.twitter.joauth
 
 import java.util.{Arrays, Date}
+import org.apache.commons.codec.binary.Base64
 
 /**
  * A Validator takes an OAuth1 request, a token secret, and a consumer secret,
@@ -83,8 +84,12 @@ extends Verifier {
     request: OAuth1Request,
     tokenSecret: String,
     consumerSecret: String): Boolean = {
-    Base64Util.equals(UrlDecoder(request.signature).trim,
-      signer.getBytes(request.normalizedRequest, tokenSecret, consumerSecret))
+    try {
+      Base64Util.equals(UrlDecoder(request.signature).trim,
+        signer.getBytes(request.normalizedRequest, tokenSecret, consumerSecret))
+    } catch {
+      case e: Exception => return false
+    }
   }
 }
 
