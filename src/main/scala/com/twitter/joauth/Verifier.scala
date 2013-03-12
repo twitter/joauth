@@ -12,8 +12,6 @@
 
 package com.twitter.joauth
 
-import java.util.{Arrays, Date}
-
 /**
  * A Validator takes an OAuth1 request, a token secret, and a consumer secret,
  * and validates the request. It returns a Java enum for compatability
@@ -83,8 +81,12 @@ extends Verifier {
     request: OAuth1Request,
     tokenSecret: String,
     consumerSecret: String): Boolean = {
-    Base64Util.equals(UrlDecoder(request.signature).trim,
-      signer.getBytes(request.normalizedRequest, tokenSecret, consumerSecret))
+    try {
+      Base64Util.equals(UrlDecoder(request.signature).trim,
+        signer.getBytes(request.normalizedRequest, tokenSecret, consumerSecret))
+    } catch {
+      case e: Exception => return false
+    }
   }
 }
 
