@@ -12,9 +12,6 @@
 
 package com.twitter.joauth
 
-import java.util.{Arrays, Date}
-import org.apache.commons.codec.binary.Base64
-
 /**
  * A Validator takes an OAuth1 request, a token secret, and a consumer secret,
  * and validates the request. It returns a Java enum for compatability
