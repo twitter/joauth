@@ -12,6 +12,8 @@
 
 package com.twitter.joauth
 
+import com.twitter.logging.Logger
+
 /**
  * A Validator takes an OAuth1 request, a token secret, and a consumer secret,
  * and validates the request. It returns a Java enum for compatability
@@ -64,10 +66,19 @@ extends Verifier {
   val maxClockFloatAheadSecs = maxClockFloatAheadMins * 60L
   val maxClockFloatBehindSecs = maxClockFloatBehindMins * 60L
 
+  private[this] val log = Logger.get(getClass.getName)
+
   override def apply(request: OAuth1Request, tokenSecret: String, consumerSecret: String): VerifierResult = {
-    if (!validateNonce(request.nonce)) VerifierResult.BAD_NONCE
-    else if (!validateTimestampSecs(request.timestampSecs)) VerifierResult.BAD_TIMESTAMP
-    else if (!validateSignature(request, tokenSecret, consumerSecret)) VerifierResult.BAD_SIGNATURE
+    if (!validateNonce(request.nonce)) {
+      log.warning("bad nonce: %s", request.nonce)
+      VerifierResult.BAD_NONCE
+    } else if (!validateTimestampSecs(request.timestampSecs)) {
+      log.warning("bad timestamp: %s", request.timestampSecs)
+      VerifierResult.BAD_TIMESTAMP
+    } else if (!validateSignature(request, tokenSecret, consumerSecret)) {
+      log.warning("bad signature: %s", request.signature)
+      VerifierResult.BAD_SIGNATURE
+    }
     else VerifierResult.OK
   }
 
