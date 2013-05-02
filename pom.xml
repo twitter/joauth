@@ -40,9 +40,14 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>com.twitter</groupId>
-        <artifactId>util-logging</artifactId>
-        <version>${util.version}</version>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>${slf4j.version}</version>
+    </dependency>    
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-simple</artifactId>
+      <version>${slf4j.version}</version>
     </dependency>
   </dependencies>
 
@@ -75,7 +80,7 @@
     <maven.compiler.target>1.6</maven.compiler.target>
     <encoding>UTF-8</encoding>
     <scala.version>2.9.2</scala.version>
-    <util.version>6.3.0</util.version>
+    <slf4j.version>1.7.5</slf4j.version>
   </properties>
 
   <distributionManagement>

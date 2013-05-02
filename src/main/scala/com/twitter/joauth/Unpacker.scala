@@ -12,7 +12,7 @@
 
 package com.twitter.joauth
 
-import com.twitter.logging.Logger
+import org.slf4j.LoggerFactory
 import com.twitter.joauth.keyvalue._
 
 /**
@@ -83,7 +83,7 @@ class StandardUnpacker(
 
   import StandardUnpacker._
 
-  private[this] val log = Logger.get(getClass.getName)
+  private[this] val log = LoggerFactory.getLogger(getClass.getName)
 
   @throws(classOf[UnpackerException])
   override def apply(request: Request, kvHandlers: Seq[KeyValueHandler]): UnpackedRequest = {
@@ -111,7 +111,7 @@ class StandardUnpacker(
   @throws(classOf[MalformedRequest])
   def getOAuth1Request(
     parsedRequest: ParsedRequest, oAuth1Params: OAuth1Params): OAuth1Request = {
-    log.info("building oauth1 request -> path = %s, host = %s, token = %s, consumer key = %s, signature = %s, method = %s",
+    log.info("building oauth1 request -> path = {}, host = {}, token = {}, consumer key = {}, signature = {}, method = {}",
       parsedRequest.path, parsedRequest.host, oAuth1Params.token,
       oAuth1Params.consumerKey, oAuth1Params.signature, oAuth1Params.signatureMethod)
     OAuth1Request(parsedRequest, oAuth1Params, normalizer)
@@ -124,7 +124,7 @@ class StandardUnpacker(
     // an authorization service that can't do HTTPS for some reason, you can define
     // a custom UriSchemeGetter to make the scheme pretend to be HTTPS for the purposes
     // of request validation
-    log.info("building oauth2d11 request -> path = %s, host = %s, token = %s",
+    log.info("building oauth2d11 request -> path = {}, host = {}, token = {}",
       parsedRequest.path, parsedRequest.host, token)
     if (parsedRequest.scheme == HTTPS) OAuth2d11Request(UrlDecoder(token), parsedRequest)
     else throw new MalformedRequest("OAuth 2.0 requests must use HTTPS")
@@ -134,7 +134,7 @@ class StandardUnpacker(
   def getOAuth2Request(parsedRequest: ParsedRequest, token: String): OAuth2Request = {
     // OAuth 2.0 requests are totally insecure without SSL, so depend on HTTPS to provide
     // protection against replay and man-in-the-middle attacks.
-    log.info("building oauth2 request -> path = %s, host = %s, token = %s",
+    log.info("building oauth2 request -> path = {}, host = {}, token = {}",
       parsedRequest.path, parsedRequest.host, token)
     if (parsedRequest.scheme == HTTPS) OAuth2Request(UrlDecoder(token), parsedRequest)
     else throw new MalformedRequest("OAuth 2.0 requests must use HTTPS")

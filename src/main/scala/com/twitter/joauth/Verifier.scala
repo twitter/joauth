@@ -12,7 +12,7 @@
 
 package com.twitter.joauth
 
-import com.twitter.logging.Logger
+import org.slf4j.LoggerFactory
 
 /**
  * A Validator takes an OAuth1 request, a token secret, and a consumer secret,
@@ -66,17 +66,17 @@ extends Verifier {
   val maxClockFloatAheadSecs = maxClockFloatAheadMins * 60L
   val maxClockFloatBehindSecs = maxClockFloatBehindMins * 60L
 
-  private[this] val log = Logger.get(getClass.getName)
+  private[this] val log = LoggerFactory.getLogger(getClass.getName)
 
   override def apply(request: OAuth1Request, tokenSecret: String, consumerSecret: String): VerifierResult = {
     if (!validateNonce(request.nonce)) {
-      log.warning("bad nonce: %s", request.nonce)
+      log.warn("bad nonce: {}", request.nonce)
       VerifierResult.BAD_NONCE
     } else if (!validateTimestampSecs(request.timestampSecs)) {
-      log.warning("bad timestamp: %s", request.timestampSecs)
+      log.warn("bad timestamp: {}", request.timestampSecs)
       VerifierResult.BAD_TIMESTAMP
     } else if (!validateSignature(request, tokenSecret, consumerSecret)) {
-      log.warning("bad signature: %s", request.signature)
+      log.warn("bad signature: {}", request.signature)
       VerifierResult.BAD_SIGNATURE
     }
     else VerifierResult.OK
