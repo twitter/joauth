@@ -83,16 +83,6 @@ object OAuthParams {
   val OAUTH1_HEADER_AUTHTYPE = "oauth"
   val OAUTH2_HEADER_AUTHTYPE = "bearer"
 
-  def isOAuthParam(field: String): Boolean = {
-    field == ACCESS_TOKEN ||
-      field == OAUTH_TOKEN ||
-      field == OAUTH_CONSUMER_KEY ||
-      field == OAUTH_SIGNATURE ||
-      field == OAUTH_NONCE ||
-      field == OAUTH_TIMESTAMP ||
-      field == OAUTH_SIGNATURE_METHOD ||
-      field == OAUTH_VERSION
-  }
 
   def valueOrUnset(value: String) = if (value == null) UNSET else value
 }
@@ -176,7 +166,6 @@ class OAuthParamsBuilder(helper: OAuthParamsHelper) {
 
     k match {
       // empty values for these keys are swallowed
-      case ACCESS_TOKEN => ifNonEmpty(v) { v2Token = v }
       case BEARER_TOKEN => ifNonEmpty(v) {
         if (fromHeader) {
           v2Token = v
