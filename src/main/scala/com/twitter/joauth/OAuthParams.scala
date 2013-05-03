@@ -73,7 +73,6 @@ object OAuthParams {
   val OAUTH_VERSION = "oauth_version"
   val NORMALIZED_REQUEST = "normalized_request"
   val UNSET = "(unset)"
-  val OAUTH_2D11 = "oauth2d11"
 
   val OAUTH_PREFIX_REGEX = "^oauth_[a-z_]+$".r
 
@@ -82,7 +81,6 @@ object OAuthParams {
   val ONE_DOT_OH_A = "1.0a"
 
   val OAUTH1_HEADER_AUTHTYPE = "oauth"
-  val OAUTH2D11_HEADER_AUTHTYPE = "oauth2"
   val OAUTH2_HEADER_AUTHTYPE = "bearer"
 
   def isOAuthParam(field: String): Boolean = {
@@ -149,7 +147,6 @@ class OAuthParamsBuilder(helper: OAuthParamsHelper) {
   import OAuthParams._
 
   private[joauth] var v2Token: String = null
-  private[joauth] var oauth2d11: Boolean = true
   private[joauth] var token: String = null
   private[joauth] var consumerKey: String = null
   private[joauth] var nonce: String = null
@@ -183,7 +180,6 @@ class OAuthParamsBuilder(helper: OAuthParamsHelper) {
       case BEARER_TOKEN => ifNonEmpty(v) {
         if (fromHeader) {
           v2Token = v
-          oauth2d11 = false
         }
       }
       case CLIENT_ID => ifNonEmpty(v) { if(fromHeader) consumerKey = v }
@@ -212,8 +208,7 @@ class OAuthParamsBuilder(helper: OAuthParamsHelper) {
   // we use String.format here, because we're probably not that worried about
   // effeciency when printing the class for debugging
   override def toString: String =
-    "%s=%s,%s=%s,%s=%s,%s=%s,%s=%s,%s=%s(->%s),%s=%s,%s=%s,%s=%s".format(
-      OAUTH_2D11, oauth2d11,
+    "%s=%s,%s=%s,%s=%s,%s=%s,%s=%s(->%s),%s=%s,%s=%s,%s=%s".format(
       ACCESS_TOKEN, valueOrUnset(v2Token),
       OAUTH_TOKEN, valueOrUnset(token),
       OAUTH_CONSUMER_KEY, valueOrUnset(consumerKey),
@@ -225,8 +220,7 @@ class OAuthParamsBuilder(helper: OAuthParamsHelper) {
 
   def valueOrUnset(value: String) = if (value == null) UNSET else value
 
-  def isOAuth2: Boolean = v2Token != null && !oauth2d11
-  def isOAuth2d11: Boolean = v2Token != null && !isOAuth1 && oauth2d11
+  def isOAuth2: Boolean = v2Token != null && !isOAuth1
 
   def isOAuth1: Boolean =
     token != null &&

@@ -27,7 +27,6 @@ class OAuthParamsSpec extends SpecificationWithJUnit with Mockito {
       builder.queryHandler("oauth_token", "foo")
       builder.token mustEqual "foo"
       builder.isOAuth1 must beFalse
-      builder.isOAuth2d11 must beFalse
       builder.isOAuth2 must beFalse
     }
     "set one oauth param in header" in {
@@ -35,7 +34,6 @@ class OAuthParamsSpec extends SpecificationWithJUnit with Mockito {
       builder.headerHandler("oauth_token", "foo")
       builder.token mustEqual "foo"
       builder.isOAuth1 must beFalse
-      builder.isOAuth2d11 must beFalse
       builder.isOAuth2 must beFalse
     }
     "use last value for oauth key" in {
@@ -69,15 +67,13 @@ class OAuthParamsSpec extends SpecificationWithJUnit with Mockito {
       builder.queryHandler("access_token", "foo")
       builder.v2Token mustEqual "foo"
       builder.isOAuth1 must beFalse
-      builder.isOAuth2d11 must beTrue
-      builder.isOAuth2 must beFalse
+      builder.isOAuth2 must beTrue
     }
     "isOAuth2n works correctly after setting token" in {
       builder.v2Token must beNull
       builder.headerHandler("Bearer", "foo")
       builder.v2Token mustEqual "foo"
       builder.isOAuth1 must beFalse
-      builder.isOAuth2d11 must beFalse
       builder.isOAuth2 must beTrue
     }
     "timestampStr set if timestamp parses" in {
@@ -105,43 +101,37 @@ class OAuthParamsSpec extends SpecificationWithJUnit with Mockito {
       builder.queryHandler("access_token", "0")
       builder.v2Token mustEqual "0"
       builder.isOAuth1 must beFalse
-      builder.isOAuth2d11 must beTrue
-      builder.isOAuth2 must beFalse
+      builder.isOAuth2 must beTrue
 
       builder.token must beNull
       builder.queryHandler("oauth_token", "1")
       builder.token mustEqual "1"
       builder.isOAuth1 must beFalse
-      builder.isOAuth2d11 must beTrue
-      builder.isOAuth2 must beFalse
+      builder.isOAuth2 must beTrue
 
       builder.consumerKey must beNull
       builder.queryHandler("oauth_consumer_key", "2")
       builder.consumerKey mustEqual "2"
       builder.isOAuth1 must beFalse
-      builder.isOAuth2d11 must beTrue
-      builder.isOAuth2 must beFalse
+      builder.isOAuth2 must beTrue
 
       builder.nonce must beNull
       builder.queryHandler("oauth_nonce", "3")
       builder.nonce mustEqual "3"
       builder.isOAuth1 must beFalse
-      builder.isOAuth2d11 must beTrue
-      builder.isOAuth2 must beFalse
+      builder.isOAuth2 must beTrue
 
       helper.parseTimestamp("foo") returns Some(4L)
       builder.queryHandler("oauth_timestamp", "foo")
       builder.isOAuth1 must beFalse
-      builder.isOAuth2d11 must beTrue
-      builder.isOAuth2 must beFalse
+      builder.isOAuth2 must beTrue
 
       helper.processSignature("a") returns "a"
       builder.signature must beNull
       builder.queryHandler("oauth_signature", "a")
       builder.signature mustEqual "a"
       builder.isOAuth1 must beFalse
-      builder.isOAuth2d11 must beTrue
-      builder.isOAuth2 must beFalse
+      builder.isOAuth2 must beTrue
       there was one(helper).processSignature("a")
       there was one(helper).processSignature(any[String])
 
@@ -149,23 +139,21 @@ class OAuthParamsSpec extends SpecificationWithJUnit with Mockito {
       builder.queryHandler("oauth_signature_method", "6")
       builder.signatureMethod mustEqual "6"
       builder.isOAuth1 must beTrue
-      builder.isOAuth2d11 must beFalse
       builder.isOAuth2 must beFalse
 
-      builder.toString mustEqual "oauth2d11=true,access_token=0,oauth_token=1,oauth_consumer_key=2,oauth_nonce=3,oauth_timestamp=foo(->4),oauth_signature=a,oauth_signature_method=6,oauth_version=(unset)"
+      builder.toString mustEqual "access_token=0,oauth_token=1,oauth_consumer_key=2,oauth_nonce=3,oauth_timestamp=foo(->4),oauth_signature=a,oauth_signature_method=6,oauth_version=(unset)"
 
       builder.version must beNull
       builder.queryHandler("oauth_version", "7")
       builder.version mustEqual "7"
       builder.isOAuth1 must beTrue
-      builder.isOAuth2d11 must beFalse
       builder.isOAuth2 must beFalse
 
       builder.otherParams mustEqual Nil
       builder.queryHandler("foo", "bar")
       builder.otherParams mustEqual List("foo" -> "bar")
 
-      builder.toString mustEqual "oauth2d11=true,access_token=0,oauth_token=1,oauth_consumer_key=2,oauth_nonce=3,oauth_timestamp=foo(->4),oauth_signature=a,oauth_signature_method=6,oauth_version=7"
+      builder.toString mustEqual "access_token=0,oauth_token=1,oauth_consumer_key=2,oauth_nonce=3,oauth_timestamp=foo(->4),oauth_signature=a,oauth_signature_method=6,oauth_version=7"
     }
   }
   "StandardOAuthParamsHelper.parseTimestamp" should {
