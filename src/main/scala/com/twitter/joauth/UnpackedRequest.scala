@@ -57,6 +57,13 @@ case class OAuth1Request(
     OAUTH_SIGNATURE -> signature,
     OAUTH_VERSION -> (if (version == null) ONE_DOT_OH else version),
     NORMALIZED_REQUEST -> normalizedRequest)
+
+  override def toString() = {
+    "{token -> %s, consumerKey -> %s, nonce -> %s, timestamp -> %s, signature -> %s, method -> %s}".format(
+      token, consumerKey, nonce, timestampSecs, signature, signatureMethod
+    )
+  }
+
 }
 
 /**

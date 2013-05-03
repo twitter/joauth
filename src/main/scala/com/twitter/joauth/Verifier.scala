@@ -70,13 +70,13 @@ extends Verifier {
 
   override def apply(request: OAuth1Request, tokenSecret: String, consumerSecret: String): VerifierResult = {
     if (!validateNonce(request.nonce)) {
-      log.warn("bad nonce: {}", request.nonce)
+      log.debug("bad nonce -> {}", request.toString)
       VerifierResult.BAD_NONCE
     } else if (!validateTimestampSecs(request.timestampSecs)) {
-      log.warn("bad timestamp: {}", request.timestampSecs)
+      log.debug("bad timestamp -> {}", request.toString)
       VerifierResult.BAD_TIMESTAMP
     } else if (!validateSignature(request, tokenSecret, consumerSecret)) {
-      log.warn("bad signature: {}", request.signature)
+      log.debug("bad signature -> {}", request.toString)
       VerifierResult.BAD_SIGNATURE
     }
     else VerifierResult.OK
