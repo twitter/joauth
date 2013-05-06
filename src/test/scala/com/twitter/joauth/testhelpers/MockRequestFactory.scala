@@ -38,9 +38,6 @@ object MockRequestFactory {
     "OAuth " + paramString.mkString(",")
   }
 
-  def oAuth2d11Header(token: String) = "OAuth2 %s".format(token)
-  def oAuth2d11HeaderWithKey(token: String) = "OAuth2 access_token=\"%s\"".format(token)
-
   def oAuth2Header(token: String) = "Bearer %s".format(token)
 
   def oAuth1QueryString(token: String, clientKey: String, signature: String, nonce: String, timestamp: String, urlEncode: Boolean) =
