@@ -65,7 +65,7 @@ object StandardUnpacker {
   val HTTPS = "HTTPS"
   val UTF_8 = "UTF-8"
 
-  val log = LoggerFactory.getLogger(getClass.getName)
+  private val log = LoggerFactory.getLogger(getClass.getName)
 
   def apply(): StandardUnpacker = new StandardUnpacker(
       StandardOAuthParamsHelper, Normalizer(), QueryKeyValueParser, HeaderKeyValueParser)

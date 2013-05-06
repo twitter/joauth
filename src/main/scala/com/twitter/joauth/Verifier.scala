@@ -57,7 +57,7 @@ object Verifier {
  * allowed for a timestamp, and a NonceValidator.
  */
 object StandardVerifier {
-  val log = LoggerFactory.getLogger(getClass.getName)
+  private val log = LoggerFactory.getLogger(getClass.getName)
 }
 
 class StandardVerifier(
