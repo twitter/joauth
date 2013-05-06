@@ -141,7 +141,7 @@ class OAuthParamsSpec extends SpecificationWithJUnit with Mockito {
       builder.isOAuth1 must beTrue
       builder.isOAuth2 must beFalse
 
-      builder.toString mustEqual "access_token=(unset),oauth_token=1,oauth_consumer_key=2,oauth_nonce=3,oauth_timestamp=foo(->4),oauth_signature=a,oauth_signature_method=6,oauth_version=(unset)"
+      builder.toString mustEqual "Bearer=(unset),oauth_token=1,oauth_consumer_key=2,oauth_nonce=3,oauth_timestamp=foo(->4),oauth_signature=a,oauth_signature_method=6,oauth_version=(unset)"
 
       builder.version must beNull
       builder.queryHandler("oauth_version", "7")
@@ -153,7 +153,7 @@ class OAuthParamsSpec extends SpecificationWithJUnit with Mockito {
       builder.queryHandler("foo", "bar")
       builder.otherParams mustEqual List("access_token" -> "0", "foo" -> "bar")
 
-      builder.toString mustEqual "access_token=(unset),oauth_token=1,oauth_consumer_key=2,oauth_nonce=3,oauth_timestamp=foo(->4),oauth_signature=a,oauth_signature_method=6,oauth_version=7"
+      builder.toString mustEqual "Bearer=(unset),oauth_token=1,oauth_consumer_key=2,oauth_nonce=3,oauth_timestamp=foo(->4),oauth_signature=a,oauth_signature_method=6,oauth_version=7"
     }
   }
   "StandardOAuthParamsHelper.parseTimestamp" should {

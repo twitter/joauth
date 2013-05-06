@@ -61,7 +61,6 @@ object StandardOAuthParamsHelper extends StandardOAuthParamsHelper
  * OAuth 1.0 fieldname.
  */
 object OAuthParams {
-  val ACCESS_TOKEN = "access_token"
   val BEARER_TOKEN = "Bearer"
   val CLIENT_ID = "client_id"
   val OAUTH_TOKEN = "oauth_token"
@@ -198,7 +197,7 @@ class OAuthParamsBuilder(helper: OAuthParamsHelper) {
   // effeciency when printing the class for debugging
   override def toString: String =
     "%s=%s,%s=%s,%s=%s,%s=%s,%s=%s(->%s),%s=%s,%s=%s,%s=%s".format(
-      ACCESS_TOKEN, valueOrUnset(v2Token),
+      BEARER_TOKEN, valueOrUnset(v2Token),
       OAUTH_TOKEN, valueOrUnset(token),
       OAUTH_CONSUMER_KEY, valueOrUnset(consumerKey),
       OAUTH_NONCE, valueOrUnset(nonce),

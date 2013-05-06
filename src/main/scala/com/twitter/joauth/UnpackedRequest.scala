@@ -65,7 +65,7 @@ case class OAuth1Request(
 case class OAuth2Request(token: String, parsedRequest: ParsedRequest, clientId: String = "") extends OAuthRequest {
   override val oAuthVersionString = "oauth2"
 
-  override lazy val oAuthParamMap = Map(OAuthParams.ACCESS_TOKEN -> token,
+  override lazy val oAuthParamMap = Map(OAuthParams.BEARER_TOKEN -> token,
                                         OAuthParams.CLIENT_ID -> clientId)
 }
 

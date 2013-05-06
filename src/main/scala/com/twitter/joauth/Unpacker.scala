@@ -175,21 +175,11 @@ class StandardUnpacker(
           // to the underlying handler
           val quotedHandler = new MaybeQuotedValueKeyValueHandler(handler)
 
-          // oauth2 allows specification of the access token alone,
-          // without a key, so we pass in a kvHandler that can detect this case
-          val oneKeyOnlyHandler = new OneKeyOnlyKeyValueHandler
-
           // now we'll pass the handler to the headerParser,
           // which splits on commas rather than ampersands,
           // and is more forgiving with whitespace
-          headerParser(authString, Seq(quotedHandler, oneKeyOnlyHandler))
+          headerParser(authString, Seq(quotedHandler))
 
-          // if we did encounter exactly one key with an empty value, invoke
-          // the underlying handler as if it were the token
-          oneKeyOnlyHandler.key match {
-            case Some(token) => handler(OAuthParams.ACCESS_TOKEN, token)
-            case None =>
-          }
         } else if (oauth2) {
           nonTransformingHandler(OAuthParams.BEARER_TOKEN, authString)
         }
