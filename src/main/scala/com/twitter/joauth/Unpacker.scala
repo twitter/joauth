@@ -20,37 +20,37 @@ import com.twitter.joauth.keyvalue._
  * for every key/value pair obtained from either the queryString or the POST data.
  * If no valid request can be obtained, an UnpackerException is thrown.
  */
-trait Unpacker {
+trait Unpacker[HttpRequest <: Request] {
   @throws(classOf[UnpackerException])
-  def apply(request: Request): UnpackedRequest = apply(request, Seq())
+  def apply(request: HttpRequest): UnpackedRequest = apply(request, Seq())
 
   @throws(classOf[UnpackerException])
-  def apply(request: Request, kvHandler: KeyValueHandler): UnpackedRequest =
+  def apply(request: HttpRequest, kvHandler: KeyValueHandler): UnpackedRequest =
     apply(request, Seq(kvHandler))
 
   @throws(classOf[UnpackerException])
-  def apply(request: Request, kvHandlers: Seq[KeyValueHandler]): UnpackedRequest
+  def apply(request: HttpRequest, kvHandlers: Seq[KeyValueHandler]): UnpackedRequest
 }
 
 /**
  * for testing. Always returns the same result.
  */
-class ConstUnpacker(result: OAuthRequest) extends Unpacker {
-  override def apply(request: Request, kvHandlers: Seq[KeyValueHandler]): OAuthRequest = result
+class ConstUnpacker[HttpRequest <: Request](result: OAuthRequest) extends Unpacker[HttpRequest] {
+  override def apply(request: HttpRequest, kvHandlers: Seq[KeyValueHandler]): OAuthRequest = result
 }
 
 /**
  * A convenience factory for a StandardUnpacker
  */
 object Unpacker {
-  def apply(): Unpacker = StandardUnpacker()
+  def apply(): Unpacker[Request] = StandardUnpacker()
 
   def apply(
-      helper: OAuthParamsHelper,
-      normalizer: Normalizer,
-      queryParser: KeyValueParser,
-      headerParser: KeyValueParser): Unpacker =
-    new StandardUnpacker(helper, normalizer, queryParser, headerParser)
+    helper: OAuthParamsHelper,
+    normalizer: Normalizer,
+    queryParser: KeyValueParser,
+    headerParser: KeyValueParser): Unpacker[Request] =
+  new StandardUnpacker[Request](helper, normalizer, queryParser, headerParser)
 }
 
 /**
@@ -64,34 +64,37 @@ object StandardUnpacker {
   val HTTPS = "HTTPS"
   val UTF_8 = "UTF-8"
 
-  def apply(): StandardUnpacker = new StandardUnpacker(
+  def apply(): StandardUnpacker[Request] = new StandardUnpacker[Request](
       StandardOAuthParamsHelper, Normalizer(), QueryKeyValueParser, HeaderKeyValueParser)
 
-  def apply(helper: OAuthParamsHelper): StandardUnpacker =
-    new StandardUnpacker(helper, Normalizer(), QueryKeyValueParser, HeaderKeyValueParser)
+  def apply(helper: OAuthParamsHelper): StandardUnpacker[Request] =
+    new StandardUnpacker[Request](helper, Normalizer(), QueryKeyValueParser, HeaderKeyValueParser)
 }
 
-/**
- * the standard implmenentation of the Unpacker trait.
- */
-class StandardUnpacker(
-    helper: OAuthParamsHelper,
-    normalizer: Normalizer,
-    queryParser: KeyValueParser,
-    headerParser: KeyValueParser) extends Unpacker {
+class CustomizableUnpacker[RequestImpl <: Request](
+  helper: OAuthParamsHelper,
+  normalizer: Normalizer,
+  queryParser: KeyValueParser,
+  headerParser: KeyValueParser,
+  queryParamTransformer: KeyValueHandler => TransformingKeyValueHandler,
+  bodyParamTransformer: KeyValueHandler => TransformingKeyValueHandler,
+  headerTransformer: KeyValueHandler => TransformingKeyValueHandler,
+  shouldAllowOAuth2: (RequestImpl, ParsedRequest) => Boolean =
+    (_: RequestImpl, p: ParsedRequest) => p.scheme == StandardUnpacker.HTTPS
+) extends Unpacker[RequestImpl] {
 
   import StandardUnpacker._
 
   @throws(classOf[UnpackerException])
-  override def apply(request: Request, kvHandlers: Seq[KeyValueHandler]): UnpackedRequest = {
+  override def apply(request: RequestImpl, kvHandlers: Seq[KeyValueHandler]): UnpackedRequest = {
     try {
       val oAuthParamsBuilder = parseRequest(request, kvHandlers)
       val parsedRequest = request.parsedRequest(oAuthParamsBuilder.otherParams)
 
       if (oAuthParamsBuilder.isOAuth2) {
-        getOAuth2Request(parsedRequest, oAuthParamsBuilder.oAuth2Token)
+        getOAuth2Request(request, parsedRequest, oAuthParamsBuilder.oAuth2Token)
       } else if (oAuthParamsBuilder.isOAuth2d11) {
-        getOAuth2d11Request(parsedRequest, oAuthParamsBuilder.oAuth2Token)
+        getOAuth2d11Request(request, parsedRequest, oAuthParamsBuilder.oAuth2Token)
       } else if (oAuthParamsBuilder.isOAuth1) {
         getOAuth1Request(parsedRequest, oAuthParamsBuilder.oAuth1Params)
       } else UnknownRequest(parsedRequest)
@@ -111,31 +114,46 @@ class StandardUnpacker(
     OAuth1Request(parsedRequest, oAuth1Params, normalizer)
 
   @throws(classOf[MalformedRequest])
-  def getOAuth2d11Request(parsedRequest: ParsedRequest, token: String): OAuth2d11Request = {
+  def getOAuth2d11Request(request: RequestImpl, parsedRequest: ParsedRequest, token: String): OAuth2d11Request = {
     // OAuth 2.0 requests are totally insecure with SSL, so depend on HTTPS to provide
     // protection against replay and man-in-the-middle attacks. If you need to run
     // an authorization service that can't do HTTPS for some reason, you can define
     // a custom UriSchemeGetter to make the scheme pretend to be HTTPS for the purposes
     // of request validation
-    if (parsedRequest.scheme == HTTPS) OAuth2d11Request(UrlDecoder(token), parsedRequest)
-    else throw new MalformedRequest("OAuth 2.0 requests must use HTTPS")
+    if (shouldAllowOAuth2(request, parsedRequest)) OAuth2d11Request(UrlDecoder(token), parsedRequest)
+    else throw new MalformedRequest("OAuth 2.0 requests not allowed")
   }
 
   @throws(classOf[MalformedRequest])
-  def getOAuth2Request(parsedRequest: ParsedRequest, token: String): OAuth2Request = {
+  def getOAuth2Request(request: RequestImpl, parsedRequest: ParsedRequest, token: String): OAuth2Request = {
     // OAuth 2.0 requests are totally insecure without SSL, so depend on HTTPS to provide
     // protection against replay and man-in-the-middle attacks.
-    if (parsedRequest.scheme == HTTPS) OAuth2Request(UrlDecoder(token), parsedRequest)
-    else throw new MalformedRequest("OAuth 2.0 requests must use HTTPS")
+    if (shouldAllowOAuth2(request, parsedRequest)) OAuth2Request(UrlDecoder(token), parsedRequest)
+    else throw new MalformedRequest("OAuth 2.0 requests not allowed")
   }
 
-  protected[this] def transformingKeyValueHandler(kvHandler: KeyValueHandler) = {
+  private[this] def createKeyValueHandler(
+    kvHandler: KeyValueHandler,
+    transformer: KeyValueHandler => TransformingKeyValueHandler
+  ) = {
     new KeyTransformingKeyValueHandler(
-      new TrimmingKeyValueHandler(new UrlEncodingNormalizingKeyValueHandler(kvHandler)),
+      new TrimmingKeyValueHandler(transformer(kvHandler)),
       helper.processKey _)
   }
 
-  def parseRequest(request: Request, kvHandlers: Seq[KeyValueHandler]): OAuthParamsBuilder = {
+  protected[this] def queryParamKeyValueHandler(kvHandler: KeyValueHandler) = {
+    createKeyValueHandler(kvHandler, queryParamTransformer)
+  }
+
+  protected[this] def bodyParamKeyValueHandler(kvHandler: KeyValueHandler) = {
+    createKeyValueHandler(kvHandler, bodyParamTransformer)
+  }
+
+  protected[this] def headerParamKeyValueHandler(kvHandler: KeyValueHandler) = {
+    createKeyValueHandler(kvHandler, headerTransformer)
+  }
+
+  def parseRequest(request: RequestImpl, kvHandlers: Seq[KeyValueHandler]): OAuthParamsBuilder = {
     // use an oAuthParamsBuilder instance to accumulate key/values from
     // the query string, the POST (if the appropriate Content-Type), and
     // the Authorization header, if any.
@@ -146,11 +164,11 @@ class StandardUnpacker(
 
     // If it is an oAuth2 we do not need to process any further
     if (!oAuthParamsBuilder.isOAuth2) {
-      val queryHandler = transformingKeyValueHandler(oAuthParamsBuilder.queryHandler)
 
       // add our handlers to the passed-in handlers, to which
       // we'll only send non-oauth key/values.
-      val queryHandlers: Seq[KeyValueHandler] = queryHandler +: kvHandlers
+      val queryHandlers: Seq[KeyValueHandler] = queryParamKeyValueHandler(oAuthParamsBuilder.queryHandler) +: kvHandlers
+      val bodyParamHandlers = bodyParamKeyValueHandler(oAuthParamsBuilder.queryHandler) +: kvHandlers
 
       // parse the GET query string
       queryParser(request.queryString, queryHandlers)
@@ -160,7 +178,7 @@ class StandardUnpacker(
       if (request.method.toUpperCase == POST &&
           request.contentType.isDefined &&
           request.contentType.get.startsWith(WWW_FORM_URLENCODED)) {
-        queryParser(request.body, queryHandlers)
+        queryParser(request.body, bodyParamHandlers)
       }
     }
 
@@ -170,7 +188,7 @@ class StandardUnpacker(
 
   def parseHeader(header: Option[String], nonTransformingHandler: KeyValueHandler): Unit = {
     // trim, normalize encodings
-    val handler = transformingKeyValueHandler(nonTransformingHandler)
+    val handler = queryParamKeyValueHandler(nonTransformingHandler)
 
     // check for OAuth credentials in the header. OAuth 1.0a and 2.0 have
     // different header schemes, so match first on the auth scheme.
@@ -212,3 +230,19 @@ class StandardUnpacker(
     }
   }
 }
+
+class StandardUnpacker[RequestImpl <: Request](
+  helper: OAuthParamsHelper,
+  normalizer: Normalizer,
+  queryParser: KeyValueParser,
+  headerParser: KeyValueParser)
+extends CustomizableUnpacker[RequestImpl](
+  helper,
+  normalizer,
+  queryParser,
+  headerParser,
+  (kvHandler: KeyValueHandler) => new UrlEncodingNormalizingKeyValueHandler(kvHandler),
+  (kvHandler: KeyValueHandler) => new UrlEncodingNormalizingKeyValueHandler(kvHandler),
+  (kvHandler: KeyValueHandler) => new UrlEncodingNormalizingKeyValueHandler(kvHandler),
+  (_: RequestImpl, p: ParsedRequest) => p.scheme == StandardUnpacker.HTTPS
+)
