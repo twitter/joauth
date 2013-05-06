@@ -65,11 +65,14 @@ object StandardUnpacker {
   val HTTPS = "HTTPS"
   val UTF_8 = "UTF-8"
 
+  val log = LoggerFactory.getLogger(getClass.getName)
+
   def apply(): StandardUnpacker = new StandardUnpacker(
       StandardOAuthParamsHelper, Normalizer(), QueryKeyValueParser, HeaderKeyValueParser)
 
   def apply(helper: OAuthParamsHelper): StandardUnpacker =
     new StandardUnpacker(helper, Normalizer(), QueryKeyValueParser, HeaderKeyValueParser)
+
 }
 
 /**
@@ -82,8 +85,6 @@ class StandardUnpacker(
     headerParser: KeyValueParser) extends Unpacker {
 
   import StandardUnpacker._
-
-  private[this] val log = LoggerFactory.getLogger(getClass.getName)
 
   @throws(classOf[UnpackerException])
   override def apply(request: Request, kvHandlers: Seq[KeyValueHandler]): UnpackedRequest = {

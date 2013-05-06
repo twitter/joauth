@@ -56,6 +56,10 @@ object Verifier {
  * The standard implementation of a Verifier. Constructed with a Signer, the maximum clock float
  * allowed for a timestamp, and a NonceValidator.
  */
+object StandardVerifier {
+  val log = LoggerFactory.getLogger(getClass.getName)
+}
+
 class StandardVerifier(
   signer: Signer,
   maxClockFloatAheadMins: Int,
@@ -63,10 +67,10 @@ class StandardVerifier(
   validateNonce: NonceValidator)
 extends Verifier {
 
+  import StandardVerifier._
+
   val maxClockFloatAheadSecs = maxClockFloatAheadMins * 60L
   val maxClockFloatBehindSecs = maxClockFloatBehindMins * 60L
-
-  private[this] val log = LoggerFactory.getLogger(getClass.getName)
 
   override def apply(request: OAuth1Request, tokenSecret: String, consumerSecret: String): VerifierResult = {
     if (!validateNonce(request.nonce)) {
