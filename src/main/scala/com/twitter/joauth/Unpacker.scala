@@ -12,6 +12,7 @@
 
 package com.twitter.joauth
 
+import org.slf4j.LoggerFactory
 import com.twitter.joauth.keyvalue._
 
 /**
@@ -64,11 +65,14 @@ object StandardUnpacker {
   val HTTPS = "HTTPS"
   val UTF_8 = "UTF-8"
 
+  private val log = LoggerFactory.getLogger(getClass.getName)
+
   def apply(): StandardUnpacker = new StandardUnpacker(
       StandardOAuthParamsHelper, Normalizer(), QueryKeyValueParser, HeaderKeyValueParser)
 
   def apply(helper: OAuthParamsHelper): StandardUnpacker =
     new StandardUnpacker(helper, Normalizer(), QueryKeyValueParser, HeaderKeyValueParser)
+
 }
 
 /**
@@ -105,13 +109,19 @@ class StandardUnpacker(
 
   @throws(classOf[MalformedRequest])
   def getOAuth1Request(
-    parsedRequest: ParsedRequest, oAuth1Params: OAuth1Params): OAuth1Request =
+    parsedRequest: ParsedRequest, oAuth1Params: OAuth1Params): OAuth1Request = {
+    log.debug("building oauth1 request -> path = {}, host = {}, token = {}, consumer key = {}, signature = {}, method = {}",
+      parsedRequest.path, parsedRequest.host, oAuth1Params.token,
+      oAuth1Params.consumerKey, oAuth1Params.signature, oAuth1Params.signatureMethod)
     OAuth1Request(parsedRequest, oAuth1Params, normalizer)
+  }
 
   @throws(classOf[MalformedRequest])
   def getOAuth2Request(parsedRequest: ParsedRequest, token: String): OAuth2Request = {
     // OAuth 2.0 requests are totally insecure without SSL, so depend on HTTPS to provide
     // protection against replay and man-in-the-middle attacks.
+    log.debug("building oauth2 request -> path = {}, host = {}, token = {}",
+      parsedRequest.path, parsedRequest.host, token)
     if (parsedRequest.scheme == HTTPS) OAuth2Request(UrlDecoder(token), parsedRequest)
     else throw new MalformedRequest("OAuth 2.0 requests must use HTTPS")
   }
