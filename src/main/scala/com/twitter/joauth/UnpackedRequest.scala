@@ -67,22 +67,12 @@ case class OAuth1Request(
 }
 
 /**
- * models an OAuth 2.0 request. Just a wrapper for the token, really.
- */
-@deprecated("Use OAuth2Request instead")
-case class OAuth2d11Request(token: String, parsedRequest: ParsedRequest) extends OAuthRequest {
-  override val oAuthVersionString = "oauth2d11"
-
-  override lazy val oAuthParamMap = Map(OAuthParams.ACCESS_TOKEN -> token)
-}
-
-/**
  * models an OAuth 2.0 rev 25 request. Just a wrapper for the token, really.
  */
 case class OAuth2Request(token: String, parsedRequest: ParsedRequest, clientId: String = "") extends OAuthRequest {
   override val oAuthVersionString = "oauth2"
 
-  override lazy val oAuthParamMap = Map(OAuthParams.ACCESS_TOKEN -> token,
+  override lazy val oAuthParamMap = Map(OAuthParams.BEARER_TOKEN -> token,
                                         OAuthParams.CLIENT_ID -> clientId)
 }
 

@@ -40,7 +40,7 @@ The finished jar will be in `dist/`.
 
 JOAuth consists of five traits, each of which is invoked with an apply method.
 
-* The OAuthRequest trait models the data needed to validate a request. There are two concrete subclasses, OAuth1Request and OAuth2Request. The deprecated OAuth2d11Request class implements OAuth2 Draft 11.
+* The OAuthRequest trait models the data needed to validate a request. There are two subclasses, OAuth1Request and OAuth2Request.
 * The Unpacker trait unpacks the HttpServletRequest into an OAuthRequest, which models the data needed to validate the request
 * The Normalizer trait produces a normalized String representation of the request, used for signature calculation
 * The Signer trait signs a String, using the OAuth token secret and consumer secret.
