@@ -20,23 +20,23 @@ import com.twitter.joauth.keyvalue._
  * for every key/value pair obtained from either the queryString or the POST data.
  * If no valid request can be obtained, an UnpackerException is thrown.
  */
-trait Unpacker[HttpRequest <: Request] {
+trait Unpacker[RequestImpl <: Request] {
   @throws(classOf[UnpackerException])
-  def apply(request: HttpRequest): UnpackedRequest = apply(request, Seq())
+  def apply(request: RequestImpl): UnpackedRequest = apply(request, Seq())
 
   @throws(classOf[UnpackerException])
-  def apply(request: HttpRequest, kvHandler: KeyValueHandler): UnpackedRequest =
+  def apply(request: RequestImpl, kvHandler: KeyValueHandler): UnpackedRequest =
     apply(request, Seq(kvHandler))
 
   @throws(classOf[UnpackerException])
-  def apply(request: HttpRequest, kvHandlers: Seq[KeyValueHandler]): UnpackedRequest
+  def apply(request: RequestImpl, kvHandlers: Seq[KeyValueHandler]): UnpackedRequest
 }
 
 /**
  * for testing. Always returns the same result.
  */
-class ConstUnpacker[HttpRequest <: Request](result: OAuthRequest) extends Unpacker[HttpRequest] {
-  override def apply(request: HttpRequest, kvHandlers: Seq[KeyValueHandler]): OAuthRequest = result
+class ConstUnpacker[RequestImpl <: Request](result: OAuthRequest) extends Unpacker[RequestImpl] {
+  override def apply(request: RequestImpl, kvHandlers: Seq[KeyValueHandler]): OAuthRequest = result
 }
 
 /**
@@ -93,8 +93,6 @@ class CustomizableUnpacker[RequestImpl <: Request](
 
       if (oAuthParamsBuilder.isOAuth2) {
         getOAuth2Request(request, parsedRequest, oAuthParamsBuilder.oAuth2Token)
-      } else if (oAuthParamsBuilder.isOAuth2d11) {
-        getOAuth2d11Request(request, parsedRequest, oAuthParamsBuilder.oAuth2Token)
       } else if (oAuthParamsBuilder.isOAuth1) {
         getOAuth1Request(parsedRequest, oAuthParamsBuilder.oAuth1Params)
       } else UnknownRequest(parsedRequest)
@@ -112,17 +110,6 @@ class CustomizableUnpacker[RequestImpl <: Request](
   def getOAuth1Request(
     parsedRequest: ParsedRequest, oAuth1Params: OAuth1Params): OAuth1Request =
     OAuth1Request(parsedRequest, oAuth1Params, normalizer)
-
-  @throws(classOf[MalformedRequest])
-  def getOAuth2d11Request(request: RequestImpl, parsedRequest: ParsedRequest, token: String): OAuth2d11Request = {
-    // OAuth 2.0 requests are totally insecure with SSL, so depend on HTTPS to provide
-    // protection against replay and man-in-the-middle attacks. If you need to run
-    // an authorization service that can't do HTTPS for some reason, you can define
-    // a custom UriSchemeGetter to make the scheme pretend to be HTTPS for the purposes
-    // of request validation
-    if (shouldAllowOAuth2(request, parsedRequest)) OAuth2d11Request(UrlDecoder(token), parsedRequest)
-    else throw new MalformedRequest("OAuth 2.0 requests not allowed")
-  }
 
   @throws(classOf[MalformedRequest])
   def getOAuth2Request(request: RequestImpl, parsedRequest: ParsedRequest, token: String): OAuth2Request = {
@@ -196,7 +183,6 @@ class CustomizableUnpacker[RequestImpl <: Request](
       case Some(AUTH_HEADER_REGEX(authType, authString)) => {
         val (shouldParse, oauth2) = authType.toLowerCase match {
           case OAuthParams.OAUTH2_HEADER_AUTHTYPE => (false, true)
-          case OAuthParams.OAUTH2D11_HEADER_AUTHTYPE => (true, false)
           case OAuthParams.OAUTH1_HEADER_AUTHTYPE => (true, false)
           case _ => (false, false)
         }
@@ -207,21 +193,11 @@ class CustomizableUnpacker[RequestImpl <: Request](
           // to the underlying handler
           val quotedHandler = new MaybeQuotedValueKeyValueHandler(handler)
 
-          // oauth2 allows specification of the access token alone,
-          // without a key, so we pass in a kvHandler that can detect this case
-          val oneKeyOnlyHandler = new OneKeyOnlyKeyValueHandler
-
           // now we'll pass the handler to the headerParser,
           // which splits on commas rather than ampersands,
           // and is more forgiving with whitespace
-          headerParser(authString, Seq(quotedHandler, oneKeyOnlyHandler))
+          headerParser(authString, Seq(quotedHandler))
 
-          // if we did encounter exactly one key with an empty value, invoke
-          // the underlying handler as if it were the token
-          oneKeyOnlyHandler.key match {
-            case Some(token) => handler(OAuthParams.ACCESS_TOKEN, token)
-            case None =>
-          }
         } else if (oauth2) {
           nonTransformingHandler(OAuthParams.BEARER_TOKEN, authString)
         }

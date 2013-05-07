@@ -35,18 +35,6 @@ class UnpackerSpec extends SpecificationWithJUnit with Mockito {
     val unpacker = StandardUnpacker()
     val kvHandler = mock[KeyValueHandler]
 
-    for ((verbose, header) <- List(
-      ("", MockRequestFactory.oAuth2d11Header(_)),
-      ("verbose ", MockRequestFactory.oAuth2d11HeaderWithKey(_)))) {
-      "unpack request with "+verbose+"token in header HTTPS" in {
-        val request = MockRequestFactory.requestWithAuthHeader(header("a"))
-        request.scheme = "https"
-        unpacker(request) must containTheToken("a")
-      }
-      "unpack as unknown request with "+verbose+"token in header HTTP" in {
-        unpacker(MockRequestFactory.requestWithAuthHeader(header("a"))) must throwA[MalformedRequest]
-      }
-    }
     "unpack request with bearer token in header HTTPS" in {
       val request = MockRequestFactory.oAuth2nRequestInHeader("a")
       request.scheme = "https"
@@ -62,24 +50,10 @@ class UnpackerSpec extends SpecificationWithJUnit with Mockito {
     "unpack as unknown request with bearer token in header HTTP" in {
       unpacker(MockRequestFactory.oAuth2nRequestInHeader("a")) must throwA[MalformedRequest]
     }
-    "unpack request with token in params HTTPS" in {
+    "unpack as unknown request when no bearer token exists" in {
       val request = MockRequestFactory.oAuth2RequestInParams("a")
       request.scheme = "https"
-      unpacker(request) must containTheToken("a")
-    }
-    "unpack request with token in params HTTPS and junk Auth header" in {
-      val request = MockRequestFactory.oAuth2RequestInParams("a")
-      request.scheme = "https"
-      request.authHeader = Some("BLARG")
-      unpacker(request) must containTheToken("a")
-    }
-    "unpack request with token in params HTTPS in POST" in {
-      val request = MockRequestFactory.postRequest(MockRequestFactory.oAuth2RequestInParams("a"))
-      request.scheme = "https"
-      unpacker(request) must containTheToken("a")
-    }
-    "unpack as unknown request with token in params HTTP" in {
-      unpacker(MockRequestFactory.oAuth2RequestInParams("a")) must throwA[MalformedRequest]
+      unpacker(request) must haveClass[UnknownRequest]
     }
   }
 
