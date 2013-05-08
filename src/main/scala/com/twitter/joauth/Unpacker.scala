@@ -175,7 +175,7 @@ class CustomizableUnpacker[RequestImpl <: Request](
 
   def parseHeader(header: Option[String], nonTransformingHandler: KeyValueHandler): Unit = {
     // trim, normalize encodings
-    val handler = queryParamKeyValueHandler(nonTransformingHandler)
+    val handler = headerParamKeyValueHandler(nonTransformingHandler)
 
     // check for OAuth credentials in the header. OAuth 1.0a and 2.0 have
     // different header schemes, so match first on the auth scheme.
