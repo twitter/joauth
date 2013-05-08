@@ -12,6 +12,8 @@
 
 package com.twitter.joauth
 
+import org.slf4j.LoggerFactory
+
 /**
  * A Validator takes an OAuth1 request, a token secret, and a consumer secret,
  * and validates the request. It returns a Java enum for compatability
@@ -54,6 +56,10 @@ object Verifier {
  * The standard implementation of a Verifier. Constructed with a Signer, the maximum clock float
  * allowed for a timestamp, and a NonceValidator.
  */
+object StandardVerifier {
+  private val log = LoggerFactory.getLogger(getClass.getName)
+}
+
 class StandardVerifier(
   signer: Signer,
   maxClockFloatAheadMins: Int,
@@ -61,13 +67,22 @@ class StandardVerifier(
   validateNonce: NonceValidator)
 extends Verifier {
 
+  import StandardVerifier._
+
   val maxClockFloatAheadSecs = maxClockFloatAheadMins * 60L
   val maxClockFloatBehindSecs = maxClockFloatBehindMins * 60L
 
   override def apply(request: OAuth1Request, tokenSecret: String, consumerSecret: String): VerifierResult = {
-    if (!validateNonce(request.nonce)) VerifierResult.BAD_NONCE
-    else if (!validateTimestampSecs(request.timestampSecs)) VerifierResult.BAD_TIMESTAMP
-    else if (!validateSignature(request, tokenSecret, consumerSecret)) VerifierResult.BAD_SIGNATURE
+    if (!validateNonce(request.nonce)) {
+      log.debug("bad nonce -> {}", request.toString)
+      VerifierResult.BAD_NONCE
+    } else if (!validateTimestampSecs(request.timestampSecs)) {
+      log.debug("bad timestamp -> {}", request.toString)
+      VerifierResult.BAD_TIMESTAMP
+    } else if (!validateSignature(request, tokenSecret, consumerSecret)) {
+      log.debug("bad signature -> {}", request.toString)
+      VerifierResult.BAD_SIGNATURE
+    }
     else VerifierResult.OK
   }
 

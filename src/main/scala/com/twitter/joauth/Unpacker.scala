@@ -12,6 +12,7 @@
 
 package com.twitter.joauth
 
+import org.slf4j.LoggerFactory
 import com.twitter.joauth.keyvalue._
 
 /**
@@ -53,22 +54,15 @@ object Unpacker {
   new StandardUnpacker[Request](helper, normalizer, queryParser, headerParser)
 }
 
-/**
- * StandardUnpacker constants, and a few more convenience factory methods, for tests
- * that need to call methods of the StandardUnpacker directly.
- */
-object StandardUnpacker {
+object CustomizableUnpacker {
   val AUTH_HEADER_REGEX = """^(\S+)\s+(.*)$""".r
   val POST = "POST"
   val WWW_FORM_URLENCODED = "application/x-www-form-urlencoded"
   val HTTPS = "HTTPS"
   val UTF_8 = "UTF-8"
 
-  def apply(): StandardUnpacker[Request] = new StandardUnpacker[Request](
-      StandardOAuthParamsHelper, Normalizer(), QueryKeyValueParser, HeaderKeyValueParser)
+  private val log = LoggerFactory.getLogger(getClass.getName)
 
-  def apply(helper: OAuthParamsHelper): StandardUnpacker[Request] =
-    new StandardUnpacker[Request](helper, Normalizer(), QueryKeyValueParser, HeaderKeyValueParser)
 }
 
 class CustomizableUnpacker[RequestImpl <: Request](
@@ -80,10 +74,10 @@ class CustomizableUnpacker[RequestImpl <: Request](
   bodyParamTransformer: KeyValueHandler => TransformingKeyValueHandler,
   headerTransformer: KeyValueHandler => TransformingKeyValueHandler,
   shouldAllowOAuth2: (RequestImpl, ParsedRequest) => Boolean =
-    (_: RequestImpl, p: ParsedRequest) => p.scheme == StandardUnpacker.HTTPS
+    (_: RequestImpl, p: ParsedRequest) => p.scheme == CustomizableUnpacker.HTTPS
 ) extends Unpacker[RequestImpl] {
 
-  import StandardUnpacker._
+  import CustomizableUnpacker._
 
   @throws(classOf[UnpackerException])
   override def apply(request: RequestImpl, kvHandlers: Seq[KeyValueHandler]): UnpackedRequest = {
@@ -108,13 +102,19 @@ class CustomizableUnpacker[RequestImpl <: Request](
 
   @throws(classOf[MalformedRequest])
   def getOAuth1Request(
-    parsedRequest: ParsedRequest, oAuth1Params: OAuth1Params): OAuth1Request =
+    parsedRequest: ParsedRequest, oAuth1Params: OAuth1Params): OAuth1Request = {
+    log.debug("building oauth1 request -> path = {}, host = {}, token = {}, consumer key = {}, signature = {}, method = {}",
+      parsedRequest.path, parsedRequest.host, oAuth1Params.token,
+      oAuth1Params.consumerKey, oAuth1Params.signature, oAuth1Params.signatureMethod)
     OAuth1Request(parsedRequest, oAuth1Params, normalizer)
+  }
 
   @throws(classOf[MalformedRequest])
   def getOAuth2Request(request: RequestImpl, parsedRequest: ParsedRequest, token: String): OAuth2Request = {
     // OAuth 2.0 requests are totally insecure without SSL, so depend on HTTPS to provide
     // protection against replay and man-in-the-middle attacks.
+    log.debug("building oauth2 request -> path = {}, host = {}, token = {}",
+      parsedRequest.path, parsedRequest.host, token)
     if (shouldAllowOAuth2(request, parsedRequest)) OAuth2Request(UrlDecoder(token), parsedRequest)
     else throw new MalformedRequest("OAuth 2.0 requests not allowed")
   }
@@ -205,6 +205,24 @@ class CustomizableUnpacker[RequestImpl <: Request](
       case _ =>
     }
   }
+}
+
+/**
+ * StandardUnpacker constants, and a few more convenience factory methods, for tests
+ * that need to call methods of the StandardUnpacker directly.
+ */
+object StandardUnpacker {
+  val AUTH_HEADER_REGEX = CustomizableUnpacker.AUTH_HEADER_REGEX
+  val POST = CustomizableUnpacker.POST
+  val WWW_FORM_URLENCODED = CustomizableUnpacker.WWW_FORM_URLENCODED
+  val HTTPS = CustomizableUnpacker.HTTPS
+  val UTF_8 = CustomizableUnpacker.UTF_8
+
+  def apply(): StandardUnpacker[Request] = new StandardUnpacker[Request](
+    StandardOAuthParamsHelper, Normalizer(), QueryKeyValueParser, HeaderKeyValueParser)
+
+  def apply(helper: OAuthParamsHelper): StandardUnpacker[Request] =
+    new StandardUnpacker[Request](helper, Normalizer(), QueryKeyValueParser, HeaderKeyValueParser)
 }
 
 class StandardUnpacker[RequestImpl <: Request](
