@@ -168,6 +168,11 @@ class UnpackerSpec extends SpecificationWithJUnit with Mockito {
       doOAuth1Tests(OAuth1TestCases.oAuthSpecialCasePost2, oAuthInParams, oAuthInHeader, true)
     }
   }
+  "Unpacker for OAuth1 Special Case PUT" should {
+    for ((oAuthInParams, oAuthInHeader) <- List((true, false), (false, true))) {
+      doOAuth1Tests(OAuth1TestCases.oAuthSpecialCasePut, oAuthInParams, oAuthInHeader, true)
+    }
+  }
   "Unpacker for OAuth1 Special Case GET with comma" should {
     for ((oAuthInParams, oAuthInHeader) <- List((true, false), (false, true))) {
       OAuth1TestCases.commaTestCases().foreach {

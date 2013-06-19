@@ -373,6 +373,32 @@ object OAuth1TestCases {
     None
   )
   /**
+   * This is a test case for signing form-urlencoded data in the body of a
+   * request that uses an HTTP method other than POST.
+   */
+  val oAuthSpecialCasePut = OAuth1TestCase(
+    "http PUT request",
+    "http",
+    "example.net",
+    80,
+    "/pictures/123",
+    Some("PUT"),
+    List(("location", "Tokyo"), ("name", "tree")),
+    "readkey",
+    "readsecret",
+    "writekey",
+    "writesecret",
+    null,
+    "o0vn6j/8rZTu5wtVZc8z07tTFdQ=",
+    "BMJXoQz754IpxjHNJsm06ZeXVjsitznhpSRqampxzs",
+    1282246447,
+    null,
+    "PUT&http%3A%2F%2Fexample.net%2Fpictures%2F123&location%3DTokyo%26name%3Dtree%26oauth_consumer_key%3Dwritekey%26oauth_nonce%3DBMJXoQz754IpxjHNJsm06ZeXVjsitznhpSRqampxzs%26oauth_signature_method%3DHMAC-SHA1%26oauth_timestamp%3D1282246447%26oauth_token%3Dreadkey%26oauth_version%3D1.0",
+    true,
+    true,
+    None
+  )
+  /**
    * These are test cases that ensure we are lenient about , in query string.
    * We test with pre encoded, raw and a mix of encoded and raw values. The final
    * result is the same signature no matter what combination is provided.
