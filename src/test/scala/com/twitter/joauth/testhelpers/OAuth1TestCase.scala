@@ -66,7 +66,7 @@ case class OAuth1TestCase(
       scheme.toUpperCase,
       host,
       port,
-      if (paramsInPost) "POST" else "GET",
+      if (paramsInPost) verb.getOrElse("POST") else "GET",
       path,
       params.map { case (k, v) =>
         val (ek, ev) =
@@ -121,7 +121,11 @@ case class OAuth1TestCase(
 
     val signature = if (paramsInPost) signaturePost else signatureGet
     var request = new MockRequest
-    request.method = "GET"
+    request.method = (verb, paramsInPost) match {
+      case (_, false) => "GET"
+      case (None, true) => "POST"
+      case (Some(method), true) => method
+    }
     request.scheme = scheme
     request.host = host
     request.port = port
@@ -140,7 +144,13 @@ case class OAuth1TestCase(
     if (!queryString.isEmpty) {
       request.queryString = queryString
     }
-    if (paramsInPost) MockRequestFactory.postRequest(request)
+
+    if (request.method == "POST") {
+      MockRequestFactory.postRequest(request)
+    } else if (request.method == "PUT") {
+      MockRequestFactory.putRequest(request)
+    }
+
     request
   }
 }

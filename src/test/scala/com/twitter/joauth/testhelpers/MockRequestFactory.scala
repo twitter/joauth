@@ -93,5 +93,11 @@ object MockRequestFactory {
     request
   }
 
+  def putRequest(request: MockRequest) = {
+    postRequest(request)
+    request.method = "PUT"
+    request
+  }
+
   def oAuth2nRequestInHeader(token: String) = requestWithAuthHeader(oAuth2Header(token))
 }
