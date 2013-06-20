@@ -145,10 +145,8 @@ case class OAuth1TestCase(
       request.queryString = queryString
     }
 
-    if (request.method == "POST") {
-      MockRequestFactory.postRequest(request)
-    } else if (request.method == "PUT") {
-      MockRequestFactory.putRequest(request)
+    if (paramsInRequestBody) {
+      MockRequestFactory.addParamsToRequestBody(request)
     }
 
     request
