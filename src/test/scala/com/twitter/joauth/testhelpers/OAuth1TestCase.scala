@@ -42,18 +42,18 @@ case class OAuth1TestCase(
   val canBeUnpackedAsOAuth: Boolean,
   val headerOnlyParams: Option[HeaderOnlyParams]) {
 
-  def oAuth1Request(paramsInPost: Boolean, authInHeader: Boolean) = new OAuth1Request(
+  def oAuth1Request(paramsInRequestBody: Boolean, authInHeader: Boolean) = new OAuth1Request(
     token,
     consumerKey,
     nonce,
     timestampSecs,
-    signature(paramsInPost),
+    signature(paramsInRequestBody),
     OAuthParams.HMAC_SHA1,
     OAuthParams.ONE_DOT_OH,
-    parsedRequest(paramsInPost, authInHeader),
-    normalizedRequest(paramsInPost, authInHeader))
+    parsedRequest(paramsInRequestBody, authInHeader),
+    normalizedRequest(paramsInRequestBody, authInHeader))
 
-  def parsedRequest(paramsInPost: Boolean, authInHeader: Boolean) = {
+  def parsedRequest(paramsInRequestBody: Boolean, authInHeader: Boolean) = {
     val params = if (authInHeader) {
       parameters ++ headerOnlyParams.map(_.params.filter { case (k, _) =>
         k.indexOf("oauth_") == 0
@@ -66,7 +66,7 @@ case class OAuth1TestCase(
       scheme.toUpperCase,
       host,
       port,
-      if (paramsInPost) verb.getOrElse("POST") else "GET",
+      if (paramsInRequestBody) verb.getOrElse("POST") else "GET",
       path,
       params.map { case (k, v) =>
         val (ek, ev) =
@@ -80,26 +80,26 @@ case class OAuth1TestCase(
     )
   }
 
-  def oAuth1Params(paramsInPost: Boolean) =
+  def oAuth1Params(paramsInRequestBody: Boolean) =
     OAuth1Params(
       token,
       consumerKey,
       nonce,
       timestampSecs,
       timestampSecs.toString,
-      signature(paramsInPost),
+      signature(paramsInRequestBody),
       OAuthParams.HMAC_SHA1,
       OAuthParams.ONE_DOT_OH)
 
-  def normalizedRequest(paramsInPost: Boolean, oAuthInHeader: Boolean) = {
+  def normalizedRequest(paramsInRequestBody: Boolean, oAuthInHeader: Boolean) = {
     if (oAuthInHeader) {
-      if (paramsInPost) {
+      if (paramsInRequestBody) {
         headerOnlyParams.map(_.normalizedRequestPost).getOrElse(normalizedRequestPost)
       } else {
         headerOnlyParams.map(_.normalizedRequestGet).getOrElse(normalizedRequestGet)
       }
     } else {
-      if (paramsInPost) {
+      if (paramsInRequestBody) {
         normalizedRequestPost
       } else {
         normalizedRequestGet
@@ -107,8 +107,8 @@ case class OAuth1TestCase(
     }
   }
 
-  def signature(paramsInPost: Boolean) = {
-    val signature = if (paramsInPost) signaturePost else signatureGet
+  def signature(paramsInRequestBody: Boolean) = {
+    val signature = if (paramsInRequestBody) signaturePost else signatureGet
     if (urlEncodeParams) UrlEncoder(signature)
     else signature
   }
@@ -116,12 +116,12 @@ case class OAuth1TestCase(
   def request(
     oAuthInParam: Boolean,
     oAuthInHeader: Boolean,
-    paramsInPost: Boolean,
+    paramsInRequestBody: Boolean,
     quotedHeaderValues: Boolean = true): MockRequest = {
 
-    val signature = if (paramsInPost) signaturePost else signatureGet
+    val signature = if (paramsInRequestBody) signaturePost else signatureGet
     var request = new MockRequest
-    request.method = (verb, paramsInPost) match {
+    request.method = (verb, paramsInRequestBody) match {
       case (_, false) => "GET"
       case (None, true) => "POST"
       case (Some(method), true) => method
