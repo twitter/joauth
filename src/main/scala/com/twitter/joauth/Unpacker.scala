@@ -18,7 +18,7 @@ import com.twitter.joauth.keyvalue._
 /**
  * An Unpacker takes an Request and optionally a Seq[KeyValueHandler],
  * and parses the request into an OAuthRequest instance, invoking each KeyValueHandler
- * for every key/value pair obtained from either the queryString or the POST data.
+ * for every key/value pair obtained from either the queryString or the request body.
  * If no valid request can be obtained, an UnpackerException is thrown.
  */
 trait Unpacker[RequestImpl <: Request] {
@@ -56,7 +56,6 @@ object Unpacker {
 
 object CustomizableUnpacker {
   val AUTH_HEADER_REGEX = """^(\S+)\s+(.*)$""".r
-  val POST = "POST"
   val WWW_FORM_URLENCODED = "application/x-www-form-urlencoded"
   val HTTPS = "HTTPS"
   val UTF_8 = "UTF-8"
@@ -142,8 +141,8 @@ class CustomizableUnpacker[RequestImpl <: Request](
 
   def parseRequest(request: RequestImpl, kvHandlers: Seq[KeyValueHandler]): OAuthParamsBuilder = {
     // use an oAuthParamsBuilder instance to accumulate key/values from
-    // the query string, the POST (if the appropriate Content-Type), and
-    // the Authorization header, if any.
+    // the query string, the request body (if the appropriate Content-Type),
+    // and the Authorization header, if any.
     val oAuthParamsBuilder = new OAuthParamsBuilder(helper)
 
     // parse the header, if present
@@ -160,10 +159,9 @@ class CustomizableUnpacker[RequestImpl <: Request](
       // parse the GET query string
       queryParser(request.queryString, queryHandlers)
 
-      // parse the POST if the Content-Type is appropriate. Use the same
-      // set of KeyValueHandlers that we used to parse the query string.
-      if (request.method.toUpperCase == POST &&
-          request.contentType.isDefined &&
+      // parse the request body if the Content-Type is appropriate. Use the
+      // same set of KeyValueHandlers that we used to parse the query string.
+      if (request.contentType.isDefined &&
           request.contentType.get.startsWith(WWW_FORM_URLENCODED)) {
         queryParser(request.body, bodyParamHandlers)
       }
@@ -213,7 +211,6 @@ class CustomizableUnpacker[RequestImpl <: Request](
  */
 object StandardUnpacker {
   val AUTH_HEADER_REGEX = CustomizableUnpacker.AUTH_HEADER_REGEX
-  val POST = CustomizableUnpacker.POST
   val WWW_FORM_URLENCODED = CustomizableUnpacker.WWW_FORM_URLENCODED
   val HTTPS = CustomizableUnpacker.HTTPS
   val UTF_8 = CustomizableUnpacker.UTF_8
