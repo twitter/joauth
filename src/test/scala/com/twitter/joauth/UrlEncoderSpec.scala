@@ -23,12 +23,19 @@ class UrlEncoderSpec extends SpecificationWithJUnit with Mockito {
       UrlEncoder(" ") mustEqual "%20"
       UrlEncoder(UrlDecoder("%c3%b8")) mustEqual "%C3%B8"
       UrlEncoder("ø") mustEqual "%C3%B8"
+      UrlEncoder("!") mustEqual "%21"
     }
 
     "properly encode CR, LF, and other utf-8 characters whose first byte is 0" in {
       UrlEncoder("\n") mustEqual "%0A"
       UrlEncoder("\r") mustEqual "%0D"
       UrlEncoder("\0") mustEqual "%00"
+    }
+
+    "properly encode emoji" in {
+      UrlEncoder("😄") mustEqual "%F0%9F%98%84"
+      UrlEncoder("👎") mustEqual "%F0%9F%91%8E"
+      UrlEncoder("I💓oauth!") mustEqual "I%F0%9F%92%93oauth%21"
     }
   }
 }

@@ -34,35 +34,34 @@ object UrlEncoder {
   val ENCODED_OPEN_BRACKET = "%5B"
   val ENCODED_CLOSE_BRACKET = "%5D"
 
+
+  private[this] def isUnreserved(b: Byte): Boolean = {
+    (b >= 'a' && b <= 'z') || (b >= 'A' && b <= 'Z') ||
+      (b >= '0' && b <= '9') || b == '.' || b == '-' || b == '_' || b == '~'
+  }
+
   def apply(s: String): String = {
     if (s == null) {
       return null
     }
+    val byteArray = s.getBytes(UTF_8_CHARSET)
     var sb: StringBuilder = null
-    for (i <- 0 until s.length) {
-      val c = s.charAt(i)
-
-      val shouldAppend =
-        (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') ||
-        (c >= '0' && c <= '9') || c == '.' || c == '-' || c == '_' || c == '~'
-
-      if (shouldAppend) {
+    for (i <- 0 until byteArray.length) {
+      val bite = byteArray(i)
+      if (isUnreserved(bite)) {
         if (sb != null) {
-          sb.append(c)
+          sb.append(bite.toChar)
         }
       } else {
         if (sb == null) {
           sb = new StringBuilder(s.length + 40)
           sb.append(s.substring(0, i))
         }
-
-        for (b <- c.toString.getBytes(UTF_8_CHARSET)) {
-          // turn the Byte into an int into the hex string, but be sure to mask out the unneeded bits
-          // to avoid nastiness with converting to a negative int
-          sb.append("%")
-            .append(((b >> 4) & 0xF).toHexString.toUpperCase)
-            .append(((b & 0xF).toHexString.toUpperCase))
-        }
+        // turn the Byte into an int into the hex string, but be sure to mask out the unneeded bits
+        // to avoid nastiness with converting to a negative int
+        sb.append("%")
+          .append(((bite >> 4) & 0xF).toHexString.toUpperCase)
+          .append(((bite & 0xF).toHexString.toUpperCase))
       }
     }
 
