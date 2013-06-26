@@ -17,13 +17,19 @@ class UrlEncoderSpec extends SpecificationWithJUnit with Mockito {
       UrlEncoder.normalize("abcd%f") mustEqual "abcd%f"
     }
 
+    "not encode unreserved characters" in {
+      UrlEncoder("abcdefgHIJKLMNOP") mustEqual "abcdefgHIJKLMNOP"
+      UrlEncoder("0123456789") mustEqual "0123456789"
+      UrlEncoder(".-_~") mustEqual ".-_~"
+    }
+
     "properly encode special utf-8 characters" in {
       UrlEncoder("%") mustEqual "%25"
       UrlEncoder("+") mustEqual "%2B"
       UrlEncoder(" ") mustEqual "%20"
       UrlEncoder(UrlDecoder("%c3%b8")) mustEqual "%C3%B8"
       UrlEncoder("ø") mustEqual "%C3%B8"
-      UrlEncoder("!") mustEqual "%21"
+      UrlEncoder("test123!ABC") mustEqual "test123%21ABC"
     }
 
     "properly encode CR, LF, and other utf-8 characters whose first byte is 0" in {
