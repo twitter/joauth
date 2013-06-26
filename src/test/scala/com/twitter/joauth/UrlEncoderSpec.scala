@@ -39,9 +39,9 @@ class UrlEncoderSpec extends SpecificationWithJUnit with Mockito {
     }
 
     "properly encode emoji" in {
-      UrlEncoder("😄") mustEqual "%F0%9F%98%84"
-      UrlEncoder("👎") mustEqual "%F0%9F%91%8E"
-      UrlEncoder("I💓oauth!") mustEqual "I%F0%9F%92%93oauth%21"
+      UrlEncoder("\ud83d\ude04") mustEqual "%F0%9F%98%84"
+      UrlEncoder("\ud83d\udc4e") mustEqual "%F0%9F%91%8E"
+      UrlEncoder("I\ud83d\udc93joauth!") mustEqual "I%F0%9F%92%93joauth%21"
     }
   }
 }
