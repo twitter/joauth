@@ -57,19 +57,19 @@ class UnpackerSpec extends SpecificationWithJUnit with Mockito {
     }
   }
 
-  def getTestName(testName: String, testCaseName: String, oAuthInParams: Boolean, oAuthInHeader: Boolean, paramsInPost: Boolean) =
-    "%s for %s oAuthInParams:%s, oAuthInHeader: %s, paramsInPost:%s".format(
-      testName, testCaseName, oAuthInParams, oAuthInHeader, paramsInPost)
+  def getTestName(testName: String, testCaseName: String, oAuthInParams: Boolean, oAuthInHeader: Boolean, paramsInRequestBody: Boolean) =
+    "%s for %s oAuthInParams:%s, oAuthInHeader: %s, paramsInRequestBody:%s".format(
+      testName, testCaseName, oAuthInParams, oAuthInHeader, paramsInRequestBody)
 
-  def doOAuth1Tests(testCase: OAuth1TestCase, oAuthInParams: Boolean, oAuthInHeader: Boolean, paramsInPost: Boolean) = {
+  def doOAuth1Tests(testCase: OAuth1TestCase, oAuthInParams: Boolean, oAuthInHeader: Boolean, paramsInRequestBody: Boolean) = {
 
     val kvHandler = smartMock[KeyValueHandler]
     val unpacker = StandardUnpacker()
 
     if (testCase.canBeUnpackedAsOAuth) {
       // KV Handler Called Once Per Param
-      getTestName("kvHandler called once per parameter", testCase.testName, oAuthInParams, oAuthInHeader, paramsInPost) in {
-        val request = testCase.request(oAuthInParams, oAuthInHeader, paramsInPost)
+      getTestName("kvHandler called once per parameter", testCase.testName, oAuthInParams, oAuthInHeader, paramsInRequestBody) in {
+        val request = testCase.request(oAuthInParams, oAuthInHeader, paramsInRequestBody)
         val oAuthParamsBuilder = unpacker.parseRequest(request, Seq(kvHandler))
 
         val numParams = testCase.parameters.size + (if (oAuthInHeader) 0 else 7)
@@ -82,73 +82,73 @@ class UnpackerSpec extends SpecificationWithJUnit with Mockito {
         }
       }
       // Parse Request
-      getTestName("parse request", testCase.testName, oAuthInParams, oAuthInHeader, paramsInPost) in {
-        val request = testCase.request(oAuthInParams, oAuthInHeader, paramsInPost)
+      getTestName("parse request", testCase.testName, oAuthInParams, oAuthInHeader, paramsInRequestBody) in {
+        val request = testCase.request(oAuthInParams, oAuthInHeader, paramsInRequestBody)
         val oAuthParamsBuilder = unpacker.parseRequest(request, Seq(kvHandler))
         val parsedRequest = request.parsedRequest(oAuthParamsBuilder.otherParams)
-        parsedRequest mustEqual testCase.parsedRequest(paramsInPost, oAuthInHeader)
-        oAuthParamsBuilder.oAuth1Params.toString must be_==(testCase.oAuth1Params(paramsInPost).toString)
+        parsedRequest mustEqual testCase.parsedRequest(paramsInRequestBody, oAuthInHeader)
+        oAuthParamsBuilder.oAuth1Params.toString must be_==(testCase.oAuth1Params(paramsInRequestBody).toString)
       }
       // Parse request
-      getTestName("parse oauth", testCase.testName, oAuthInParams, oAuthInHeader, paramsInPost) in {
-        val request = testCase.request(oAuthInParams, oAuthInHeader, paramsInPost)
+      getTestName("parse oauth", testCase.testName, oAuthInParams, oAuthInHeader, paramsInRequestBody) in {
+        val request = testCase.request(oAuthInParams, oAuthInHeader, paramsInRequestBody)
         val oAuthParamsBuilder = unpacker.parseRequest(request, Seq(kvHandler))
         val parsedRequest = request.parsedRequest(oAuthParamsBuilder.otherParams)
-        unpacker.getOAuth1Request(parsedRequest, oAuthParamsBuilder.oAuth1Params) must be_==(testCase.oAuth1Request(paramsInPost, oAuthInHeader))
+        unpacker.getOAuth1Request(parsedRequest, oAuthParamsBuilder.oAuth1Params) must be_==(testCase.oAuth1Request(paramsInRequestBody, oAuthInHeader))
       }
       if (oAuthInHeader) {
         // make sure parsing works without quotes in header
-        getTestName("parse oauth with unquoted header", testCase.testName, oAuthInParams, oAuthInHeader, paramsInPost) in {
-          val request = testCase.request(oAuthInParams, oAuthInHeader, paramsInPost, false)
+        getTestName("parse oauth with unquoted header", testCase.testName, oAuthInParams, oAuthInHeader, paramsInRequestBody) in {
+          val request = testCase.request(oAuthInParams, oAuthInHeader, paramsInRequestBody, false)
           val oAuthParamsBuilder = unpacker.parseRequest(request, Seq(kvHandler))
           val parsedRequest = request.parsedRequest(oAuthParamsBuilder.otherParams)
-          unpacker.getOAuth1Request(parsedRequest, oAuthParamsBuilder.oAuth1Params) must be_==(testCase.oAuth1Request(paramsInPost, oAuthInHeader))
+          unpacker.getOAuth1Request(parsedRequest, oAuthParamsBuilder.oAuth1Params) must be_==(testCase.oAuth1Request(paramsInRequestBody, oAuthInHeader))
         }
       } else {
         // make sure get/post parsing still works with junky auth header
-        getTestName("parse oauth with junk auth header", testCase.testName, oAuthInParams, oAuthInHeader, paramsInPost) in {
-          val request = testCase.request(oAuthInParams, oAuthInHeader, paramsInPost)
+        getTestName("parse oauth with junk auth header", testCase.testName, oAuthInParams, oAuthInHeader, paramsInRequestBody) in {
+          val request = testCase.request(oAuthInParams, oAuthInHeader, paramsInRequestBody)
           request.authHeader = Some("BLARG")
           val oAuthParamsBuilder = unpacker.parseRequest(request, Seq(kvHandler))
           val parsedRequest = request.parsedRequest(oAuthParamsBuilder.otherParams)
-          unpacker.getOAuth1Request(parsedRequest, oAuthParamsBuilder.oAuth1Params) must be_==(testCase.oAuth1Request(paramsInPost, oAuthInHeader))
+          unpacker.getOAuth1Request(parsedRequest, oAuthParamsBuilder.oAuth1Params) must be_==(testCase.oAuth1Request(paramsInRequestBody, oAuthInHeader))
         }
       }
-      if (paramsInPost) {
+      if (paramsInRequestBody) {
         // test with leading ? and & in post query string
-        val request = testCase.request(oAuthInParams, oAuthInHeader, paramsInPost)
+        val request = testCase.request(oAuthInParams, oAuthInHeader, paramsInRequestBody)
         val body = request.body
         request.body = "&" + Option(body).getOrElse("")
-        getTestName("unpack request with leading &", testCase.testName, oAuthInParams, oAuthInHeader, paramsInPost) in {
-          unpacker(request, Seq(kvHandler)) must be_==(testCase.oAuth1Request(paramsInPost, oAuthInHeader))
+        getTestName("unpack request with leading &", testCase.testName, oAuthInParams, oAuthInHeader, paramsInRequestBody) in {
+          unpacker(request, Seq(kvHandler)) must be_==(testCase.oAuth1Request(paramsInRequestBody, oAuthInHeader))
         }
       } else {
         // test with leading ? and & in get query string
-        val request = testCase.request(oAuthInParams, oAuthInHeader, paramsInPost)
+        val request = testCase.request(oAuthInParams, oAuthInHeader, paramsInRequestBody)
         val queryString = request.queryString
         request.queryString = "&" + Option(queryString).getOrElse("")
-        getTestName("unpack request with leading &", testCase.testName, oAuthInParams, oAuthInHeader, paramsInPost) in {
-          unpacker(request, Seq(kvHandler)) must be_==(testCase.oAuth1Request(paramsInPost, oAuthInHeader))
+        getTestName("unpack request with leading &", testCase.testName, oAuthInParams, oAuthInHeader, paramsInRequestBody) in {
+          unpacker(request, Seq(kvHandler)) must be_==(testCase.oAuth1Request(paramsInRequestBody, oAuthInHeader))
         }
       }
       // Unpack Request
-      val request = testCase.request(oAuthInParams, oAuthInHeader, paramsInPost)
-      getTestName("unpack request", testCase.testName, oAuthInParams, oAuthInHeader, paramsInPost) in {
-        unpacker(request, Seq(kvHandler)) must be_==(testCase.oAuth1Request(paramsInPost, oAuthInHeader))
+      val request = testCase.request(oAuthInParams, oAuthInHeader, paramsInRequestBody)
+      getTestName("unpack request", testCase.testName, oAuthInParams, oAuthInHeader, paramsInRequestBody) in {
+        unpacker(request, Seq(kvHandler)) must be_==(testCase.oAuth1Request(paramsInRequestBody, oAuthInHeader))
       }
     } else {
       // handle unknown
-      getTestName("handle unknown", testCase.testName, oAuthInParams, oAuthInHeader, paramsInPost) in {
-        val request = testCase.request(oAuthInParams, oAuthInHeader, paramsInPost)
-        unpacker(request) must be_==(UnknownRequest(testCase.parsedRequest(paramsInPost, oAuthInHeader)))
+      getTestName("handle unknown", testCase.testName, oAuthInParams, oAuthInHeader, paramsInRequestBody) in {
+        val request = testCase.request(oAuthInParams, oAuthInHeader, paramsInRequestBody)
+        unpacker(request) must be_==(UnknownRequest(testCase.parsedRequest(paramsInRequestBody, oAuthInHeader)))
       }
     }
   }
   "Unpacker for OAuth1 Test Cases" should {
     OAuth1TestCases().foreach { (testCase) =>
-      for ((paramsInPost) <- List(true, false)) {
+      for ((paramsInRequestBody) <- List(true, false)) {
         for ((oAuthInParams, oAuthInHeader) <- List((true, false), (false, true))) {
-          doOAuth1Tests(testCase, oAuthInParams, oAuthInHeader, paramsInPost)
+          doOAuth1Tests(testCase, oAuthInParams, oAuthInHeader, paramsInRequestBody)
         }
       }
     }
@@ -166,6 +166,16 @@ class UnpackerSpec extends SpecificationWithJUnit with Mockito {
   "Unpacker for OAuth1 Special Case POST2" should {
     for ((oAuthInParams, oAuthInHeader) <- List((true, false), (false, true))) {
       doOAuth1Tests(OAuth1TestCases.oAuthSpecialCasePost2, oAuthInParams, oAuthInHeader, true)
+    }
+  }
+  "Unpacker for OAuth1 Special Case PUT" should {
+    for ((oAuthInParams, oAuthInHeader) <- List((true, false), (false, true))) {
+      doOAuth1Tests(OAuth1TestCases.oAuthSpecialCasePut, oAuthInParams, oAuthInHeader, true)
+    }
+  }
+  "Unpacker for OAuth1 Special Case GET with request body" should {
+    for ((oAuthInParams, oAuthInHeader) <- List((true, false), (false, true))) {
+      doOAuth1Tests(OAuth1TestCases.oAuthSpecialCaseGetWithRequestBody, oAuthInParams, oAuthInHeader, true)
     }
   }
   "Unpacker for OAuth1 Special Case GET with comma" should {

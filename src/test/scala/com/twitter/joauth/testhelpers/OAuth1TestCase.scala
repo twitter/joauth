@@ -26,6 +26,7 @@ case class OAuth1TestCase(
   val host: String,
   val port: Int,
   val path: String,
+  val verb: Option[String],
   val parameters: List[(String, String)],
   val token: String,
   val tokenSecret: String,
@@ -41,18 +42,18 @@ case class OAuth1TestCase(
   val canBeUnpackedAsOAuth: Boolean,
   val headerOnlyParams: Option[HeaderOnlyParams]) {
 
-  def oAuth1Request(paramsInPost: Boolean, authInHeader: Boolean) = new OAuth1Request(
+  def oAuth1Request(paramsInRequestBody: Boolean, authInHeader: Boolean) = new OAuth1Request(
     token,
     consumerKey,
     nonce,
     timestampSecs,
-    signature(paramsInPost),
+    signature(paramsInRequestBody),
     OAuthParams.HMAC_SHA1,
     OAuthParams.ONE_DOT_OH,
-    parsedRequest(paramsInPost, authInHeader),
-    normalizedRequest(paramsInPost, authInHeader))
+    parsedRequest(paramsInRequestBody, authInHeader),
+    normalizedRequest(paramsInRequestBody, authInHeader))
 
-  def parsedRequest(paramsInPost: Boolean, authInHeader: Boolean) = {
+  def parsedRequest(paramsInRequestBody: Boolean, authInHeader: Boolean) = {
     val params = if (authInHeader) {
       parameters ++ headerOnlyParams.map(_.params.filter { case (k, _) =>
         k.indexOf("oauth_") == 0
@@ -65,7 +66,7 @@ case class OAuth1TestCase(
       scheme.toUpperCase,
       host,
       port,
-      if (paramsInPost) "POST" else "GET",
+      if (paramsInRequestBody) verb.getOrElse("POST") else "GET",
       path,
       params.map { case (k, v) =>
         val (ek, ev) =
@@ -79,26 +80,26 @@ case class OAuth1TestCase(
     )
   }
 
-  def oAuth1Params(paramsInPost: Boolean) =
+  def oAuth1Params(paramsInRequestBody: Boolean) =
     OAuth1Params(
       token,
       consumerKey,
       nonce,
       timestampSecs,
       timestampSecs.toString,
-      signature(paramsInPost),
+      signature(paramsInRequestBody),
       OAuthParams.HMAC_SHA1,
       OAuthParams.ONE_DOT_OH)
 
-  def normalizedRequest(paramsInPost: Boolean, oAuthInHeader: Boolean) = {
+  def normalizedRequest(paramsInRequestBody: Boolean, oAuthInHeader: Boolean) = {
     if (oAuthInHeader) {
-      if (paramsInPost) {
+      if (paramsInRequestBody) {
         headerOnlyParams.map(_.normalizedRequestPost).getOrElse(normalizedRequestPost)
       } else {
         headerOnlyParams.map(_.normalizedRequestGet).getOrElse(normalizedRequestGet)
       }
     } else {
-      if (paramsInPost) {
+      if (paramsInRequestBody) {
         normalizedRequestPost
       } else {
         normalizedRequestGet
@@ -106,8 +107,8 @@ case class OAuth1TestCase(
     }
   }
 
-  def signature(paramsInPost: Boolean) = {
-    val signature = if (paramsInPost) signaturePost else signatureGet
+  def signature(paramsInRequestBody: Boolean) = {
+    val signature = if (paramsInRequestBody) signaturePost else signatureGet
     if (urlEncodeParams) UrlEncoder(signature)
     else signature
   }
@@ -115,12 +116,16 @@ case class OAuth1TestCase(
   def request(
     oAuthInParam: Boolean,
     oAuthInHeader: Boolean,
-    paramsInPost: Boolean,
+    paramsInRequestBody: Boolean,
     quotedHeaderValues: Boolean = true): MockRequest = {
 
-    val signature = if (paramsInPost) signaturePost else signatureGet
+    val signature = if (paramsInRequestBody) signaturePost else signatureGet
     var request = new MockRequest
-    request.method = "GET"
+    request.method = (verb, paramsInRequestBody) match {
+      case (_, false) => "GET"
+      case (None, true) => "POST"
+      case (Some(method), true) => method
+    }
     request.scheme = scheme
     request.host = host
     request.port = port
@@ -139,7 +144,11 @@ case class OAuth1TestCase(
     if (!queryString.isEmpty) {
       request.queryString = queryString
     }
-    if (paramsInPost) MockRequestFactory.postRequest(request)
+
+    if (paramsInRequestBody) {
+      MockRequestFactory.addParamsToRequestBody(request)
+    }
+
     request
   }
 }
@@ -153,6 +162,7 @@ object OAuth1TestCases {
         "photos.example.net",
         80,
         "/Photos",
+        None,
         List(
           "size"        -> "original",
           "file"        -> "vacation.jpg",
@@ -179,6 +189,7 @@ object OAuth1TestCases {
         "photos.example.net",
         3000,
         "/photos",
+        None,
         Nil,
         "nnch734d00sl2jdk",
         "pfkkdhi9sl3r4s00",
@@ -200,6 +211,7 @@ object OAuth1TestCases {
         "photos.example.net",
         80,
         "/photos",
+        None,
         List(("key", "b"), ("key", "a")),
         "nnch734d00sl2jdk",
         "pfkkdhi9sl3r4s00",
@@ -222,6 +234,7 @@ object OAuth1TestCases {
         "photos.example.net",
         3000,
         "/photos/create",
+        None,
         Nil,
         null,
         "pfkkdhi9sl3r4s00",
@@ -243,6 +256,7 @@ object OAuth1TestCases {
         "photos.example.net",
         3000,
         "/photos/create",
+        None,
         Nil,
         "nnch734d00sl2jdk",
         "pfkkdhi9sl3r4s00",
@@ -264,6 +278,7 @@ object OAuth1TestCases {
         "photos.example.net",
         80,
         "/Photos",
+        None,
         List(("size", "original"), ("file", "vacation.jpg")),
         "nnch734d00sl2jdk",
         "pfkkdhi9sl3r4s00",
@@ -291,6 +306,7 @@ object OAuth1TestCases {
     "localhost",
     9080,
     "/1/statuses/filter.json",
+    None,
     List(("track", "%f8ae"), ("delimited", "length"), ("follow", "1")),
     "readkey",
     "readsecret",
@@ -312,6 +328,7 @@ object OAuth1TestCases {
     "localhost",
     9080,
     "/1/statuses/filter.json",
+    None,
     List(("track", "%c3%b8ae"), ("delimited", "length"), ("follow", "1")),
     "readkey",
     "readsecret",
@@ -337,6 +354,7 @@ object OAuth1TestCases {
     "api.twitter.com",
     443,
     "/1.1/statuses/update.json",
+    None,
     List(("include_entities", "1"), ("include_user_entities", "1"), ("status", "www.buderats.co.uk/docs/river_duathlon_17-08-12-(1).pdf")),
     "readkey",
     "readsecret",
@@ -348,6 +366,58 @@ object OAuth1TestCases {
     1282246447,
     null,
     "POST&https%3A%2F%2Fapi.twitter.com%2F1.1%2Fstatuses%2Fupdate.json&include_entities%3D1%26include_user_entities%3D1%26oauth_consumer_key%3Dwritekey%26oauth_nonce%3DBMJXoQz754IpxjHNJsm06ZeXVjsitznhpSRqampxzs%26oauth_signature_method%3DHMAC-SHA1%26oauth_timestamp%3D1282246447%26oauth_token%3Dreadkey%26oauth_version%3D1.0%26status%3Dwww.buderats.co.uk%252Fdocs%252Friver_duathlon_17-08-12-%25281%2529.pdf",
+    true,
+    true,
+    None
+  )
+  /**
+   * This is a test case for signing form-urlencoded data in the body of a
+   * request that uses an HTTP method other than POST.
+   */
+  val oAuthSpecialCasePut = OAuth1TestCase(
+    "http PUT request",
+    "http",
+    "example.net",
+    80,
+    "/pictures/123",
+    Some("PUT"),
+    List(("location", "Tokyo"), ("name", "tree")),
+    "readkey",
+    "readsecret",
+    "writekey",
+    "writesecret",
+    null,
+    "o0vn6j/8rZTu5wtVZc8z07tTFdQ=",
+    "BMJXoQz754IpxjHNJsm06ZeXVjsitznhpSRqampxzs",
+    1282246447,
+    null,
+    "PUT&http%3A%2F%2Fexample.net%2Fpictures%2F123&location%3DTokyo%26name%3Dtree%26oauth_consumer_key%3Dwritekey%26oauth_nonce%3DBMJXoQz754IpxjHNJsm06ZeXVjsitznhpSRqampxzs%26oauth_signature_method%3DHMAC-SHA1%26oauth_timestamp%3D1282246447%26oauth_token%3Dreadkey%26oauth_version%3D1.0",
+    true,
+    true,
+    None
+  )
+  /**
+   * This is a test case for signing form-urlencoded data in the body of a GET request.
+   * A GET request with a request body is unusual but technically possible.
+   */
+  val oAuthSpecialCaseGetWithRequestBody = OAuth1TestCase(
+    "http GET request with request body",
+    "http",
+    "example.net",
+    80,
+    "/pictures/123",
+    Some("GET"),
+    List(("location", "Tokyo"), ("name", "tree")),
+    "readkey",
+    "readsecret",
+    "writekey",
+    "writesecret",
+    null,
+    "o0vn6j/8rZTu5wtVZc8z07tTFdQ=",
+    "BMJXoQz754IpxjHNJsm06ZeXVjsitznhpSRqampxzs",
+    1282246447,
+    null,
+    "GET&http%3A%2F%2Fexample.net%2Fpictures%2F123&location%3DTokyo%26name%3Dtree%26oauth_consumer_key%3Dwritekey%26oauth_nonce%3DBMJXoQz754IpxjHNJsm06ZeXVjsitznhpSRqampxzs%26oauth_signature_method%3DHMAC-SHA1%26oauth_timestamp%3D1282246447%26oauth_token%3Dreadkey%26oauth_version%3D1.0",
     true,
     true,
     None
@@ -365,6 +435,7 @@ object OAuth1TestCases {
         "api.twitter.com",
         443,
         "/1.1/users/lookup.json",
+        None,
         List(("user_id", param)),
         "readkey",
         "readsecret",
@@ -400,6 +471,7 @@ object OAuth1TestCases {
         "api.twitter.com",
         443,
         "/1/account/verify_credentials.json",
+        None,
         params,
         "readkey",
         "readsecret",

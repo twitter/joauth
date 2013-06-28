@@ -83,6 +83,15 @@ object MockRequestFactory {
     request
   }
 
+  def addParamsToRequestBody(request: MockRequest) = {
+    if (request.queryString ne null) {
+      request.body = request.queryString
+      request.queryString = null
+    }
+    request.contentType = Some("application/x-www-form-urlencoded")
+    request
+  }
+
   def postRequest(request: MockRequest) = {
     if (request.queryString ne null) {
       request.body = request.queryString
@@ -90,6 +99,12 @@ object MockRequestFactory {
     }
     request.contentType = Some("application/x-www-form-urlencoded")
     request.method = "POST"
+    request
+  }
+
+  def putRequest(request: MockRequest) = {
+    postRequest(request)
+    request.method = "PUT"
     request
   }
 

@@ -34,34 +34,49 @@ object UrlEncoder {
   val ENCODED_OPEN_BRACKET = "%5B"
   val ENCODED_CLOSE_BRACKET = "%5D"
 
+
+  private[this] def isUnreserved(b: Byte): Boolean = {
+    (b >= 'a' && b <= 'z') || (b >= 'A' && b <= 'Z') ||
+      (b >= '0' && b <= '9') || b == '.' || b == '-' || b == '_' || b == '~'
+  }
+
+  private[this] def isUnreserved(c: Char): Boolean = {
+    (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') ||
+      (c >= '0' && c <= '9') || c == '.' || c == '-' || c == '_' || c == '~'
+  }
+
   def apply(s: String): String = {
     if (s == null) {
       return null
     }
     var sb: StringBuilder = null
-    for (i <- 0 until s.length) {
-      val c = s.charAt(i)
 
-      val shouldAppend =
-        (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') ||
-        (c >= '0' && c <= '9') || c == '.' || c == '-' || c == '_' || c == '~'
-
-      if (shouldAppend) {
-        if (sb != null) {
-          sb.append(c)
-        }
+    var startingIndex = 0
+    var hasReservedChars = false
+    // scan through to see where we have to start % encoding, if at all
+    while (startingIndex < s.length && !hasReservedChars) {
+      if (!isUnreserved(s.charAt(startingIndex))) {
+        hasReservedChars = true
       } else {
-        if (sb == null) {
-          sb = new StringBuilder(s.length + 40)
-          sb.append(s.substring(0, i))
-        }
+        startingIndex += 1
+      }
+    }
 
-        for (b <- c.toString.getBytes(UTF_8_CHARSET)) {
+    if (hasReservedChars && startingIndex < s.length) {
+      sb = new StringBuilder(s.length + 40)
+      sb.append(s.substring(0, startingIndex))
+
+      val byteArray = s.substring(startingIndex).getBytes(UTF_8_CHARSET)
+      for (i <- 0 until byteArray.length) {
+        val bite = byteArray(i)
+        if (isUnreserved(bite)) {
+          sb.append(bite.toChar)
+        } else {
           // turn the Byte into an int into the hex string, but be sure to mask out the unneeded bits
           // to avoid nastiness with converting to a negative int
           sb.append("%")
-            .append(((b >> 4) & 0xF).toHexString.toUpperCase)
-            .append(((b & 0xF).toHexString.toUpperCase))
+            .append(((bite >> 4) & 0xF).toHexString.toUpperCase)
+            .append(((bite & 0xF).toHexString.toUpperCase))
         }
       }
     }
