@@ -46,7 +46,7 @@ class KeyValueHandlerSpec extends SpecificationWithJUnit with Mockito {
       handler("foo" , "   baz  ")
       there were 3.times(underlying).apply("foo", "baz")
       there was one(underlying).apply("foo", "   baz  ")
-      there were 4.times(underlying).apply(any, any)
+      there were 4.times(underlying).apply(any[String], any[String])
     }
 
   }
