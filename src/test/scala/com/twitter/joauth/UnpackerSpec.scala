@@ -14,43 +14,52 @@ package com.twitter.joauth
 
 import com.twitter.joauth.keyvalue.KeyValueHandler
 import com.twitter.joauth.testhelpers.{MockRequestFactory, OAuth1TestCase, OAuth1TestCases}
-import org.specs.matcher.Matcher
-import org.specs.mock.Mockito
-import org.specs.SpecificationWithJUnit
+import org.specs2.mutable.SpecificationWithJUnit
+import org.specs2.mock.Mockito
+import org.specs2.matcher._
+import com.twitter.joauth.testhelpers.OAuth1TestCase
+import scala.Some
 
 class UnpackerSpec extends SpecificationWithJUnit with Mockito {
-  "Unpacked for OAuth2 Request" should {
+  isolated
+
+  "Unpacked for OAuth2 Request" >> {
+
     case class containTheToken(token: String) extends Matcher[UnpackedRequest] {
       val goodresponse = "oauth request matches token"
-      def apply(r: => UnpackedRequest) = {
-        val (result, badresponse) = r match {
-          case null => (false, "unpacked request is null")
-          case u:OAuthRequest => (u.token == token,"unpacked request has incorrect token: " + u.token)
-          case _ => (false, "unknown request")
+
+      //  def apply[S <: T](t: Expectable[S]): MatchResult[S]
+
+      def apply[S <: UnpackedRequest](in:Expectable[S]) : MatchResult[S] = {
+        val expect = in.value
+        expect match {
+          case null =>  result(false, "success ", "failure",in )
+          case u:OAuthRequest => result(u.token == token, "success ", "failure", in )
+          case _ => result(false, "success ", "failure", in )
         }
-        (result, goodresponse, badresponse)
-      }
+    }
+
     }
 
     val unpacker = StandardUnpacker()
     val kvHandler = mock[KeyValueHandler]
 
-    "unpack request with bearer token in header HTTPS" in {
+    "unpack request with bearer token in header HTTPS" >> {
       val request = MockRequestFactory.oAuth2nRequestInHeader("a")
       request.scheme = "https"
       unpacker(request) must containTheToken("a")
     }
-    "unpack request with bearer token containing +=/ in header HTTPS" in {
+    "unpack request with bearer token containing +=/ in header HTTPS" >> {
       val token = "AAA+BBB=CCC/DDD="
       val encodedToken = "AAA%2BBBB%3DCCC%2FDDD%3D"
       val request = MockRequestFactory.oAuth2nRequestInHeader(encodedToken)
       request.scheme = "https"
       unpacker(request) must containTheToken(token)
     }
-    "unpack as unknown request with bearer token in header HTTP" in {
+    "unpack as unknown request with bearer token in header HTTP" >> {
       unpacker(MockRequestFactory.oAuth2nRequestInHeader("a")) must throwA[MalformedRequest]
     }
-    "unpack as unknown request when no bearer token exists" in {
+    "unpack as unknown request when no bearer token exists" >> {
       val request = MockRequestFactory.oAuth2RequestInParams("a")
       request.scheme = "https"
       unpacker(request) must haveClass[UnknownRequest]

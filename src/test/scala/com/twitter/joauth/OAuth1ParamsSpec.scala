@@ -13,30 +13,34 @@
 package com.twitter.joauth
 
 import com.twitter.joauth.keyvalue.KeyValueHandler
+import org.specs2.mutable.SpecificationWithJUnit
+import org.specs2.mock.Mockito
+import org.specs2.specification.Scope
 
-import org.specs.mock.Mockito
-import org.specs.SpecificationWithJUnit
 
 class OAuthParamsSpec extends SpecificationWithJUnit with Mockito {
-  val helper = smartMock[OAuthParamsHelper]
-  val builder = new OAuthParamsBuilder(helper)
+
+  trait OAuthParamsScope extends Scope {
+    val helper = smartMock[OAuthParamsHelper]
+    val builder = new OAuthParamsBuilder(helper)
+  }
 
   "OAuthParamsBuilder" should {
-    "set one oauth param in query" in {
+    "set one oauth param in query" in new OAuthParamsScope  {
       builder.token must beNull
       builder.queryHandler("oauth_token", "foo")
       builder.token mustEqual "foo"
       builder.isOAuth1 must beFalse
       builder.isOAuth2 must beFalse
     }
-    "set one oauth param in header" in {
+    "set one oauth param in header" in new OAuthParamsScope  {
       builder.token must beNull
       builder.headerHandler("oauth_token", "foo")
       builder.token mustEqual "foo"
       builder.isOAuth1 must beFalse
       builder.isOAuth2 must beFalse
     }
-    "use last value for oauth key" in {
+    "use last value for oauth key" in new OAuthParamsScope  {
       builder.token must beNull
       builder.headerHandler("oauth_token", "foo1")
       builder.queryHandler("oauth_token", "foo2")
@@ -44,39 +48,39 @@ class OAuthParamsSpec extends SpecificationWithJUnit with Mockito {
       builder.headerHandler("oauth_token", "foo")
       builder.token mustEqual "foo"
     }
-    "collect other param in query" in {
+    "collect other param in query" in new OAuthParamsScope  {
       builder.otherParams mustEqual Nil
       builder.queryHandler("foo", "bar")
       builder.queryHandler("foo", "baz")
       builder.otherParams mustEqual List("foo" -> "bar", "foo" -> "baz")
     }
-    "collect oauth param in header, use last value" in {
+    "collect oauth param in header, use last value" in new OAuthParamsScope  {
       builder.otherParams mustEqual Nil
       builder.headerHandler("oauth_foo", "bar")
       builder.headerHandler("oauth_foo", "baz")
       builder.otherParams mustEqual List("oauth_foo" -> "baz")
     }
-    "ignore other param in header" in {
+    "ignore other param in header" in new OAuthParamsScope  {
       builder.otherParams mustEqual Nil
       builder.headerHandler("foo", "bar")
       builder.headerHandler("foo", "baz")
       builder.otherParams mustEqual Nil
     }
-    "not classify OAuth2 without Bearer" in {
+    "not classify OAuth2 without Bearer" in new OAuthParamsScope  {
       builder.v2Token must beNull
       builder.queryHandler("access_token", "foo")
       builder.v2Token must beNull
       builder.isOAuth1 must beFalse
       builder.isOAuth2 must beFalse
     }
-    "isOAuth2n works correctly after setting token" in {
+    "isOAuth2n works correctly after setting token" in new OAuthParamsScope {
       builder.v2Token must beNull
       builder.headerHandler("Bearer", "foo")
       builder.v2Token mustEqual "foo"
       builder.isOAuth1 must beFalse
       builder.isOAuth2 must beTrue
     }
-    "timestampStr set if timestamp parses" in {
+    "timestampStr set if timestamp parses" in new OAuthParamsScope {
       builder.timestampSecs mustEqual -1
       builder.timestampStr must beNull
       helper.parseTimestamp("foo") returns Some(4L)
@@ -86,7 +90,7 @@ class OAuthParamsSpec extends SpecificationWithJUnit with Mockito {
       there was one(helper).parseTimestamp("foo")
       there was one(helper).parseTimestamp(any[String])
     }
-    "timestampStr null if timestamp doesn't parse" in {
+    "timestampStr null if timestamp doesn't parse" in new OAuthParamsScope {
       builder.timestampSecs mustEqual -1
       builder.timestampStr must beNull
       helper.parseTimestamp("foo") returns None
@@ -96,7 +100,7 @@ class OAuthParamsSpec extends SpecificationWithJUnit with Mockito {
       there was one(helper).parseTimestamp("foo")
       there was one(helper).parseTimestamp(any[String])
     }
-    "set all builder" in {
+    "set all builder" in new OAuthParamsScope  {
       builder.v2Token must beNull
       builder.queryHandler("access_token", "0")
       builder.v2Token must beNull

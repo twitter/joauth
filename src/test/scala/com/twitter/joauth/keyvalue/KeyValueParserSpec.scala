@@ -12,8 +12,8 @@
 
 package com.twitter.joauth.keyvalue
 
-import org.specs.mock.Mockito
-import org.specs.SpecificationWithJUnit
+import org.specs2.mutable.SpecificationWithJUnit
+import org.specs2.mock.Mockito
 
 class KeyValueParserSpec extends SpecificationWithJUnit with Mockito {
   val handler = mock[KeyValueHandler]
@@ -28,25 +28,27 @@ class KeyValueParserSpec extends SpecificationWithJUnit with Mockito {
   }
 
   "StandardKeyValueParser" should {
+    isolated
+
     val parser = QueryKeyValueParser
-    "not blow up on null string" in {
+    "not blow up on null string" >> {
       parser(null, Seq(handler))
       there was no(handler).apply(any[String], any[String])
     }
-    "not blow up on empty string" in {
+    "not blow up on empty string" >> {
       parser("", Seq(handler))
       there was no(handler).apply(any[String], any[String])
     }
-    "parse simple string" in {
+    "parse simple string" >> {
       parser("foo", Seq(handler))
       there was one(handler).apply("foo", "")
     }
-    "parse valid pairs" in {
+    "parse valid pairs" >> {
       parser("foo=bar&baz", Seq(handler))
       there was one(handler).apply("foo", "bar")
       there was one(handler).apply("baz", "")
     }
-    "parse malformed pairs" in {
+    "parse malformed pairs" >> {
       parser("foo=bar&&baz&", Seq(handler))
       there was one(handler).apply("foo", "bar")
       there was one(handler).apply("baz", "")

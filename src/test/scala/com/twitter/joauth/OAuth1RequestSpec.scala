@@ -13,59 +13,61 @@
 package com.twitter.joauth
 
 import com.twitter.joauth.keyvalue.NullKeyValueHandler
-import org.specs.SpecificationWithJUnit
+import org.specs2.mutable.SpecificationWithJUnit
 
 class OAuth1RequestSpec extends SpecificationWithJUnit {
-  "OAuth1Request.verify" should {
+  isolated
+
+  "OAuth1Request.verify" >> {
     val builder = new OAuthParamsBuilder(StandardOAuthParamsHelper)
     def pr(scheme: String, host: String, port: Int, verb: String, path: String) =
       ParsedRequest(scheme, host, port, verb, path, List())
 
-    "throw on null scheme" in {
+    "throw on null scheme" >> {
       OAuth1Request.verify(pr(null, "2", 3, "4", "5"), builder.oAuth1Params) must throwA(new MalformedRequest("no value for scheme"))
     }
-    "throw on null host" in {
+    "throw on null host" >> {
       OAuth1Request.verify(pr("1", null, 3, "4", "5"), builder.oAuth1Params) must throwA(new MalformedRequest("no value for host"))
     }
-    "throw on null port" in {
+    "throw on null port" >> {
       OAuth1Request.verify(pr("1", "2", -1, "4", "5"), builder.oAuth1Params) must throwA(new MalformedRequest("no value for port"))
     }
-    "throw on null verb" in {
+    "throw on null verb" >> {
       OAuth1Request.verify(pr("1", "2", 3, null, "5"), builder.oAuth1Params) must throwA(new MalformedRequest("no value for verb"))
     }
-    "throw on null path" in {
+    "throw on null path" >> {
       OAuth1Request.verify(pr("1", "2", 3, "4", null), builder.oAuth1Params) must throwA(new MalformedRequest("no value for path"))
     }
-    "throw on null signature method" in {
+    "throw on null signature method" >> {
       OAuth1Request.verify(pr("1", "2", 3, "4", "5"), builder.oAuth1Params) must throwA(new MalformedRequest("unsupported signature method: null"))
     }
-    "throw on unsupported signature method" in {
+    "throw on unsupported signature method" >> {
       builder.queryHandler("oauth_signature_method", "foo")
       OAuth1Request.verify(pr("1", "2", 3, "4", "5"), builder.oAuth1Params) must throwA(new MalformedRequest("unsupported signature method: foo"))
     }
-    "throw on unsupported oauth version" in {
+    "throw on unsupported oauth version" >> {
       builder.queryHandler("oauth_signature_method", "HMAC-SHA1")
       builder.queryHandler("oauth_version", "1.1")
       OAuth1Request.verify(pr("1", "2", 3, "4", "5"), builder.oAuth1Params) must throwA(new MalformedRequest("unsupported oauth version: 1.1"))
     }
-    "not throw for null oauth version" in {
+    "not throw for null oauth version" >> {
       builder.queryHandler("oauth_signature_method", "HMAC-SHA1")
       OAuth1Request.verify(pr("1", "2", 3, "4", "5"), builder.oAuth1Params)
       1 must be_==(1)
     }
-    "not throw for 1.0a oauth version" in {
+    "not throw for 1.0a oauth version" >> {
       builder.queryHandler("oauth_signature_method", "HMAC-SHA1")
       builder.queryHandler("oauth_version", "1.0a")
       OAuth1Request.verify(pr("1", "2", 3, "4", "5"), builder.oAuth1Params)
       1 must be_==(1)
     }
-    "throw on malformed token" in {
+    "throw on malformed token" >> {
       builder.queryHandler("oauth_signature_method", "HMAC-SHA1")
       builder.queryHandler("oauth_version", "1.0")
       builder.queryHandler("oauth_token", "this ain't a token")
       OAuth1Request.verify(pr("1", "2", 3, "4", "5"), builder.oAuth1Params) must throwA(new MalformedRequest("malformed oauth token: this ain't a token"))
     }
-    "trim extra spaces on token" in {
+    "trim extra spaces on token" >> {
       builder.queryHandler("oauth_token", "  some_token  ")
       builder.oAuth1Params.token must be_==("some_token")
     }

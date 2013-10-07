@@ -1,7 +1,8 @@
 package com.twitter.joauth
 
-import org.specs.SpecificationWithJUnit
-import org.specs.mock.Mockito
+import org.specs2.mutable.SpecificationWithJUnit
+import org.specs2.mock.Mockito
+
 
 class UrlEncoderSpec extends SpecificationWithJUnit with Mockito {
 

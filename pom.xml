@@ -13,7 +13,7 @@
     <dependency>
       <groupId>org.scala-lang</groupId>
       <artifactId>scala-library</artifactId>
-      <version>2.9.2</version>
+      <version>2.10.0</version>
     </dependency>
     <!-- project dependencies -->
     <dependency>
@@ -22,9 +22,9 @@
       <version>1.5</version>
     </dependency>
     <dependency>
-      <groupId>org.scala-tools.testing</groupId>
-      <artifactId>specs_2.9.1</artifactId>
-      <version>1.6.9</version>
+      <groupId>org.specs2</groupId>
+      <artifactId>specs2_2.10</artifactId>
+      <version>1.14</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -36,8 +36,8 @@
     <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-all</artifactId>
-      <version>1.9.5</version>
-      <scope>test</scope>
+      <version>1.9.0</version>
+      <optional>true</optional>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
@@ -68,13 +68,17 @@
       <name>Kevin Oliver</name>
       <email>koliver@twitter.com</email>
     </developer>
+      <developer>
+          <name>Bryan Hunt</name>
+          <email>picsolvebryan@gmail.com</email>
+      </developer>
   </developers>
 
   <properties>
     <maven.compiler.source>1.6</maven.compiler.source>
     <maven.compiler.target>1.6</maven.compiler.target>
     <encoding>UTF-8</encoding>
-    <scala.version>2.9.2</scala.version>
+    <scala.version>2.10.0</scala.version>
     <slf4j.version>1.7.5</slf4j.version>
   </properties>
 

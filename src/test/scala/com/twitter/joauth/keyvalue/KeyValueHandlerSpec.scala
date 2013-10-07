@@ -13,13 +13,15 @@
 package com.twitter.joauth.keyvalue
 
 import com.twitter.joauth.StandardOAuthParamsHelper
-import org.specs.mock.Mockito
-import org.specs.SpecificationWithJUnit
+import org.specs2.mutable.SpecificationWithJUnit
+import org.specs2.mock.Mockito
+
 
 class KeyValueHandlerSpec extends SpecificationWithJUnit with Mockito {
   "SingleKeyValueHandler" should {
-    val handler = new SingleKeyValueHandler
+
     "use last value for key" in {
+      val handler = new SingleKeyValueHandler
       handler("foo", "bar")
       handler("foo", "baz")
       handler("a", "b")
@@ -27,8 +29,9 @@ class KeyValueHandlerSpec extends SpecificationWithJUnit with Mockito {
     }
   }
   "DuplicateKeyValueHandler" should {
-    val handler = new DuplicateKeyValueHandler
+
     "use multiple values for key" in {
+      val handler = new DuplicateKeyValueHandler
       handler("foo", "bar")
       handler("foo", "baz")
       handler("a", "b")
@@ -51,20 +54,24 @@ class KeyValueHandlerSpec extends SpecificationWithJUnit with Mockito {
 
   }
   "OneKeyOnlyKeyValueHandler" should {
-    val handler = new OneKeyOnlyKeyValueHandler
+
     "return key for single key, empty value" in {
+      val handler = new OneKeyOnlyKeyValueHandler
       handler("foo", "")
       handler.key must beSome("foo")
     }
     "return key for single key, null value" in {
+      val handler = new OneKeyOnlyKeyValueHandler
       handler("foo", null)
       handler.key must beSome("foo")
     }
     "return None for single key/value" in {
+      val handler = new OneKeyOnlyKeyValueHandler
       handler("foo", "bar")
       handler.key must beNone
     }
     "return None for two keys" in {
+      val handler = new OneKeyOnlyKeyValueHandler
       handler("foo", "")
       handler("foo", "")
       handler.key must beNone

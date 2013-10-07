@@ -14,7 +14,7 @@ package com.twitter.joauth
 
 import java.util.Arrays
 import org.apache.commons.codec.binary.Base64
-import org.specs.SpecificationWithJUnit
+import org.specs2.mutable.SpecificationWithJUnit
 
 class SignerSpec extends SpecificationWithJUnit {
   "Signer" should {
