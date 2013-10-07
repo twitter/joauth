@@ -14,7 +14,8 @@ package com.twitter.joauth
 
 import com.twitter.joauth.keyvalue.UrlEncodingNormalizingTransformer
 import com.twitter.joauth.testhelpers.OAuth1TestCases
-import org.specs.SpecificationWithJUnit
+
+import org.specs2.mutable.SpecificationWithJUnit
 
 class NormalizerSpec extends SpecificationWithJUnit {
   val normalize = StandardNormalizer

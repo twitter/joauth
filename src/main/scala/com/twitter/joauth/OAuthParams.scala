@@ -44,7 +44,7 @@ class StandardOAuthParamsHelper extends OAuthParamsHelper {
   override def parseTimestamp(str: String): Option[Long] = try {
     Some(str.toLong)
   } catch {
-    case _ => None
+    case any:Throwable => None
   }
   override def processKey(str: String) = str
   override def processSignature(str: String): String = str
