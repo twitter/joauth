@@ -15,11 +15,16 @@ package com.twitter.joauth
 import org.slf4j.LoggerFactory
 
 /**
- * A Validator takes an OAuth1 request, a token secret, and a consumer secret,
+ * A Validator takes either
+ *   a) an OAuth1 request, a token secret, and a consumer secret
+ *      or
+ *   b) an OAuth1TwoLegged request and a consumer secret
+ *
  * and validates the request. It returns a Java enum for compatability
  */
 trait Verifier {
   def apply(request: OAuth1Request, tokenSecret: String, consumerSecret: String): VerifierResult
+  def apply(request: OAuth1TwoLeggedRequest, consumerSecret: String): VerifierResult
 }
 
 /**
@@ -27,6 +32,7 @@ trait Verifier {
  */
 class ConstVerifier(result: VerifierResult) extends Verifier {
   override def apply(request: OAuth1Request, tokenSecret: String, consumerSecret: String): VerifierResult = result
+  override def apply(request: OAuth1TwoLeggedRequest, consumerSecret: String): VerifierResult = result
 }
 
 /**
@@ -73,13 +79,44 @@ extends Verifier {
   val maxClockFloatBehindSecs = maxClockFloatBehindMins * 60L
 
   override def apply(request: OAuth1Request, tokenSecret: String, consumerSecret: String): VerifierResult = {
-    if (!validateNonce(request.nonce)) {
+    verifyOAuth1(
+      request,
+      request.nonce,
+      request.timestampSecs,
+      tokenSecret,
+      consumerSecret,
+      request.signature,
+      request.normalizedRequest
+    )
+  }
+
+  override def apply(request: OAuth1TwoLeggedRequest, consumerSecret: String): VerifierResult = {
+    verifyOAuth1(
+      request,
+      request.nonce,
+      request.timestampSecs,
+      "",
+      consumerSecret,
+      request.signature,
+      request.normalizedRequest
+    )
+  }
+
+  private def verifyOAuth1(
+    request: OAuthRequest,
+    nonce: String,
+    timestampSecs: Long,
+    tokenSecret: String,
+    consumerSecret: String,
+    signature: String,
+    normalizedRequest: String) = {
+    if (!validateNonce(nonce)) {
       log.debug("bad nonce -> {}", request.toString)
       VerifierResult.BAD_NONCE
-    } else if (!validateTimestampSecs(request.timestampSecs)) {
+    } else if (!validateTimestampSecs(timestampSecs)) {
       log.debug("bad timestamp -> {}", request.toString)
       VerifierResult.BAD_TIMESTAMP
-    } else if (!validateSignature(request, tokenSecret, consumerSecret)) {
+    } else if (!validateSignature(normalizedRequest, signature, tokenSecret, consumerSecret)) {
       log.debug("bad signature -> {}", request.toString)
       VerifierResult.BAD_SIGNATURE
     }
@@ -93,12 +130,13 @@ extends Verifier {
   }
 
   def validateSignature(
-    request: OAuth1Request,
+    normalizedRequest: String,
+    signature: String,
     tokenSecret: String,
     consumerSecret: String): Boolean = {
     try {
-      Base64Util.equals(UrlDecoder(request.signature).trim,
-        signer.getBytes(request.normalizedRequest, tokenSecret, consumerSecret))
+      Base64Util.equals(UrlDecoder(signature).trim,
+        signer.getBytes(normalizedRequest, tokenSecret, consumerSecret))
     } catch {
       case e: Exception => return false
     }

@@ -88,6 +88,7 @@ object OAuthParams {
 
 /**
  * OAuth1Params is mostly just a container for OAuth 1.0a parameters.
+ * The token can be null for building OAuth1TwoLeggedRequests
  */
 case class OAuth1Params(
   token: String,
@@ -105,7 +106,7 @@ case class OAuth1Params(
     val buf = new ListBuffer[(String, String)]
     buf += OAUTH_CONSUMER_KEY -> consumerKey
     buf += OAUTH_NONCE -> nonce
-    buf += OAUTH_TOKEN -> token
+    if (token != null) buf += OAUTH_TOKEN -> token
     if (includeSig) buf += OAUTH_SIGNATURE -> signature
     buf += OAUTH_SIGNATURE_METHOD -> signatureMethod
     buf += OAUTH_TIMESTAMP -> timestampStr
@@ -208,7 +209,15 @@ class OAuthParamsBuilder(helper: OAuthParamsHelper) {
 
   def valueOrUnset(value: String) = if (value == null) UNSET else value
 
-  def isOAuth2: Boolean = v2Token != null && !isOAuth1
+  def isOAuth2: Boolean = v2Token != null && !isOAuth1 && !isOAuth1TwoLegged
+
+  def isOAuth1TwoLegged: Boolean =
+    token == null &&
+    consumerKey != null &&
+    nonce != null &&
+    timestampStr != null &&
+    signature != null &&
+    signatureMethod != null
 
   def isOAuth1: Boolean =
     token != null &&

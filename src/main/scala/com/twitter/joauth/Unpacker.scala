@@ -88,6 +88,8 @@ class CustomizableUnpacker[RequestImpl <: Request](
         getOAuth2Request(request, parsedRequest, oAuthParamsBuilder.oAuth2Token)
       } else if (oAuthParamsBuilder.isOAuth1) {
         getOAuth1Request(parsedRequest, oAuthParamsBuilder.oAuth1Params)
+      } else if (oAuthParamsBuilder.isOAuth1TwoLegged) {
+        getOAuth1TwoLeggedRequest(parsedRequest, oAuthParamsBuilder.oAuth1Params)
       } else UnknownRequest(parsedRequest)
 
     } catch {
@@ -105,7 +107,16 @@ class CustomizableUnpacker[RequestImpl <: Request](
     log.debug("building oauth1 request -> path = {}, host = {}, token = {}, consumer key = {}, signature = {}, method = {}",
       parsedRequest.path, parsedRequest.host, oAuth1Params.token,
       oAuth1Params.consumerKey, oAuth1Params.signature, oAuth1Params.signatureMethod)
-    OAuth1Request(parsedRequest, oAuth1Params, normalizer)
+    OAuth1Request.buildOAuth1Request(parsedRequest, oAuth1Params, normalizer)
+  }
+
+  @throws(classOf[MalformedRequest])
+  def getOAuth1TwoLeggedRequest(
+    parsedRequest: ParsedRequest, oAuth1Params: OAuth1Params): OAuth1TwoLeggedRequest = {
+    log.debug("building oauth1 two-legged request -> path = {}, host = {}, consumer key = {}, signature = {}, method = {}",
+      parsedRequest.path, parsedRequest.host, oAuth1Params.consumerKey,
+      oAuth1Params.signature, oAuth1Params.signatureMethod)
+    OAuth1Request.buildOAuth1TwoLeggedRequest(parsedRequest, oAuth1Params, normalizer)
   }
 
   @throws(classOf[MalformedRequest])
