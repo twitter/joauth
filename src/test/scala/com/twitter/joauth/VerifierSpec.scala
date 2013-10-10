@@ -82,7 +82,9 @@ class VerifierSpec extends SpecificationWithJUnit with Mockito {
 
   "Verifier" should {
     "return BAD_NONCE for bad nonce" in {
+      val verify = new StandardVerifier(signer, -1, -1, checkNonce)
       request.nonce returns "nonce"
+      request.timestampSecs returns 1363119598
       checkNonce.apply("nonce") returns false
       verify(request, "readsecret", "writesecret") must be_==(VerifierResult.BAD_NONCE)
     }

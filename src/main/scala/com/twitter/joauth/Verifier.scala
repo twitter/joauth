@@ -110,12 +110,12 @@ extends Verifier {
     consumerSecret: String,
     signature: String,
     normalizedRequest: String) = {
-    if (!validateNonce(nonce)) {
-      log.debug("bad nonce -> {}", request.toString)
-      VerifierResult.BAD_NONCE
-    } else if (!validateTimestampSecs(timestampSecs)) {
+    if (!validateTimestampSecs(timestampSecs)) {
       log.debug("bad timestamp -> {}", request.toString)
       VerifierResult.BAD_TIMESTAMP
+    } else if (!validateNonce(nonce)) {
+      log.debug("bad nonce -> {}", request.toString)
+      VerifierResult.BAD_NONCE
     } else if (!validateSignature(normalizedRequest, signature, tokenSecret, consumerSecret)) {
       log.debug("bad signature -> {}", request.toString)
       VerifierResult.BAD_SIGNATURE
