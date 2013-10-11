@@ -15,7 +15,7 @@ package com.twitter.joauth
 import org.slf4j.LoggerFactory
 
 /**
- * A Validator takes either
+ * A Verifier takes either
  *   a) an OAuth1 request, a token secret, and a consumer secret
  *      or
  *   b) an OAuth1TwoLegged request and a consumer secret
