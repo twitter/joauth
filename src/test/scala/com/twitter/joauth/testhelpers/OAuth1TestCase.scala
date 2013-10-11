@@ -92,7 +92,7 @@ case class OAuth1TestCase(
 
   def oAuth1Params(paramsInRequestBody: Boolean) =
     OAuth1Params(
-      token,
+      Some(token),
       consumerKey,
       nonce,
       timestampSecs,

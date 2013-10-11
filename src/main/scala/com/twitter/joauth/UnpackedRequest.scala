@@ -143,9 +143,9 @@ object OAuth1Request {
           oAuth1Params.version.toLowerCase != OAuthParams.ONE_DOT_OH_A) {
         throw new MalformedRequest(UNSUPPORTED_VERSION+oAuth1Params.version)
       }
-      else if (oAuth1Params.token != null &&
-          (oAuth1Params.token.indexOf(' ') > 0 || oAuth1Params.token.length > MaxTokenLength)) {
-        throw new MalformedRequest(MALFORMED_TOKEN+oAuth1Params.token)
+      else if (oAuth1Params.token.isDefined &&
+          (oAuth1Params.token.get.indexOf(' ') > 0 || oAuth1Params.token.get.length > MaxTokenLength)) {
+        throw new MalformedRequest(MALFORMED_TOKEN+oAuth1Params.token.get)
       }
       // we don't check the validity of the OAuthParams object, because it must be
       // fully populated in order for the factory to even be called, and we'd like
@@ -162,7 +162,7 @@ object OAuth1Request {
     verify(parsedRequest, oAuth1Params)
 
     new OAuth1Request(
-      UrlDecoder(oAuth1Params.token),
+      UrlDecoder(oAuth1Params.token.get), // should never be called when token is None
       UrlDecoder(oAuth1Params.consumerKey),
       UrlDecoder(oAuth1Params.nonce),
       oAuth1Params.timestampSecs,
