@@ -40,7 +40,7 @@ The finished jar will be in `dist/`.
 
 JOAuth consists of five traits, each of which is invoked with an apply method.
 
-* The OAuthRequest trait models the data needed to validate a request. There are two subclasses, OAuth1Request and OAuth2Request.
+* The OAuthRequest trait models the data needed to validate a request. There are three subclasses, OAuth1Request, OAuth1TwoLeggedRequest and OAuth2Request.
 * The Unpacker trait unpacks the HttpServletRequest into an OAuthRequest, which models the data needed to validate the request
 * The Normalizer trait produces a normalized String representation of the request, used for signature calculation
 * The Signer trait signs a String, using the OAuth token secret and consumer secret.
@@ -60,6 +60,7 @@ Create an unpacker, and use it to unpack the Request. The Unpacker will either r
     try {
       unpack(request) match {
         case req: OAuth1Request => handleOAuth1(req)
+	case req: OAuth1TwoLeggedRequest => handleOAuth1TwoLegged(req)
         case req: OAuth2Request => handleOAuth2(req)
         case _ => // ignore or throw
       }
@@ -68,7 +69,7 @@ Create an unpacker, and use it to unpack the Request. The Unpacker will either r
       case _ => // handle or rethrow
     }
 
-Once the request is unpacked, the credentials need to be validated. For an OAuth2Request, the OAuth Access Token must be retrieved and validated by your authentication service. For an OAuth1Request the Access Token, the Consumer Key, and their respective secrets must be retrieved, and then passed to the Verifier for validation.
+Once the request is unpacked, the credentials need to be validated. For an OAuth2Request, the OAuth Access Token must be retrieved and validated by your authentication service. For an OAuth1Request the Access Token, the Consumer Key, and their respective secrets must be retrieved, and then passed to the Verifier for validation. For an OAuth1TwoLeggedRequest, the Consumer Key must be retrieved and passed to the Verifier for validation.
 
     import com.twitter.joauth.{Verifier, VerifierResult}
 
