@@ -88,9 +88,10 @@ object OAuthParams {
 
 /**
  * OAuth1Params is mostly just a container for OAuth 1.0a parameters.
+ * The token is optional to allow for OAuth 1.0 two-legged requests.
  */
 case class OAuth1Params(
-  token: String,
+  token: Option[String],
   consumerKey: String,
   nonce: String,
   timestampSecs: Long,
@@ -105,7 +106,7 @@ case class OAuth1Params(
     val buf = new ListBuffer[(String, String)]
     buf += OAUTH_CONSUMER_KEY -> consumerKey
     buf += OAUTH_NONCE -> nonce
-    buf += OAUTH_TOKEN -> token
+    if (token.isDefined) buf += OAUTH_TOKEN -> token.get
     if (includeSig) buf += OAUTH_SIGNATURE -> signature
     buf += OAUTH_SIGNATURE_METHOD -> signatureMethod
     buf += OAUTH_TIMESTAMP -> timestampStr
@@ -117,7 +118,7 @@ case class OAuth1Params(
   // effeciency when printing the class for debugging
   override def toString: String =
     "%s=%s,%s=%s,%s=%s,%s=%s(->%s),%s=%s,%s=%s,%s=%s".format(
-    OAUTH_TOKEN, valueOrUnset(token),
+    OAUTH_TOKEN, valueOrUnset(token.getOrElse(null)),
     OAUTH_CONSUMER_KEY, valueOrUnset(consumerKey),
     OAUTH_NONCE, valueOrUnset(nonce),
     OAUTH_TIMESTAMP, timestampStr, timestampSecs,
@@ -208,7 +209,15 @@ class OAuthParamsBuilder(helper: OAuthParamsHelper) {
 
   def valueOrUnset(value: String) = if (value == null) UNSET else value
 
-  def isOAuth2: Boolean = v2Token != null && !isOAuth1
+  def isOAuth2: Boolean = v2Token != null && !isOAuth1 && !isOAuth1TwoLegged
+
+  def isOAuth1TwoLegged: Boolean =
+    token == null &&
+    consumerKey != null &&
+    nonce != null &&
+    timestampStr != null &&
+    signature != null &&
+    signatureMethod != null
 
   def isOAuth1: Boolean =
     token != null &&
@@ -225,7 +234,7 @@ class OAuthParamsBuilder(helper: OAuthParamsHelper) {
 
   // make an immutable params instance
   def oAuth1Params = OAuth1Params(
-    token,
+    if (token != null) Some(token) else None,
     consumerKey,
     nonce,
     timestampSecs,

@@ -25,7 +25,7 @@ class UnpackerSpec extends SpecificationWithJUnit with Mockito {
       def apply(r: => UnpackedRequest) = {
         val (result, badresponse) = r match {
           case null => (false, "unpacked request is null")
-          case u:OAuthRequest => (u.token == token,"unpacked request has incorrect token: " + u.token)
+          case u:OAuth2Request => (u.token == token,"unpacked request has incorrect token: " + u.token)
           case _ => (false, "unknown request")
         }
         (result, goodresponse, badresponse)
@@ -192,4 +192,25 @@ class UnpackerSpec extends SpecificationWithJUnit with Mockito {
       }
     }
   }
+
+  "Unpacker for OAuth1 Two Legged" should {
+    val kvHandler = smartMock[KeyValueHandler]
+    val unpacker = StandardUnpacker()
+    val testCase = OAuth1TestCases.oAuthTwoLegged
+
+    "correctly parse the request" in {
+      val request = testCase.request(true, false, false)
+      val oAuthParamsBuilder = unpacker.parseRequest(request, Seq(kvHandler))
+      val parsedRequest = request.parsedRequest(oAuthParamsBuilder.otherParams)
+      parsedRequest mustEqual testCase.parsedRequest(false, false)
+      oAuthParamsBuilder.oAuth1Params.toString must be_==(testCase.oAuth1Params(false).toString)
+    }
+
+    "correctly unpack the request" in {
+      val request = testCase.request(true, false, false)
+      unpacker(request, Seq(kvHandler)) must be_==(testCase.oAuth1TwoLeggedRequest(false, false))
+    }
+
+  }
+
 }

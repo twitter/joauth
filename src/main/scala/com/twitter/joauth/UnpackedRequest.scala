@@ -24,7 +24,6 @@ case class UnknownRequest(parsedRequest: ParsedRequest) extends UnpackedRequest
  */
 sealed trait OAuthRequest extends UnpackedRequest {
   def oAuthVersionString: String
-  def token: String
   def oAuthParamMap: Map[String, String]
 }
 
@@ -61,6 +60,38 @@ case class OAuth1Request(
   override def toString() = {
     "{token -> %s, consumerKey -> %s, nonce -> %s, timestamp -> %s, signature -> %s, method -> %s}".format(
       token, consumerKey, nonce, timestampSecs, signature, signatureMethod
+    )
+  }
+
+}
+
+case class OAuth1TwoLeggedRequest(
+    consumerKey: String,
+    nonce: String,
+    timestampSecs: Long,
+    signature: String,
+    signatureMethod: String,
+    version: String,
+    parsedRequest: ParsedRequest,
+    normalizedRequest: String)
+  extends OAuthRequest {
+
+  import OAuthParams._
+
+  override val oAuthVersionString = "oauth1"
+
+  override lazy val oAuthParamMap = Map(
+    OAUTH_CONSUMER_KEY -> consumerKey,
+    OAUTH_NONCE -> nonce,
+    OAUTH_TIMESTAMP -> timestampSecs.toString,
+    OAUTH_SIGNATURE_METHOD -> signatureMethod,
+    OAUTH_SIGNATURE -> signature,
+    OAUTH_VERSION -> (if (version == null) ONE_DOT_OH else version),
+    NORMALIZED_REQUEST -> normalizedRequest)
+
+  override def toString() = {
+    "{consumerKey -> %s, nonce -> %s, timestamp -> %s, signature -> %s, method -> %s}".format(
+      consumerKey, nonce, timestampSecs, signature, signatureMethod
     )
   }
 
@@ -112,9 +143,9 @@ object OAuth1Request {
           oAuth1Params.version.toLowerCase != OAuthParams.ONE_DOT_OH_A) {
         throw new MalformedRequest(UNSUPPORTED_VERSION+oAuth1Params.version)
       }
-      else if (oAuth1Params.token != null &&
-          (oAuth1Params.token.indexOf(' ') > 0 || oAuth1Params.token.length > MaxTokenLength)) {
-        throw new MalformedRequest(MALFORMED_TOKEN+oAuth1Params.token)
+      else if (oAuth1Params.token.isDefined &&
+          (oAuth1Params.token.get.indexOf(' ') > 0 || oAuth1Params.token.get.length > MaxTokenLength)) {
+        throw new MalformedRequest(MALFORMED_TOKEN+oAuth1Params.token.get)
       }
       // we don't check the validity of the OAuthParams object, because it must be
       // fully populated in order for the factory to even be called, and we'd like
@@ -122,15 +153,16 @@ object OAuth1Request {
     }
 
   @throws(classOf[MalformedRequest])
-  def apply(
+  def buildOAuth1Request(
     parsedRequest: ParsedRequest,
     oAuth1Params: OAuth1Params,
-    normalize: Normalizer): OAuth1Request = {
+    normalize: Normalizer
+  ): OAuth1Request = {
 
     verify(parsedRequest, oAuth1Params)
 
     new OAuth1Request(
-      UrlDecoder(oAuth1Params.token),
+      UrlDecoder(oAuth1Params.token.get), // should never be called when token is None
       UrlDecoder(oAuth1Params.consumerKey),
       UrlDecoder(oAuth1Params.nonce),
       oAuth1Params.timestampSecs,
@@ -138,6 +170,29 @@ object OAuth1Request {
       oAuth1Params.signatureMethod,
       oAuth1Params.version,
       parsedRequest,
-      normalize(parsedRequest, oAuth1Params))
+      normalize(parsedRequest, oAuth1Params)
+    )
   }
+
+  @throws(classOf[MalformedRequest])
+  def buildOAuth1TwoLeggedRequest(
+    parsedRequest: ParsedRequest,
+    oAuth1Params: OAuth1Params,
+    normalize: Normalizer
+  ): OAuth1TwoLeggedRequest = {
+
+    verify(parsedRequest, oAuth1Params)
+
+    new OAuth1TwoLeggedRequest(
+      UrlDecoder(oAuth1Params.consumerKey),
+      UrlDecoder(oAuth1Params.nonce),
+      oAuth1Params.timestampSecs,
+      oAuth1Params.signature,
+      oAuth1Params.signatureMethod,
+      oAuth1Params.version,
+      parsedRequest,
+      normalize(parsedRequest, oAuth1Params)
+    )
+  }
+
 }

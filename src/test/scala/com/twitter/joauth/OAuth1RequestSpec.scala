@@ -67,7 +67,7 @@ class OAuth1RequestSpec extends SpecificationWithJUnit {
     }
     "trim extra spaces on token" in {
       builder.queryHandler("oauth_token", "  some_token  ")
-      builder.oAuth1Params.token must be_==("some_token")
+      builder.oAuth1Params.token must beSome("some_token")
     }
   }
 }
