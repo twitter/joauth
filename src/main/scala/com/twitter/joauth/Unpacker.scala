@@ -72,8 +72,8 @@ class CustomizableUnpacker[RequestImpl <: Request](
   queryParamTransformer: KeyValueHandler => TransformingKeyValueHandler,
   bodyParamTransformer: KeyValueHandler => TransformingKeyValueHandler,
   headerTransformer: KeyValueHandler => TransformingKeyValueHandler,
-  shouldAllowOAuth2: (RequestImpl, ParsedRequest) => Boolean =
-    (_: RequestImpl, p: ParsedRequest) => p.scheme == CustomizableUnpacker.HTTPS
+  shouldAllowOAuth2: (RequestImpl, Request.ParsedRequest) => Boolean =
+    (_: RequestImpl, p: Request.ParsedRequest) => p.scheme == CustomizableUnpacker.HTTPS
 ) extends Unpacker[RequestImpl] {
 
   import CustomizableUnpacker._
@@ -103,7 +103,7 @@ class CustomizableUnpacker[RequestImpl <: Request](
 
   @throws(classOf[MalformedRequest])
   def getOAuth1Request(
-    parsedRequest: ParsedRequest, oAuth1Params: OAuth1Params): OAuth1Request = {
+    parsedRequest: Request.ParsedRequest, oAuth1Params: OAuth1Params): OAuth1Request = {
     log.debug("building oauth1 request -> path = {}, host = {}, token = {}, consumer key = {}, signature = {}, method = {}",
       parsedRequest.path, parsedRequest.host, oAuth1Params.token,
       oAuth1Params.consumerKey, oAuth1Params.signature, oAuth1Params.signatureMethod)
@@ -112,7 +112,7 @@ class CustomizableUnpacker[RequestImpl <: Request](
 
   @throws(classOf[MalformedRequest])
   def getOAuth1TwoLeggedRequest(
-    parsedRequest: ParsedRequest, oAuth1Params: OAuth1Params): OAuth1TwoLeggedRequest = {
+    parsedRequest: Request.ParsedRequest, oAuth1Params: OAuth1Params): OAuth1TwoLeggedRequest = {
     log.debug("building oauth1 two-legged request -> path = {}, host = {}, consumer key = {}, signature = {}, method = {}",
       parsedRequest.path, parsedRequest.host, oAuth1Params.consumerKey,
       oAuth1Params.signature, oAuth1Params.signatureMethod)
@@ -120,7 +120,7 @@ class CustomizableUnpacker[RequestImpl <: Request](
   }
 
   @throws(classOf[MalformedRequest])
-  def getOAuth2Request(request: RequestImpl, parsedRequest: ParsedRequest, token: String): OAuth2Request = {
+  def getOAuth2Request(request: RequestImpl, parsedRequest: Request.ParsedRequest, token: String): OAuth2Request = {
     // OAuth 2.0 requests are totally insecure without SSL, so depend on HTTPS to provide
     // protection against replay and man-in-the-middle attacks.
     log.debug("building oauth2 request -> path = {}, host = {}, token = {}",
@@ -157,7 +157,7 @@ class CustomizableUnpacker[RequestImpl <: Request](
     val oAuthParamsBuilder = new OAuthParamsBuilder(helper)
 
     // parse the header, if present
-    parseHeader(request.authHeader, oAuthParamsBuilder.headerHandler)
+    parseHeader(Some(request.authHeader), oAuthParamsBuilder.headerHandler)
 
     // If it is an oAuth2 we do not need to process any further
     if (!oAuthParamsBuilder.isOAuth2) {
@@ -172,8 +172,8 @@ class CustomizableUnpacker[RequestImpl <: Request](
 
       // parse the request body if the Content-Type is appropriate. Use the
       // same set of KeyValueHandlers that we used to parse the query string.
-      if (request.contentType.isDefined &&
-          request.contentType.get.startsWith(WWW_FORM_URLENCODED)) {
+      if (request.contentType != null &&
+          request.contentType.startsWith(WWW_FORM_URLENCODED)) {
         queryParser(request.body, bodyParamHandlers)
       }
     }
@@ -246,5 +246,5 @@ extends CustomizableUnpacker[RequestImpl](
   (kvHandler: KeyValueHandler) => new UrlEncodingNormalizingKeyValueHandler(kvHandler),
   (kvHandler: KeyValueHandler) => new UrlEncodingNormalizingKeyValueHandler(kvHandler),
   (kvHandler: KeyValueHandler) => new UrlEncodingNormalizingKeyValueHandler(kvHandler),
-  (_: RequestImpl, p: ParsedRequest) => p.scheme == StandardUnpacker.HTTPS
+  (_: RequestImpl, p: Request.ParsedRequest) => p.scheme == StandardUnpacker.HTTPS
 )

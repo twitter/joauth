@@ -21,6 +21,14 @@ class OAuthParamsSpec extends SpecificationWithJUnit with Mockito {
   val helper = smartMock[OAuthParamsHelper]
   val builder = new OAuthParamsBuilder(helper)
 
+  val emptyList = new java.util.ArrayList[Request.Pair]()
+
+  def toPairList(list: List[(String, String)]) = {
+    val newList = new java.util.ArrayList[Request.Pair]()
+    list foreach { case(k, v) => newList.add(new Request.Pair(k, v))}
+    newList
+  }
+
   "OAuthParamsBuilder" should {
     "set one oauth param in query" in {
       builder.token must beNull
@@ -45,22 +53,22 @@ class OAuthParamsSpec extends SpecificationWithJUnit with Mockito {
       builder.token mustEqual "foo"
     }
     "collect other param in query" in {
-      builder.otherParams mustEqual Nil
+      builder.otherParams mustEqual emptyList
       builder.queryHandler("foo", "bar")
       builder.queryHandler("foo", "baz")
-      builder.otherParams mustEqual List("foo" -> "bar", "foo" -> "baz")
+      builder.otherParams mustEqual toPairList(List("foo" -> "bar", "foo" -> "baz"))
     }
     "collect oauth param in header, use last value" in {
-      builder.otherParams mustEqual Nil
+      builder.otherParams mustEqual emptyList
       builder.headerHandler("oauth_foo", "bar")
       builder.headerHandler("oauth_foo", "baz")
-      builder.otherParams mustEqual List("oauth_foo" -> "baz")
+      builder.otherParams mustEqual toPairList(List("oauth_foo" -> "baz"))
     }
     "ignore other param in header" in {
-      builder.otherParams mustEqual Nil
+      builder.otherParams mustEqual emptyList
       builder.headerHandler("foo", "bar")
       builder.headerHandler("foo", "baz")
-      builder.otherParams mustEqual Nil
+      builder.otherParams mustEqual emptyList
     }
     "not classify OAuth2 without Bearer" in {
       builder.v2Token must beNull
@@ -157,9 +165,9 @@ class OAuthParamsSpec extends SpecificationWithJUnit with Mockito {
       builder.isOAuth1TwoLegged must beFalse
       builder.isOAuth2 must beFalse
 
-      builder.otherParams mustEqual List("access_token" -> "0")
+      builder.otherParams mustEqual toPairList(List("access_token" -> "0"))
       builder.queryHandler("foo", "bar")
-      builder.otherParams mustEqual List("access_token" -> "0", "foo" -> "bar")
+      builder.otherParams mustEqual toPairList(List("access_token" -> "0", "foo" -> "bar"))
 
       builder.toString mustEqual "Bearer=(unset),oauth_token=1,oauth_consumer_key=2,oauth_nonce=3,oauth_timestamp=foo(->4),oauth_signature=a,oauth_signature_method=6,oauth_version=7"
     }

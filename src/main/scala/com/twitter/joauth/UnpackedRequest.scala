@@ -13,10 +13,10 @@
 package com.twitter.joauth
 
 sealed trait UnpackedRequest {
-  def parsedRequest: ParsedRequest
+  def parsedRequest: Request.ParsedRequest
 }
 
-case class UnknownRequest(parsedRequest: ParsedRequest) extends UnpackedRequest
+case class UnknownRequest(parsedRequest: Request.ParsedRequest) extends UnpackedRequest
 
 /**
  * Both OAuth 1.0a and 2.0 requests have access tokens,
@@ -40,7 +40,7 @@ case class OAuth1Request(
   signature: String,
   signatureMethod: String,
   version: String,
-  parsedRequest: ParsedRequest,
+  parsedRequest: Request.ParsedRequest,
   normalizedRequest: String) extends OAuthRequest {
 
   import OAuthParams._
@@ -72,7 +72,7 @@ case class OAuth1TwoLeggedRequest(
     signature: String,
     signatureMethod: String,
     version: String,
-    parsedRequest: ParsedRequest,
+    parsedRequest: Request.ParsedRequest,
     normalizedRequest: String)
   extends OAuthRequest {
 
@@ -100,7 +100,7 @@ case class OAuth1TwoLeggedRequest(
 /**
  * models an OAuth 2.0 rev 25 request. Just a wrapper for the token, really.
  */
-case class OAuth2Request(token: String, parsedRequest: ParsedRequest, clientId: String = "") extends OAuthRequest {
+case class OAuth2Request(token: String, parsedRequest: Request.ParsedRequest, clientId: String = "") extends OAuthRequest {
   override val oAuthVersionString = "oauth2"
 
   override lazy val oAuthParamMap = Map(OAuthParams.BEARER_TOKEN -> token,
@@ -128,7 +128,7 @@ object OAuth1Request {
 
   @throws(classOf[MalformedRequest])
   def verify(
-    parsedRequest: ParsedRequest,
+    parsedRequest: Request.ParsedRequest,
     oAuth1Params: OAuth1Params) {
       if (parsedRequest.scheme == null) throw nullException(SCHEME)
       else if (parsedRequest.host == null) throw nullException(HOST)
@@ -154,7 +154,7 @@ object OAuth1Request {
 
   @throws(classOf[MalformedRequest])
   def buildOAuth1Request(
-    parsedRequest: ParsedRequest,
+    parsedRequest: Request.ParsedRequest,
     oAuth1Params: OAuth1Params,
     normalize: Normalizer
   ): OAuth1Request = {
@@ -176,7 +176,7 @@ object OAuth1Request {
 
   @throws(classOf[MalformedRequest])
   def buildOAuth1TwoLeggedRequest(
-    parsedRequest: ParsedRequest,
+    parsedRequest: Request.ParsedRequest,
     oAuth1Params: OAuth1Params,
     normalize: Normalizer
   ): OAuth1TwoLeggedRequest = {

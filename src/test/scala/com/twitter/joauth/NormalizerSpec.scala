@@ -30,6 +30,8 @@ class NormalizerSpec extends SpecificationWithJUnit {
     "return port for 3000/HTTP" in { normalize.includePortString(3000, "http") must beTrue }
     "return port for 3000/HTTPS" in { normalize.includePortString(3000, "https") must beTrue }
   }
+
+
   "Normalizer" should {
     "normalize correctly" in {
       OAuth1TestCases().foreach { (testCase) =>
@@ -43,9 +45,9 @@ class NormalizerSpec extends SpecificationWithJUnit {
                 testCase.port,
                 verb,
                 testCase.path,
-                testCase.parameters.map { case (k, v) =>
-                  UrlEncodingNormalizingTransformer(k) -> UrlEncodingNormalizingTransformer(v)
-                },
+                ConversionUtil.toArrayList(testCase.parameters.map { case (k, v) =>
+                  new Request.Pair(UrlEncodingNormalizingTransformer(k), UrlEncodingNormalizingTransformer(v))
+                }),
                 testCase.oAuth1Params(post)) must be_==(testCase.normalizedRequest(post, false))
             }
           }

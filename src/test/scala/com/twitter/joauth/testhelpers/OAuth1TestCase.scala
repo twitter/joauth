@@ -72,21 +72,21 @@ case class OAuth1TestCase(
       parameters
     }
 
-    ParsedRequest(
+    new Request.ParsedRequest(
       scheme.toUpperCase,
       host,
       port,
       if (paramsInRequestBody) verb.getOrElse("POST") else "GET",
       path,
-      params.map { case (k, v) =>
+      ConversionUtil.toArrayList(params.map { case (k, v) =>
         val (ek, ev) =
           if (urlEncodeParams) {
             UrlEncoder(k) -> UrlEncoder(v)
           } else {
             k -> v
           }
-        UrlEncodingNormalizingTransformer(ek) -> UrlEncodingNormalizingTransformer(ev)
-      }
+        new Request.Pair(UrlEncodingNormalizingTransformer(ek), UrlEncodingNormalizingTransformer(ev))
+      })
     )
   }
 
@@ -143,8 +143,8 @@ case class OAuth1TestCase(
 
     if (oAuthInHeader) {
       val extraHeaderParams = headerOnlyParams.map(_.params).getOrElse(Nil)
-      request.authHeader = Some(
-        MockRequestFactory.oAuth1Header(token, consumerKey, signature, nonce, timestampSecs.toString, urlEncodeParams, extraHeaderParams, quotedHeaderValues))
+      request.authHeader =
+        MockRequestFactory.oAuth1Header(token, consumerKey, signature, nonce, timestampSecs.toString, urlEncodeParams, extraHeaderParams, quotedHeaderValues)
     }
     var queryString = ParamHelper.toQueryString(parameters, urlEncodeParams)
     if (oAuthInParam) {

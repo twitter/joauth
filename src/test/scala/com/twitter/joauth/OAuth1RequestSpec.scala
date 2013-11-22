@@ -19,7 +19,7 @@ class OAuth1RequestSpec extends SpecificationWithJUnit {
   "OAuth1Request.verify" should {
     val builder = new OAuthParamsBuilder(StandardOAuthParamsHelper)
     def pr(scheme: String, host: String, port: Int, verb: String, path: String) =
-      ParsedRequest(scheme, host, port, verb, path, List())
+      new Request.ParsedRequest(scheme, host, port, verb, path, new java.util.ArrayList[Request.Pair])
 
     "throw on null scheme" in {
       OAuth1Request.verify(pr(null, "2", 3, "4", "5"), builder.oAuth1Params) must throwA(new MalformedRequest("no value for scheme"))

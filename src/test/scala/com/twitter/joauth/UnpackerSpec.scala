@@ -108,7 +108,7 @@ class UnpackerSpec extends SpecificationWithJUnit with Mockito {
         // make sure get/post parsing still works with junky auth header
         getTestName("parse oauth with junk auth header", testCase.testName, oAuthInParams, oAuthInHeader, paramsInRequestBody) in {
           val request = testCase.request(oAuthInParams, oAuthInHeader, paramsInRequestBody)
-          request.authHeader = Some("BLARG")
+          request.authHeader = "BLARG"
           val oAuthParamsBuilder = unpacker.parseRequest(request, Seq(kvHandler))
           val parsedRequest = request.parsedRequest(oAuthParamsBuilder.otherParams)
           unpacker.getOAuth1Request(parsedRequest, oAuthParamsBuilder.oAuth1Params) must be_==(testCase.oAuth1Request(paramsInRequestBody, oAuthInHeader))

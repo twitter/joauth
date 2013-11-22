@@ -64,7 +64,7 @@ object MockRequestFactory {
 
   def requestWithAuthHeader(header: String): MockRequest = {
     val request = new MockRequest()
-    request.authHeader = Some(header)
+    request.authHeader = header
     request
   }
 
@@ -88,7 +88,7 @@ object MockRequestFactory {
       request.body = request.queryString
       request.queryString = null
     }
-    request.contentType = Some("application/x-www-form-urlencoded")
+    request.contentType = "application/x-www-form-urlencoded"
     request
   }
 
@@ -97,7 +97,7 @@ object MockRequestFactory {
       request.body = request.queryString
       request.queryString = null
     }
-    request.contentType = Some("application/x-www-form-urlencoded")
+    request.contentType = "application/x-www-form-urlencoded"
     request.method = "POST"
     request
   }

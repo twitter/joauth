@@ -31,9 +31,9 @@ object MockRequest {
 }
 
 class MockRequest extends Request {
-  var authHeader: Option[String] = None
+  var authHeader: String = null
   var body: String = null
-  var contentType: Option[String] = None
+  var contentType: String = null
   var host: String = "127.0.0.1"
   var method: String = "get"
   var path: String = "/"

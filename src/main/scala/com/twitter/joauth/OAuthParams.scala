@@ -102,15 +102,15 @@ case class OAuth1Params(
 
   import OAuthParams._
 
-  def toList(includeSig: Boolean): List[(String, String)] = {
-    val buf = new ListBuffer[(String, String)]
-    buf += OAUTH_CONSUMER_KEY -> consumerKey
-    buf += OAUTH_NONCE -> nonce
-    if (token.isDefined) buf += OAUTH_TOKEN -> token.get
-    if (includeSig) buf += OAUTH_SIGNATURE -> signature
-    buf += OAUTH_SIGNATURE_METHOD -> signatureMethod
-    buf += OAUTH_TIMESTAMP -> timestampStr
-    if (version != null) buf += OAUTH_VERSION -> version
+  def toList(includeSig: Boolean): List[Request.Pair] = {
+    val buf = new ListBuffer[Request.Pair]
+    buf += new Request.Pair(OAUTH_CONSUMER_KEY, consumerKey)
+    buf += new Request.Pair(OAUTH_NONCE, nonce)
+    if (token.isDefined) buf += new Request.Pair(OAUTH_TOKEN, token.get)
+    if (includeSig) buf += new Request.Pair(OAUTH_SIGNATURE, signature)
+    buf += new Request.Pair(OAUTH_SIGNATURE_METHOD, signatureMethod)
+    buf += new Request.Pair(OAUTH_TIMESTAMP, timestampStr)
+    if (version != null) buf += new Request.Pair(OAUTH_VERSION, version)
     buf.toList
   }
 
@@ -230,7 +230,16 @@ class OAuthParamsBuilder(helper: OAuthParamsHelper) {
 
   def oAuth2Token = v2Token
 
-  def otherParams = paramsHandler.toList ++ otherOAuthParamsHandler.toList
+  def otherParams = {
+    val result = paramsHandler.toList ++ otherOAuthParamsHandler.toList
+    val arrayList = new java.util.ArrayList[Request.Pair]
+
+    result foreach { case (key, value) =>
+      arrayList.add(new Request.Pair(key, value))
+    }
+
+    arrayList
+  }
 
   // make an immutable params instance
   def oAuth1Params = OAuth1Params(

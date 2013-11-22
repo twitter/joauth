@@ -12,7 +12,9 @@
 
 package com.twitter.joauth
 
+import scala.collection.JavaConversions._
 import scala.collection.JavaConverters.iterableAsScalaIterableConverter
+import java.util.ArrayList
 
 /**
  * a Normalizer takes the fields that describe an OAuth 1.0a request, and produces
@@ -25,11 +27,11 @@ trait Normalizer {
     port: Int,
     verb: String,
     path: String,
-    params: List[(String, String)],
+    params: ArrayList[Request.Pair],
     oAuth1Params: OAuth1Params): String
 
-  def apply(req: ParsedRequest, oAuth1Params: OAuth1Params): String =
-    apply(req.scheme, req.host, req.port, req.verb, req.path, req.params, oAuth1Params)
+  def apply(req: Request.ParsedRequest, oAuth1Params: OAuth1Params): String =
+    apply(req.scheme, req.host, req.port.toInt, req.verb, req.path, req.params, oAuth1Params)
 }
 
 /**
@@ -42,7 +44,7 @@ class ConstNormalizer(const: String) extends Normalizer {
     port: Int,
     verb: String,
     path: String,
-    params: List[(String, String)],
+    params: ArrayList[Request.Pair],
     oAuth1Params: OAuth1Params): String = const
 }
 
@@ -90,7 +92,7 @@ class StandardNormalizer extends Normalizer {
     port: Int,
     verb: String,
     path: String,
-    params: List[(String, String)],
+    params: java.util.ArrayList[Request.Pair],
     oAuth1Params: OAuth1Params): String = {
       // We only need the stringbuilder for the duration of this method
       val builder = StandardNormalizer.builder.get()
@@ -99,22 +101,25 @@ class StandardNormalizer extends Normalizer {
       val normalizedParams = {
         // first, concatenate the params and the oAuth1Params together.
         // the parameters are already URLEncoded, so we leave them alone
-        val sigParams = params ::: oAuth1Params.toList(false)
+
+        val seq: List[Request.Pair] = params.toIndexedSeq.toList
+
+        val sigParams = seq ::: oAuth1Params.toList(false)
 
         // sort params first by key, then by value
-        val sortedParams = sigParams.sortWith { case ((thisKey, thisValue), (thatKey, thatValue)) =>
-          thisKey < thatKey || (thisKey == thatKey && thisValue < thatValue)
+        val sortedParams = sigParams.sortWith { case (thisPair, thatPair) =>
+          thisPair.key < thatPair.key || (thisPair.key == thatPair.key && thisPair.value < thatPair.value)
         }
 
         // now turn these back into a standard query string, with keys delimited
         // from values with "=" and pairs delimited from one another by "&"
         builder.clear()
         if (sortedParams.nonEmpty) {
-          sortedParams.head match { case (key, value) =>
-            builder.append(key).append('=').append(value)
+          sortedParams.head match { case pair =>    //todo: we may not need case here?
+            builder.append(pair.key).append('=').append(pair.value)
           }
-          sortedParams.tail foreach { case (key, value) =>
-            builder.append('&').append(key).append('=').append(value)
+          sortedParams.tail foreach { case (pair) =>  //todo: no case here?
+            builder.append('&').append(pair.key).append('=').append(pair.value)
           }
         }
 
@@ -174,10 +179,14 @@ class StandardNormalizer extends Normalizer {
     paramsMap: java.util.List[ParameterValuePair],
     oAuth1Params: OAuth1Params
   ): String = {
+    /*
     val paramsList = paramsMap.asScala.map { pv =>
-      (pv.param, pv.value)
+      new Request.Pair(pv.param, pv.value)
     }.toList
+    */
 
+    val paramsList = new java.util.ArrayList[Request.Pair]()
+    paramsMap foreach { p => paramsList.add(new Request.Pair(p.param, p.value)) }
     apply(scheme, host, port, verb, path, paramsList, oAuth1Params)
   }
 }
