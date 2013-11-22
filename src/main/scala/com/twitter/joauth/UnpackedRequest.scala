@@ -162,9 +162,9 @@ object OAuth1Request {
     verify(parsedRequest, oAuth1Params)
 
     new OAuth1Request(
-      UrlDecoder(oAuth1Params.token.get), // should never be called when token is None
-      UrlDecoder(oAuth1Params.consumerKey),
-      UrlDecoder(oAuth1Params.nonce),
+      UrlCodec.decode(oAuth1Params.token.get), // should never be called when token is None
+      UrlCodec.decode(oAuth1Params.consumerKey),
+      UrlCodec.decode(oAuth1Params.nonce),
       oAuth1Params.timestampSecs,
       oAuth1Params.signature,
       oAuth1Params.signatureMethod,
@@ -184,8 +184,8 @@ object OAuth1Request {
     verify(parsedRequest, oAuth1Params)
 
     new OAuth1TwoLeggedRequest(
-      UrlDecoder(oAuth1Params.consumerKey),
-      UrlDecoder(oAuth1Params.nonce),
+      UrlCodec.decode(oAuth1Params.consumerKey),
+      UrlCodec.decode(oAuth1Params.nonce),
       oAuth1Params.timestampSecs,
       oAuth1Params.signature,
       oAuth1Params.signatureMethod,

@@ -135,7 +135,7 @@ extends Verifier {
     tokenSecret: String,
     consumerSecret: String): Boolean = {
     try {
-      Base64Util.equals(UrlDecoder(signature).trim,
+      Base64Util.equals(UrlCodec.decode(signature).trim,
         signer.getBytes(normalizedRequest, tokenSecret, consumerSecret))
     } catch {
       case e: Exception => return false

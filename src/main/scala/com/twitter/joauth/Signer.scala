@@ -69,7 +69,7 @@ object StandardSigner extends StandardSigner {
  */
 class StandardSigner extends Signer {
   override def getString(str: String, tokenSecret: String, consumerSecret: String): String =
-    UrlEncoder(new String(Base64.encodeBase64(getBytes(str, tokenSecret, consumerSecret), false), StandardSigner.UTF_8))
+    UrlCodec.encode(new String(Base64.encodeBase64(getBytes(str, tokenSecret, consumerSecret), false), StandardSigner.UTF_8))
 
   override def getBytes(str: String, tokenSecret: String, consumerSecret: String): Array[Byte] = {
     val key = consumerSecret+Normalizer.AND+tokenSecret
@@ -82,5 +82,5 @@ class StandardSigner extends Signer {
   }
 
   override def toBytes(signature: String): Array[Byte] =
-    Base64.decodeBase64(UrlDecoder(signature).trim)
+    Base64.decodeBase64(UrlCodec.decode(signature).trim)
 }

@@ -12,7 +12,7 @@
 
 package com.twitter.joauth.keyvalue
 
-import com.twitter.joauth.UrlEncoder
+import com.twitter.joauth.UrlCodec
 
 /**
  * The Transformer trait describes the transformation function
@@ -34,5 +34,5 @@ object TrimTransformer extends Transformer {
  * a string that is not actually URLEncoded.
  */
 object UrlEncodingNormalizingTransformer extends Transformer {
-  def apply(s: String) = UrlEncoder.normalize(s)
+  def apply(s: String) = UrlCodec.normalize(s)
 }

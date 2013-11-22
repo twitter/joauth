@@ -12,13 +12,13 @@
 
 package com.twitter.joauth.testhelpers
 
-import com.twitter.joauth.UrlEncoder
+import com.twitter.joauth.UrlCodec
 
 object ParamHelper {
   def toUrlEncodedQueryString(params: Seq[(String, String)]): String = (params.flatMap { (e) =>
     if (e._1 == null) None
-    else if (e._2 == null) Some(UrlEncoder(e._1))
-    else Some("%s=%s".format(UrlEncoder(e._1), UrlEncoder(e._2)))
+    else if (e._2 == null) Some(UrlCodec.encode(e._1))
+    else Some("%s=%s".format(UrlCodec.encode(e._1), UrlCodec.encode(e._2)))
   }).mkString("&")
 
   def toQueryString(params: Seq[(String, String)]): String = (params.flatMap { (e) =>

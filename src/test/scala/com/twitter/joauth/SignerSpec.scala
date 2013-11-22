@@ -25,7 +25,7 @@ class SignerSpec extends SpecificationWithJUnit {
       val normalizedRequest = "GET&http%3A%2F%2Fphotos.example.net%2Fphotos&file%3Dvacation.jpg%26oauth_consumer_key%3Dwritekey%26oauth_nonce%3Dkllo9940pd9333jh%26oauth_signature_method%3DHMAC-SHA1%26oauth_timestamp%3D1191242096%26oauth_token%3Dreadkey%26oauth_version%3D1.0%26size%3Doriginal"
       val signature = "Dq+QxkRpmASNSiUrwhCBbQYZuBo="
       val bytes = Base64.decodeBase64(signature)
-      val encoded = UrlEncoder(signature)
+      val encoded = UrlCodec.encode(signature)
       signer.getString(normalizedRequest, tokenSecret, consumerSecret) mustEqual encoded
       Arrays.equals(signer.getBytes(normalizedRequest, tokenSecret, consumerSecret), bytes) must beTrue
       Arrays.equals(signer.toBytes(encoded), bytes) must beTrue

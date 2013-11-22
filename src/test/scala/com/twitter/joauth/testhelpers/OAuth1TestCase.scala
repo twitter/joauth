@@ -81,7 +81,7 @@ case class OAuth1TestCase(
       ConversionUtil.toArrayList(params.map { case (k, v) =>
         val (ek, ev) =
           if (urlEncodeParams) {
-            UrlEncoder(k) -> UrlEncoder(v)
+            UrlCodec.encode(k) -> UrlCodec.encode(v)
           } else {
             k -> v
           }
@@ -119,7 +119,7 @@ case class OAuth1TestCase(
 
   def signature(paramsInRequestBody: Boolean) = {
     val signature = if (paramsInRequestBody) signaturePost else signatureGet
-    if (urlEncodeParams) UrlEncoder(signature)
+    if (urlEncodeParams) UrlCodec.encode(signature)
     else signature
   }
 

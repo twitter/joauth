@@ -12,7 +12,7 @@
 
 package com.twitter.joauth.testhelpers
 
-import com.twitter.joauth.UrlEncoder
+import com.twitter.joauth.UrlCodec
 import scala.util.Random
 
 object MockRequestFactory {
@@ -30,7 +30,7 @@ object MockRequestFactory {
 
     def maybeQuote(str: String) = if (quotedHeaderValues) "\"%s\"".format(str) else str
 
-    val encodedSignature = if (signature == null || !urlEncodeSig) signature else UrlEncoder(signature)
+    val encodedSignature = if (signature == null || !urlEncodeSig) signature else UrlCodec.encode(signature)
     val params = oAuth1ParameterMap(token, clientKey, encodedSignature, nonce, timestamp) ++ extraHeaderParams
     val paramString = params.filter(_._2 != null).map { case (k, v) =>
       getRandomWhitespace + k + getRandomWhitespace + "=" + getRandomWhitespace + maybeQuote(v) + getRandomWhitespace

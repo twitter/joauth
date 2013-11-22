@@ -150,8 +150,8 @@ class StandardNormalizer extends Normalizer {
       verb foreach { c =>
         builder += c.toUpper
       }
-      builder.append('&').append(UrlEncoder(requestUrl))
-      builder.append('&').append(UrlEncoder(normalizedParams))
+      builder.append('&').append(UrlCodec.encode(requestUrl))
+      builder.append('&').append(UrlCodec.encode(normalizedParams))
       if (builder.length > 4096) {
         // We don't want to keep around very large builders
         StandardNormalizer.resetBuilder()

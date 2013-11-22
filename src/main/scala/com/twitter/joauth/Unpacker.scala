@@ -125,7 +125,7 @@ class CustomizableUnpacker[RequestImpl <: Request](
     // protection against replay and man-in-the-middle attacks.
     log.debug("building oauth2 request -> path = {}, host = {}, token = {}",
       parsedRequest.path, parsedRequest.host, token)
-    if (shouldAllowOAuth2(request, parsedRequest)) OAuth2Request(UrlDecoder(token), parsedRequest)
+    if (shouldAllowOAuth2(request, parsedRequest)) OAuth2Request(UrlCodec.decode(token), parsedRequest)
     else throw new MalformedRequest("OAuth 2.0 requests not allowed")
   }
 
