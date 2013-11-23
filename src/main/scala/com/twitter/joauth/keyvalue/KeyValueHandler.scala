@@ -100,9 +100,9 @@ class PrintlnKeyValueHandler(prefix: String) extends KeyValueHandler {
  */
 class TransformingKeyValueHandler(
     underlying: KeyValueHandler,
-    keyTransform: String => String,
-    valueTransform: String => String) extends KeyValueHandler {
-  override def apply(k: String, v: String): Unit = underlying(keyTransform(k), valueTransform(v))
+    keyTransformer: Transformer,
+    valueTransformer: Transformer) extends KeyValueHandler {
+  override def apply(k: String, v: String): Unit = underlying(keyTransformer.transform(k), valueTransformer.transform(v))
 }
 
 /**
@@ -110,7 +110,7 @@ class TransformingKeyValueHandler(
  * passing them to the underlying KeyValueHandler
  */
 class TrimmingKeyValueHandler(underlying: KeyValueHandler)
-    extends TransformingKeyValueHandler(underlying, TrimTransformer, TrimTransformer)
+    extends TransformingKeyValueHandler(underlying, Transformer.trimTransformer, Transformer.trimTransformer)
 
 /**
  * KeyTransformingKeyValueHandler applies a Transformer to the key
@@ -136,4 +136,4 @@ class ValueTransformingKeyValueHandler(
  */
 class UrlEncodingNormalizingKeyValueHandler(underlying: KeyValueHandler)
     extends TransformingKeyValueHandler(
-      underlying, UrlEncodingNormalizingTransformer, UrlEncodingNormalizingTransformer)
+      underlying, Transformer.urlEncodingNormalizingTransformer, Transformer.urlEncodingNormalizingTransformer)

@@ -12,7 +12,7 @@
 
 package com.twitter.joauth.testhelpers
 
-import com.twitter.joauth.keyvalue.UrlEncodingNormalizingTransformer
+import com.twitter.joauth.keyvalue.Transformer
 import com.twitter.joauth._
 
 case class HeaderOnlyParams(
@@ -85,7 +85,7 @@ case class OAuth1TestCase(
           } else {
             k -> v
           }
-        new Request.Pair(UrlEncodingNormalizingTransformer(ek), UrlEncodingNormalizingTransformer(ev))
+        new Request.Pair(Transformer.urlEncodingNormalizingTransformer.transform(ek), Transformer.urlEncodingNormalizingTransformer.transform(ev))
       })
     )
   }

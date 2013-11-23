@@ -12,7 +12,7 @@
 
 package com.twitter.joauth
 
-import com.twitter.joauth.keyvalue.UrlEncodingNormalizingTransformer
+import com.twitter.joauth.keyvalue.Transformer
 import com.twitter.joauth.testhelpers.OAuth1TestCases
 import org.specs.SpecificationWithJUnit
 
@@ -46,7 +46,7 @@ class NormalizerSpec extends SpecificationWithJUnit {
                 verb,
                 testCase.path,
                 ConversionUtil.toArrayList(testCase.parameters.map { case (k, v) =>
-                  new Request.Pair(UrlEncodingNormalizingTransformer(k), UrlEncodingNormalizingTransformer(v))
+                  new Request.Pair(Transformer.urlEncodingNormalizingTransformer.transform(k), Transformer.urlEncodingNormalizingTransformer.transform(v))
                 }),
                 testCase.oAuth1Params(post)) must be_==(testCase.normalizedRequest(post, false))
             }
