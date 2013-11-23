@@ -18,7 +18,7 @@ import org.specs.SpecificationWithJUnit
 
 class VerifierSpec extends SpecificationWithJUnit with Mockito {
   val checkNonce = mock[NonceValidator]
-  val signer = new StandardSigner
+  val signer = new Signer.StandardSigner
   val request = mock[OAuth1Request]
 
   val nowSecs = (new Date).getTime / 1000

@@ -18,7 +18,7 @@ import org.specs.SpecificationWithJUnit
 
 class SignerSpec extends SpecificationWithJUnit {
   "Signer" should {
-    val signer = Signer()
+    val signer = Signer.getStandardSigner
     "sign correctly" in {
       val tokenSecret = "readsecret"
       val consumerSecret = "writesecret"
