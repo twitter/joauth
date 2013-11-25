@@ -173,13 +173,13 @@ class CustomizableUnpacker[RequestImpl <: Request](
       val bodyParamHandlers = bodyParamKeyValueHandler(oAuthParamsBuilder.queryHandler) +: kvHandlers
 
       // parse the GET query string
-      queryParser(request.queryString, queryHandlers)
+      queryParser.parse(request.queryString, ConversionUtil.toArrayList(queryHandlers))
 
       // parse the request body if the Content-Type is appropriate. Use the
       // same set of KeyValueHandlers that we used to parse the query string.
       if (request.contentType != null &&
           request.contentType.startsWith(WWW_FORM_URLENCODED)) {
-        queryParser(request.body, bodyParamHandlers)
+        queryParser.parse(request.body, ConversionUtil.toArrayList(bodyParamHandlers))
       }
     }
 
@@ -210,7 +210,7 @@ class CustomizableUnpacker[RequestImpl <: Request](
           // now we'll pass the handler to the headerParser,
           // which splits on commas rather than ampersands,
           // and is more forgiving with whitespace
-          headerParser(authString, Seq(quotedHandler))
+          headerParser.parse(authString, ConversionUtil.toArrayList(Seq(quotedHandler)))
 
         } else if (oauth2) {
           nonTransformingHandler.handle(OAuthParams.BEARER_TOKEN, authString)
@@ -232,10 +232,10 @@ object StandardUnpacker {
   val UTF_8 = CustomizableUnpacker.UTF_8
 
   def apply(): StandardUnpacker[Request] = new StandardUnpacker[Request](
-    StandardOAuthParamsHelper, Normalizer(), QueryKeyValueParser, HeaderKeyValueParser)
+    StandardOAuthParamsHelper, Normalizer(), KeyValueParser.QueryKeyValueParser, KeyValueParser.HeaderKeyValueParser)
 
   def apply(helper: OAuthParamsHelper): StandardUnpacker[Request] =
-    new StandardUnpacker[Request](helper, Normalizer(), QueryKeyValueParser, HeaderKeyValueParser)
+    new StandardUnpacker[Request](helper, Normalizer(), KeyValueParser.QueryKeyValueParser, KeyValueParser.HeaderKeyValueParser)
 }
 
 class StandardUnpacker[RequestImpl <: Request](

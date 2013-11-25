@@ -14,40 +14,42 @@ package com.twitter.joauth.keyvalue
 
 import org.specs.mock.Mockito
 import org.specs.SpecificationWithJUnit
+import com.twitter.joauth.{ConversionUtil, Request}
 
 class KeyValueParserSpec extends SpecificationWithJUnit with Mockito {
   val handler = mock[KeyValueHandler]
+  val handlers = ConversionUtil.toArrayList(Seq(handler))
 
   "ConstKeyValueParser" should {
     "call handler with key values" in {
-      val parser = new ConstKeyValueParser(List(("a", "b"), ("c", "d")))
-      parser("foo", Seq(handler))
+      val parser = new KeyValueParser.ConstKeyValueParser(ConversionUtil.toArrayList(List(new Request.Pair("a", "b"), new Request.Pair("c", "d"))))
+      parser.parse("foo", handlers)
       there was one(handler).handle("a", "b")
       there was one(handler).handle("c", "d")
     }
   }
 
   "StandardKeyValueParser" should {
-    val parser = QueryKeyValueParser
+    val parser = KeyValueParser.QueryKeyValueParser
     "not blow up on null string" in {
-      parser(null, Seq(handler))
+      parser.parse(null, handlers)
       there was no(handler).handle(any[String], any[String])
     }
     "not blow up on empty string" in {
-      parser("", Seq(handler))
+      parser.parse("", handlers)
       there was no(handler).handle(any[String], any[String])
     }
     "parse simple string" in {
-      parser("foo", Seq(handler))
+      parser.parse("foo", handlers)
       there was one(handler).handle("foo", "")
     }
     "parse valid pairs" in {
-      parser("foo=bar&baz", Seq(handler))
+      parser.parse("foo=bar&baz", handlers)
       there was one(handler).handle("foo", "bar")
       there was one(handler).handle("baz", "")
     }
     "parse malformed pairs" in {
-      parser("foo=bar&&baz&", Seq(handler))
+      parser.parse("foo=bar&&baz&", handlers)
       there was one(handler).handle("foo", "bar")
       there was one(handler).handle("baz", "")
     }
