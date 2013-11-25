@@ -136,7 +136,7 @@ object OAuth1Request {
       else if (parsedRequest.verb == null) throw nullException(VERB)
       else if (parsedRequest.path == null) throw nullException(PATH)
       else if (oAuth1Params.signatureMethod != OAuthParams.HMAC_SHA1) {
-        throw new MalformedRequest(UNSUPPORTED_METHOD+oAuth1Params.signatureMethod)
+        throw new MalformedRequest(UNSUPPORTED_METHOD + oAuth1Params.signatureMethod)
       }
       else if (oAuth1Params.version != null &&
           oAuth1Params.version != OAuthParams.ONE_DOT_OH &&

@@ -12,7 +12,7 @@
 
 package com.twitter.joauth
 
-import com.twitter.joauth.keyvalue.{KeyValueHandler, DuplicateKeyValueHandler, SingleKeyValueHandler}
+import com.twitter.joauth.keyvalue.KeyValueHandler
 import scala.collection.mutable.ListBuffer
 
 trait OAuthParamsHelper {
@@ -146,15 +146,15 @@ class OAuthParamsBuilder(helper: OAuthParamsHelper) {
   private[joauth] var signatureMethod: String = null
   private[joauth] var version: String = null
 
-  private[joauth] var paramsHandler = new DuplicateKeyValueHandler
-  private[joauth] var otherOAuthParamsHandler = new SingleKeyValueHandler
+  private[joauth] var paramsHandler = new KeyValueHandler.DuplicateKeyValueHandler
+  private[joauth] var otherOAuthParamsHandler = new KeyValueHandler.SingleKeyValueHandler
 
   val headerHandler: KeyValueHandler = new KeyValueHandler {
-    override def apply(k: String, v: String) = handleKeyValue(k, v, true)
+    override def handle(k: String, v: String) = handleKeyValue(k, v, true)
   }
 
   val queryHandler: KeyValueHandler = new KeyValueHandler {
-    override def apply(k: String, v: String) = handleKeyValue(k, v, false)
+    override def handle(k: String, v: String) = handleKeyValue(k, v, false)
   }
 
   private[this] def handleKeyValue(k: String, v: String, fromHeader: Boolean): Unit = {
@@ -188,9 +188,9 @@ class OAuthParamsBuilder(helper: OAuthParamsHelper) {
       case OAUTH_SIGNATURE_METHOD => ifNonEmpty(v) { signatureMethod = v }
       case OAUTH_VERSION => ifNonEmpty(v) { version = v }
       // send oauth_prefixed to a uniquekey handler
-      case OAUTH_PREFIX_REGEX() => otherOAuthParamsHandler(k, v)
+      case OAUTH_PREFIX_REGEX() => otherOAuthParamsHandler.handle(k, v)
       // send other params to the handler, but only if they didn't come from the header
-      case _ => if (!fromHeader) paramsHandler(k, v)
+      case _ => if (!fromHeader) paramsHandler.handle(k, v)
     }
   }
 
@@ -231,7 +231,10 @@ class OAuthParamsBuilder(helper: OAuthParamsHelper) {
   def oAuth2Token = v2Token
 
   def otherParams = {
-    val result = paramsHandler.toList ++ otherOAuthParamsHandler.toList
+    val list =paramsHandler.toList
+    list.addAll(otherOAuthParamsHandler.toList)
+    /*
+    val result = paramsHandler.toList.addAll(otherOAuthParamsHandler.toList)
     val arrayList = new java.util.ArrayList[Request.Pair]
 
     result foreach { case (key, value) =>
@@ -239,6 +242,8 @@ class OAuthParamsBuilder(helper: OAuthParamsHelper) {
     }
 
     arrayList
+    */
+    list
   }
 
   // make an immutable params instance

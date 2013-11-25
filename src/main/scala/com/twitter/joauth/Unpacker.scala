@@ -69,9 +69,9 @@ class CustomizableUnpacker[RequestImpl <: Request](
   normalizer: Normalizer,
   queryParser: KeyValueParser,
   headerParser: KeyValueParser,
-  queryParamTransformer: KeyValueHandler => TransformingKeyValueHandler,
-  bodyParamTransformer: KeyValueHandler => TransformingKeyValueHandler,
-  headerTransformer: KeyValueHandler => TransformingKeyValueHandler,
+  queryParamTransformer: KeyValueHandler => KeyValueHandler.TransformingKeyValueHandler,
+  bodyParamTransformer: KeyValueHandler => KeyValueHandler.TransformingKeyValueHandler,
+  headerTransformer: KeyValueHandler => KeyValueHandler.TransformingKeyValueHandler,
   shouldAllowOAuth2: (RequestImpl, Request.ParsedRequest) => Boolean =
     (_: RequestImpl, p: Request.ParsedRequest) => p.scheme == CustomizableUnpacker.HTTPS
 ) extends Unpacker[RequestImpl] {
@@ -131,11 +131,16 @@ class CustomizableUnpacker[RequestImpl <: Request](
 
   private[this] def createKeyValueHandler(
     kvHandler: KeyValueHandler,
-    transformer: KeyValueHandler => TransformingKeyValueHandler
+    transformer: KeyValueHandler => KeyValueHandler.TransformingKeyValueHandler
   ) = {
-    new KeyTransformingKeyValueHandler(
-      new TrimmingKeyValueHandler(transformer(kvHandler)),
-      helper.processKey _)
+
+    val processKey = new Transformer {
+      def transform(input: String) = helper.processKey(input)
+    }
+
+    new KeyValueHandler.KeyTransformingKeyValueHandler(
+      new KeyValueHandler.TrimmingKeyValueHandler(transformer(kvHandler)),
+      processKey)
   }
 
   protected[this] def queryParamKeyValueHandler(kvHandler: KeyValueHandler) = {
@@ -200,7 +205,7 @@ class CustomizableUnpacker[RequestImpl <: Request](
           // we'll wrap that handler with a MaybeQuotedValueKeyValueHandler,
           // which will strip quotes from quoted values before passing
           // to the underlying handler
-          val quotedHandler = new MaybeQuotedValueKeyValueHandler(handler)
+          val quotedHandler = new KeyValueHandler.MaybeQuotedValueKeyValueHandler(handler)
 
           // now we'll pass the handler to the headerParser,
           // which splits on commas rather than ampersands,
@@ -208,7 +213,7 @@ class CustomizableUnpacker[RequestImpl <: Request](
           headerParser(authString, Seq(quotedHandler))
 
         } else if (oauth2) {
-          nonTransformingHandler(OAuthParams.BEARER_TOKEN, authString)
+          nonTransformingHandler.handle(OAuthParams.BEARER_TOKEN, authString)
         }
       }
       case _ =>
@@ -243,8 +248,8 @@ extends CustomizableUnpacker[RequestImpl](
   normalizer,
   queryParser,
   headerParser,
-  (kvHandler: KeyValueHandler) => new UrlEncodingNormalizingKeyValueHandler(kvHandler),
-  (kvHandler: KeyValueHandler) => new UrlEncodingNormalizingKeyValueHandler(kvHandler),
-  (kvHandler: KeyValueHandler) => new UrlEncodingNormalizingKeyValueHandler(kvHandler),
+  (kvHandler: KeyValueHandler) => new KeyValueHandler.UrlEncodingNormalizingKeyValueHandler(kvHandler),
+  (kvHandler: KeyValueHandler) => new KeyValueHandler.UrlEncodingNormalizingKeyValueHandler(kvHandler),
+  (kvHandler: KeyValueHandler) => new KeyValueHandler.UrlEncodingNormalizingKeyValueHandler(kvHandler),
   (_: RequestImpl, p: Request.ParsedRequest) => p.scheme == StandardUnpacker.HTTPS
 )

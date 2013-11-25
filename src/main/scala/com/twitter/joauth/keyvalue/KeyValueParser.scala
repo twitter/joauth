@@ -24,7 +24,7 @@ trait KeyValueParser extends ((String, Seq[KeyValueHandler]) => Unit)
 class ConstKeyValueParser(pairs: List[(String, String)]) extends KeyValueParser {
   override def apply(str: String, handlers: Seq[KeyValueHandler]): Unit = {
     pairs.foreach { case (k, v) =>
-      handlers.foreach(_(k, v))
+      handlers.foreach(_.handle(k, v))
     }
   }
 }
@@ -54,8 +54,8 @@ class StandardKeyValueParser(delimiter: String, kvDelimiter: String) extends Key
         val kv = kvDelimiterRegex.split(kvStr)
         kv.length match {
           // don't call handler for empty keys
-          case 2 if (!empty(kv(0))) => handlers.foreach(_(kv(0), kv(1)))
-          case 1 if (!empty(kv(0))) => handlers.foreach(_(kv(0), ""))
+          case 2 if (!empty(kv(0))) => handlers.foreach(_.handle(kv(0), kv(1)))
+          case 1 if (!empty(kv(0))) => handlers.foreach(_.handle(kv(0), ""))
           case _ =>
         }
       }

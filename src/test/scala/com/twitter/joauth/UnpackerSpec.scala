@@ -73,11 +73,11 @@ class UnpackerSpec extends SpecificationWithJUnit with Mockito {
         val oAuthParamsBuilder = unpacker.parseRequest(request, Seq(kvHandler))
 
         val numParams = testCase.parameters.size + (if (oAuthInHeader) 0 else 7)
-        there were numParams.times(kvHandler).apply(any[String], any[String])
+        there were numParams.times(kvHandler).handle(any[String], any[String])
         if (testCase.parameters != Nil) {
           testCase.parameters.foreach { case (k, v) =>
             // We cannot check against v directly as it might have been encoded to a different value
-            there was one(kvHandler).apply(k, _: String)
+            there was one(kvHandler).handle(k, _: String)
           }
         }
       }
