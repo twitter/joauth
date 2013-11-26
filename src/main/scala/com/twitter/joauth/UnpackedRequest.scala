@@ -129,7 +129,7 @@ object OAuth1Request {
   @throws(classOf[MalformedRequest])
   def verify(
     parsedRequest: Request.ParsedRequest,
-    oAuth1Params: OAuth1Params) {
+    oAuth1Params: OAuthParams.OAuth1Params) {
       if (parsedRequest.scheme == null) throw nullException(SCHEME)
       else if (parsedRequest.host == null) throw nullException(HOST)
       else if (parsedRequest.port < 0) throw nullException(PORT)
@@ -143,9 +143,9 @@ object OAuth1Request {
           oAuth1Params.version.toLowerCase != OAuthParams.ONE_DOT_OH_A) {
         throw new MalformedRequest(UNSUPPORTED_VERSION+oAuth1Params.version)
       }
-      else if (oAuth1Params.token.isDefined &&
-          (oAuth1Params.token.get.indexOf(' ') > 0 || oAuth1Params.token.get.length > MaxTokenLength)) {
-        throw new MalformedRequest(MALFORMED_TOKEN+oAuth1Params.token.get)
+      else if (oAuth1Params.token != null &&
+          (oAuth1Params.token.indexOf(' ') > 0 || oAuth1Params.token.length > MaxTokenLength)) {
+        throw new MalformedRequest(MALFORMED_TOKEN+oAuth1Params.token)
       }
       // we don't check the validity of the OAuthParams object, because it must be
       // fully populated in order for the factory to even be called, and we'd like
@@ -155,14 +155,14 @@ object OAuth1Request {
   @throws(classOf[MalformedRequest])
   def buildOAuth1Request(
     parsedRequest: Request.ParsedRequest,
-    oAuth1Params: OAuth1Params,
+    oAuth1Params: OAuthParams.OAuth1Params,
     normalize: Normalizer
   ): OAuth1Request = {
 
     verify(parsedRequest, oAuth1Params)
 
     new OAuth1Request(
-      UrlCodec.decode(oAuth1Params.token.get), // should never be called when token is None
+      UrlCodec.decode(oAuth1Params.token), // should never be called when token is None
       UrlCodec.decode(oAuth1Params.consumerKey),
       UrlCodec.decode(oAuth1Params.nonce),
       oAuth1Params.timestampSecs,
@@ -177,7 +177,7 @@ object OAuth1Request {
   @throws(classOf[MalformedRequest])
   def buildOAuth1TwoLeggedRequest(
     parsedRequest: Request.ParsedRequest,
-    oAuth1Params: OAuth1Params,
+    oAuth1Params: OAuthParams.OAuth1Params,
     normalize: Normalizer
   ): OAuth1TwoLeggedRequest = {
 

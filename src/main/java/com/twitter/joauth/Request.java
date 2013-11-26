@@ -66,6 +66,14 @@ public abstract class Request {
       result = 31 * result + (value != null ? value.hashCode() : 0);
       return result;
     }
+
+    @Override
+    public String toString() {
+      return "Pair{" +
+          "key='" + key + '\'' +
+          ", value='" + value + '\'' +
+          '}';
+    }
   }
 
   public static class ParsedRequest {
@@ -88,6 +96,17 @@ public abstract class Request {
     public String path;
     public ArrayList<Pair> params;
 
+    @Override
+    public String toString() {
+      return "ParsedRequest{" +
+          "scheme='" + scheme + '\'' +
+          ", host='" + host + '\'' +
+          ", port=" + port +
+          ", verb='" + verb + '\'' +
+          ", path='" + path + '\'' +
+          ", params=" + params +
+          '}';
+    }
 
     @Override
     public boolean equals(Object o) {

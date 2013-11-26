@@ -47,7 +47,7 @@ object Unpacker {
   def apply(): Unpacker[Request] = StandardUnpacker()
 
   def apply(
-    helper: OAuthParamsHelper,
+    helper: OAuthParams.OAuthParamsHelper,
     normalizer: Normalizer,
     queryParser: KeyValueParser,
     headerParser: KeyValueParser): Unpacker[Request] =
@@ -65,7 +65,7 @@ object CustomizableUnpacker {
 }
 
 class CustomizableUnpacker[RequestImpl <: Request](
-  helper: OAuthParamsHelper,
+  helper: OAuthParams.OAuthParamsHelper,
   normalizer: Normalizer,
   queryParser: KeyValueParser,
   headerParser: KeyValueParser,
@@ -103,7 +103,7 @@ class CustomizableUnpacker[RequestImpl <: Request](
 
   @throws(classOf[MalformedRequest])
   def getOAuth1Request(
-    parsedRequest: Request.ParsedRequest, oAuth1Params: OAuth1Params): OAuth1Request = {
+    parsedRequest: Request.ParsedRequest, oAuth1Params: OAuthParams.OAuth1Params): OAuth1Request = {
     log.debug("building oauth1 request -> path = {}, host = {}, token = {}, consumer key = {}, signature = {}, method = {}",
       parsedRequest.path, parsedRequest.host, oAuth1Params.token,
       oAuth1Params.consumerKey, oAuth1Params.signature, oAuth1Params.signatureMethod)
@@ -112,7 +112,7 @@ class CustomizableUnpacker[RequestImpl <: Request](
 
   @throws(classOf[MalformedRequest])
   def getOAuth1TwoLeggedRequest(
-    parsedRequest: Request.ParsedRequest, oAuth1Params: OAuth1Params): OAuth1TwoLeggedRequest = {
+    parsedRequest: Request.ParsedRequest, oAuth1Params: OAuthParams.OAuth1Params): OAuth1TwoLeggedRequest = {
     log.debug("building oauth1 two-legged request -> path = {}, host = {}, consumer key = {}, signature = {}, method = {}",
       parsedRequest.path, parsedRequest.host, oAuth1Params.consumerKey,
       oAuth1Params.signature, oAuth1Params.signatureMethod)
@@ -155,11 +155,11 @@ class CustomizableUnpacker[RequestImpl <: Request](
     createKeyValueHandler(kvHandler, headerTransformer)
   }
 
-  def parseRequest(request: RequestImpl, kvHandlers: Seq[KeyValueHandler]): OAuthParamsBuilder = {
+  def parseRequest(request: RequestImpl, kvHandlers: Seq[KeyValueHandler]): OAuthParams.OAuthParamsBuilder = {
     // use an oAuthParamsBuilder instance to accumulate key/values from
     // the query string, the request body (if the appropriate Content-Type),
     // and the Authorization header, if any.
-    val oAuthParamsBuilder = new OAuthParamsBuilder(helper)
+    val oAuthParamsBuilder = new OAuthParams.OAuthParamsBuilder(helper)
 
     // parse the header, if present
     parseHeader(Some(request.authHeader), oAuthParamsBuilder.headerHandler)
@@ -232,14 +232,14 @@ object StandardUnpacker {
   val UTF_8 = CustomizableUnpacker.UTF_8
 
   def apply(): StandardUnpacker[Request] = new StandardUnpacker[Request](
-    StandardOAuthParamsHelper, Normalizer(), KeyValueParser.QueryKeyValueParser, KeyValueParser.HeaderKeyValueParser)
+    OAuthParams.StandardOAuthParamsHelper, Normalizer(), KeyValueParser.QueryKeyValueParser, KeyValueParser.HeaderKeyValueParser)
 
-  def apply(helper: OAuthParamsHelper): StandardUnpacker[Request] =
+  def apply(helper: OAuthParams.OAuthParamsHelper): StandardUnpacker[Request] =
     new StandardUnpacker[Request](helper, Normalizer(), KeyValueParser.QueryKeyValueParser, KeyValueParser.HeaderKeyValueParser)
 }
 
 class StandardUnpacker[RequestImpl <: Request](
-  helper: OAuthParamsHelper,
+  helper: OAuthParams.OAuthParamsHelper,
   normalizer: Normalizer,
   queryParser: KeyValueParser,
   headerParser: KeyValueParser)

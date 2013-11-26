@@ -39,7 +39,11 @@ class NormalizerSpec extends SpecificationWithJUnit {
           for ((post) <- List(true, false)) {
             val verb = if (post) "POST" else "GET"
             "normalize %s/%s".format(post, testCase.testName) in {
-              normalize(
+
+              println("actual:" + testCase.normalizedRequest(post, false))
+
+
+              val result = normalize(
                 testCase.scheme,
                 testCase.host,
                 testCase.port,
@@ -48,7 +52,15 @@ class NormalizerSpec extends SpecificationWithJUnit {
                 ConversionUtil.toArrayList(testCase.parameters.map { case (k, v) =>
                   new Request.Pair(Transformer.urlEncodingNormalizingTransformer.transform(k), Transformer.urlEncodingNormalizingTransformer.transform(v))
                 }),
-                testCase.oAuth1Params(post)) must be_==(testCase.normalizedRequest(post, false))
+                testCase.oAuth1Params(post))
+
+              println("result:" + result)
+
+              result must be_==(testCase.normalizedRequest(post, false))
+
+
+
+
             }
           }
         }

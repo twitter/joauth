@@ -17,7 +17,7 @@ import org.specs.SpecificationWithJUnit
 
 class OAuth1RequestSpec extends SpecificationWithJUnit {
   "OAuth1Request.verify" should {
-    val builder = new OAuthParamsBuilder(StandardOAuthParamsHelper)
+    val builder = new OAuthParams.OAuthParamsBuilder(OAuthParams.StandardOAuthParamsHelper)
     def pr(scheme: String, host: String, port: Int, verb: String, path: String) =
       new Request.ParsedRequest(scheme, host, port, verb, path, new java.util.ArrayList[Request.Pair])
 
@@ -67,7 +67,7 @@ class OAuth1RequestSpec extends SpecificationWithJUnit {
     }
     "trim extra spaces on token" in {
       builder.queryHandler.handle("oauth_token", "  some_token  ")
-      builder.oAuth1Params.token must beSome("some_token")
+      builder.oAuth1Params.token mustEqual "some_token"
     }
   }
 }

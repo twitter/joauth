@@ -12,7 +12,7 @@
 
 package com.twitter.joauth.keyvalue
 
-import com.twitter.joauth.{Request, ConversionUtil, StandardOAuthParamsHelper}
+import com.twitter.joauth.{Request, ConversionUtil}
 import org.specs.mock.Mockito
 import org.specs.SpecificationWithJUnit
 

@@ -28,9 +28,9 @@ trait Normalizer {
     verb: String,
     path: String,
     params: ArrayList[Request.Pair],
-    oAuth1Params: OAuth1Params): String
+    oAuth1Params: OAuthParams.OAuth1Params): String
 
-  def apply(req: Request.ParsedRequest, oAuth1Params: OAuth1Params): String =
+  def apply(req: Request.ParsedRequest, oAuth1Params: OAuthParams.OAuth1Params): String =
     apply(req.scheme, req.host, req.port.toInt, req.verb, req.path, req.params, oAuth1Params)
 }
 
@@ -45,7 +45,7 @@ class ConstNormalizer(const: String) extends Normalizer {
     verb: String,
     path: String,
     params: ArrayList[Request.Pair],
-    oAuth1Params: OAuth1Params): String = const
+    oAuth1Params: OAuthParams.OAuth1Params): String = const
 }
 
 /**
@@ -93,7 +93,7 @@ class StandardNormalizer extends Normalizer {
     verb: String,
     path: String,
     params: java.util.ArrayList[Request.Pair],
-    oAuth1Params: OAuth1Params): String = {
+    oAuth1Params: OAuthParams.OAuth1Params): String = {
       // We only need the stringbuilder for the duration of this method
       val builder = StandardNormalizer.builder.get()
       builder.clear()
@@ -102,9 +102,14 @@ class StandardNormalizer extends Normalizer {
         // first, concatenate the params and the oAuth1Params together.
         // the parameters are already URLEncoded, so we leave them alone
 
+        /*
         val seq: List[Request.Pair] = params.toIndexedSeq.toList
+        seq.addAll(oAuth1Params.toList(false))
+        */
 
-        val sigParams = seq ::: oAuth1Params.toList(false)
+        params.addAll(oAuth1Params.toList(false))
+
+        val sigParams = params.toIndexedSeq
 
         // sort params first by key, then by value
         val sortedParams = sigParams.sortWith { case (thisPair, thatPair) =>
@@ -177,7 +182,7 @@ class StandardNormalizer extends Normalizer {
     verb: String,
     path: String,
     paramsMap: java.util.List[ParameterValuePair],
-    oAuth1Params: OAuth1Params
+    oAuth1Params: OAuthParams.OAuth1Params
   ): String = {
     /*
     val paramsList = paramsMap.asScala.map { pv =>

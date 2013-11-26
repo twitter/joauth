@@ -18,8 +18,8 @@ import org.specs.mock.Mockito
 import org.specs.SpecificationWithJUnit
 
 class OAuthParamsSpec extends SpecificationWithJUnit with Mockito {
-  val helper = smartMock[OAuthParamsHelper]
-  val builder = new OAuthParamsBuilder(helper)
+  val helper = smartMock[OAuthParams.OAuthParamsHelper]
+  val builder = new OAuthParams.OAuthParamsBuilder(helper)
 
   val emptyList = new java.util.ArrayList[Request.Pair]()
 
@@ -87,7 +87,7 @@ class OAuthParamsSpec extends SpecificationWithJUnit with Mockito {
     "timestampStr set if timestamp parses" in {
       builder.timestampSecs mustEqual -1
       builder.timestampStr must beNull
-      helper.parseTimestamp("foo") returns Some(4L)
+      helper.parseTimestamp("foo") returns 4L
       builder.queryHandler.handle("oauth_timestamp", "foo")
       builder.timestampSecs mustEqual 4L
       builder.timestampStr mustEqual "foo"
@@ -97,7 +97,7 @@ class OAuthParamsSpec extends SpecificationWithJUnit with Mockito {
     "timestampStr null if timestamp doesn't parse" in {
       builder.timestampSecs mustEqual -1
       builder.timestampStr must beNull
-      helper.parseTimestamp("foo") returns None
+      helper.parseTimestamp("foo") returns null
       builder.queryHandler.handle("oauth_timestamp", "foo")
       builder.timestampSecs mustEqual -1
       builder.timestampStr must beNull
@@ -126,7 +126,7 @@ class OAuthParamsSpec extends SpecificationWithJUnit with Mockito {
       builder.isOAuth1TwoLegged must beFalse
       builder.isOAuth2 must beFalse
 
-      helper.parseTimestamp("foo") returns Some(4L)
+      helper.parseTimestamp("foo") returns 4L
       builder.queryHandler.handle("oauth_timestamp", "foo")
       builder.isOAuth1 must beFalse
       builder.isOAuth1TwoLegged must beFalse
@@ -174,13 +174,13 @@ class OAuthParamsSpec extends SpecificationWithJUnit with Mockito {
   }
   "StandardOAuthParamsHelper.parseTimestamp" should {
     "parse legit timestamp" in {
-      StandardOAuthParamsHelper.parseTimestamp("45") mustEqual Some(45)
+      OAuthParams.StandardOAuthParamsHelper.parseTimestamp("45") mustEqual 45
     }
     "return None for bad timestamp" in {
-      StandardOAuthParamsHelper.parseTimestamp("abdf") must beNone
+      OAuthParams.StandardOAuthParamsHelper.parseTimestamp("abdf") must beNull
     }
     "return None for null timestamp" in {
-      StandardOAuthParamsHelper.parseTimestamp(null) must beNone
+      OAuthParams.StandardOAuthParamsHelper.parseTimestamp(null) must beNull
     }
   }
 }
