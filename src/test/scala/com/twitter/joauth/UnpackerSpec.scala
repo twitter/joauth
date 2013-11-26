@@ -66,31 +66,6 @@ class UnpackerSpec extends SpecificationWithJUnit with Mockito {
     val kvHandler = smartMock[KeyValueHandler]
     val unpacker = StandardUnpacker()
 
-    // Parse request
-    getTestName("parse oauth", testCase.testName, oAuthInParams, oAuthInHeader, paramsInRequestBody) in {
-      val request = testCase.request(oAuthInParams, oAuthInHeader, paramsInRequestBody)
-      val oAuthParamsBuilder = unpacker.parseRequest(request, Seq(kvHandler))
-      val parsedRequest = request.parsedRequest(oAuthParamsBuilder.otherParams)
-
-      val result = unpacker.getOAuth1Request(parsedRequest, oAuthParamsBuilder.oAuth1Params)
-      val expected = testCase.oAuth1Request(paramsInRequestBody, oAuthInHeader)
-
-      println("parsed  :" + parsedRequest)
-      println("result  :" + result)
-      println("expected:" + expected)
-
-      println(result.parsedRequest) // == expected.parsedRequest)
-      println(expected.parsedRequest)
-
-      println(result.toString() == expected.toString())
-
-      //unpacker.getOAuth1Request(parsedRequest, oAuthParamsBuilder.oAuth1Params) must be_==(testCase.oAuth1Request(paramsInRequestBody, oAuthInHeader))
-      unpacker.getOAuth1Request(parsedRequest, oAuthParamsBuilder.oAuth1Params) mustEqual testCase.oAuth1Request(paramsInRequestBody, oAuthInHeader)
-    }
-
-    skip("here")
-
-
     if (testCase.canBeUnpackedAsOAuth) {
       // KV Handler Called Once Per Param
       getTestName("kvHandler called once per parameter", testCase.testName, oAuthInParams, oAuthInHeader, paramsInRequestBody) in {
@@ -120,14 +95,8 @@ class UnpackerSpec extends SpecificationWithJUnit with Mockito {
         val oAuthParamsBuilder = unpacker.parseRequest(request, Seq(kvHandler))
         val parsedRequest = request.parsedRequest(oAuthParamsBuilder.otherParams)
 
-        println("result  :" + unpacker.getOAuth1Request(parsedRequest, oAuthParamsBuilder.oAuth1Params))
-        println("expected:" + testCase.oAuth1Request(paramsInRequestBody, oAuthInHeader))
-
-        //unpacker.getOAuth1Request(parsedRequest, oAuthParamsBuilder.oAuth1Params) must be_==(testCase.oAuth1Request(paramsInRequestBody, oAuthInHeader))
-        unpacker.getOAuth1Request(parsedRequest, oAuthParamsBuilder.oAuth1Params) mustEqual testCase.oAuth1Request(paramsInRequestBody, oAuthInHeader)
+        unpacker.getOAuth1Request(parsedRequest, oAuthParamsBuilder.oAuth1Params) must be_==(testCase.oAuth1Request(paramsInRequestBody, oAuthInHeader))
       }
-
-      skip("here")
 
       if (oAuthInHeader) {
         // make sure parsing works without quotes in header
@@ -177,8 +146,9 @@ class UnpackerSpec extends SpecificationWithJUnit with Mockito {
       }
     }
   }
+
   "Unpacker for OAuth1 Test Cases" should {
-    OAuth1TestCases().foreach { (testCase) =>
+    OAuth1TestCases() foreach { (testCase) =>
       for ((paramsInRequestBody) <- List(true, false)) {
         for ((oAuthInParams, oAuthInHeader) <- List((true, false), (false, true))) {
           doOAuth1Tests(testCase, oAuthInParams, oAuthInHeader, paramsInRequestBody)
@@ -186,6 +156,7 @@ class UnpackerSpec extends SpecificationWithJUnit with Mockito {
       }
     }
   }
+
   "Unpacker for OAuth1 Special Case GET" should {
     for ((oAuthInParams, oAuthInHeader) <- List((true, false), (false, true))) {
       doOAuth1Tests(OAuth1TestCases.oAuthSpecialCaseGet, oAuthInParams, oAuthInHeader, false)
@@ -243,7 +214,5 @@ class UnpackerSpec extends SpecificationWithJUnit with Mockito {
       val request = testCase.request(true, false, false)
       unpacker(request, Seq(kvHandler)) must be_==(testCase.oAuth1TwoLeggedRequest(false, false))
     }
-
   }
-
 }

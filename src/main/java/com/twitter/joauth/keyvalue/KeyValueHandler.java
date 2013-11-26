@@ -43,7 +43,8 @@ public interface KeyValueHandler {
     }
 
     public ArrayList<Request.Pair> toList() {
-      return buffer; //todo: clone?
+      return buffer;
+      //return (ArrayList<Request.Pair>) buffer.clone();
     }
   }
 

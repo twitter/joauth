@@ -107,9 +107,7 @@ class StandardNormalizer extends Normalizer {
         seq.addAll(oAuth1Params.toList(false))
         */
 
-        params.addAll(oAuth1Params.toList(false))
-
-        val sigParams = params.toIndexedSeq
+        val sigParams = params.toIndexedSeq.toList ::: oAuth1Params.toList(false).toIndexedSeq.toList
 
         // sort params first by key, then by value
         val sortedParams = sigParams.sortWith { case (thisPair, thatPair) =>

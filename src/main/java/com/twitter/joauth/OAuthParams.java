@@ -166,33 +166,52 @@ public class OAuthParams {
     }
 
 
-    private void handleKeyValue(String key, String value, boolean fromHeader){
+    private void handleKeyValue(String key, String value, boolean fromHeader) {
+
+      // TODO: This needs clean up. Known keys can be in an enum,
+      // and parser can be update to point to these keys, instead of creating a new key string.
+
+
       // empty values for these keys are swallowed
-      if(BEARER_TOKEN.equals(key) && notEmpty(value)) {
-        if (fromHeader) {
+      if(BEARER_TOKEN.equals(key)) {
+        if (fromHeader && notEmpty(value)) {
           v2Token = value;
         }
-      } else if (CLIENT_ID.equals(key) && notEmpty(value)) {
-        if(fromHeader) consumerKey = value;
-      } else if (OAUTH_TOKEN.equals(key) && notEmpty(value)) {
-        token = value.trim();
-      } else if (OAUTH_CONSUMER_KEY.equals(key) && notEmpty(value)) {
-        consumerKey = value;
-      } else if (OAUTH_NONCE.equals(key) && notEmpty(value)) {
-        nonce = value;
-      } else if (OAUTH_TIMESTAMP.equals(key) && notEmpty(value)) {
+      } else if (CLIENT_ID.equals(key)) {
+        if(fromHeader && notEmpty(value)) {
+          consumerKey = value;
+        }
+      } else if (OAUTH_TOKEN.equals(key)) {
+        if (notEmpty(value)) {
+          token = value.trim();
+        }
+      } else if (OAUTH_CONSUMER_KEY.equals(key)) {
+        if (notEmpty(value)) {
+          consumerKey = value;
+        }
+      } else if (OAUTH_NONCE.equals(key)) {
+        if (notEmpty(value)) {
+          nonce = value;
+        }
+      } else if (OAUTH_TIMESTAMP.equals(key)) {
         Long timestamp = helper.parseTimestamp(value);
         if (timestamp != null) {
           timestampSecs = timestamp;
           timestampStr = value;
         }
-      } else if (OAUTH_SIGNATURE.equals(key) && notEmpty(value)) {
-        signature = helper.processSignature(value);
-      } else if (OAUTH_SIGNATURE_METHOD.equals(key) && notEmpty(value)) {
-        signatureMethod = value;
-      } else if (OAUTH_VERSION.equals(key) && notEmpty(value)) {
-        version = value;
-      } else if (!key.startsWith("oauth_")) {
+      } else if (OAUTH_SIGNATURE.equals(key)) {
+        if (notEmpty(value)) {
+          signature = helper.processSignature(value);
+        }
+      } else if (OAUTH_SIGNATURE_METHOD.equals(key)) {
+        if (notEmpty(value)) {
+          signatureMethod = value;
+        }
+      } else if (OAUTH_VERSION.equals(key)) {
+        if (notEmpty(value)) {
+          version = value;
+        }
+      } else if (key.startsWith("oauth_")) {
            // send oauth_prefixed to a uniquekey handler
            otherOAuthParamsHandler.handle(key, value);
       } else {
@@ -256,6 +275,7 @@ public class OAuthParams {
 
       arrayList
       */
+      //return (ArrayList<Request.Pair>) list.clone();
       return list;
     }
 

@@ -40,9 +40,6 @@ class NormalizerSpec extends SpecificationWithJUnit {
             val verb = if (post) "POST" else "GET"
             "normalize %s/%s".format(post, testCase.testName) in {
 
-              println("actual:" + testCase.normalizedRequest(post, false))
-
-
               val result = normalize(
                 testCase.scheme,
                 testCase.host,
@@ -54,13 +51,7 @@ class NormalizerSpec extends SpecificationWithJUnit {
                 }),
                 testCase.oAuth1Params(post))
 
-              println("result:" + result)
-
               result must be_==(testCase.normalizedRequest(post, false))
-
-
-
-
             }
           }
         }
