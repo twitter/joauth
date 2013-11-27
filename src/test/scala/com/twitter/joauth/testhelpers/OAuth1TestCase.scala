@@ -42,7 +42,7 @@ case class OAuth1TestCase(
   val canBeUnpackedAsOAuth: Boolean,
   val headerOnlyParams: Option[HeaderOnlyParams]) {
 
-  def oAuth1Request(paramsInRequestBody: Boolean, authInHeader: Boolean) = new OAuth1Request(
+  def oAuth1Request(paramsInRequestBody: Boolean, authInHeader: Boolean) = new UnpackedRequest.OAuth1Request(
     token,
     consumerKey,
     nonce,
@@ -53,7 +53,7 @@ case class OAuth1TestCase(
     parsedRequest(paramsInRequestBody, authInHeader),
     normalizedRequest(paramsInRequestBody, authInHeader))
 
-  def oAuth1TwoLeggedRequest(paramsInRequestBody: Boolean, authInHeader: Boolean) = new OAuth1TwoLeggedRequest(
+  def oAuth1TwoLeggedRequest(paramsInRequestBody: Boolean, authInHeader: Boolean) = new UnpackedRequest.OAuth1TwoLeggedRequest(
     consumerKey,
     nonce,
     timestampSecs,

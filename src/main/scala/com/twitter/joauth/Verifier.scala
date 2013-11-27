@@ -23,16 +23,16 @@ import org.slf4j.LoggerFactory
  * and validates the request. It returns a Java enum for compatability
  */
 trait Verifier {
-  def apply(request: OAuth1Request, tokenSecret: String, consumerSecret: String): VerifierResult
-  def apply(request: OAuth1TwoLeggedRequest, consumerSecret: String): VerifierResult
+  def apply(request: UnpackedRequest.OAuth1Request, tokenSecret: String, consumerSecret: String): VerifierResult
+  def apply(request: UnpackedRequest.OAuth1TwoLeggedRequest, consumerSecret: String): VerifierResult
 }
 
 /**
  * for testing. always returns the same result.
  */
 class ConstVerifier(result: VerifierResult) extends Verifier {
-  override def apply(request: OAuth1Request, tokenSecret: String, consumerSecret: String): VerifierResult = result
-  override def apply(request: OAuth1TwoLeggedRequest, consumerSecret: String): VerifierResult = result
+  override def apply(request: UnpackedRequest.OAuth1Request, tokenSecret: String, consumerSecret: String): VerifierResult = result
+  override def apply(request: UnpackedRequest.OAuth1TwoLeggedRequest, consumerSecret: String): VerifierResult = result
 }
 
 /**
@@ -78,32 +78,32 @@ extends Verifier {
   val maxClockFloatAheadSecs = maxClockFloatAheadMins * 60L
   val maxClockFloatBehindSecs = maxClockFloatBehindMins * 60L
 
-  override def apply(request: OAuth1Request, tokenSecret: String, consumerSecret: String): VerifierResult = {
+  override def apply(request: UnpackedRequest.OAuth1Request, tokenSecret: String, consumerSecret: String): VerifierResult = {
     verifyOAuth1(
       request,
-      request.nonce,
-      request.timestampSecs,
+      request.nonce(),
+      request.timestampSecs(),
       tokenSecret,
       consumerSecret,
-      request.signature,
-      request.normalizedRequest
+      request.signature(),
+      request.normalizedRequest()
     )
   }
 
-  override def apply(request: OAuth1TwoLeggedRequest, consumerSecret: String): VerifierResult = {
+  override def apply(request: UnpackedRequest.OAuth1TwoLeggedRequest, consumerSecret: String): VerifierResult = {
     verifyOAuth1(
       request,
-      request.nonce,
-      request.timestampSecs,
+      request.nonce(),
+      request.timestampSecs(),
       "",
       consumerSecret,
-      request.signature,
-      request.normalizedRequest
+      request.signature(),
+      request.normalizedRequest()
     )
   }
 
   private def verifyOAuth1(
-    request: OAuthRequest,
+    request: UnpackedRequest.OAuthRequest,
     nonce: String,
     timestampSecs: Long,
     tokenSecret: String,

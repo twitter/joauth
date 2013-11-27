@@ -22,48 +22,48 @@ class OAuth1RequestSpec extends SpecificationWithJUnit {
       new Request.ParsedRequest(scheme, host, port, verb, path, new java.util.ArrayList[Request.Pair])
 
     "throw on null scheme" in {
-      OAuth1Request.verify(pr(null, "2", 3, "4", "5"), builder.oAuth1Params) must throwA(new MalformedRequest("no value for scheme"))
+      UnpackedRequest.O_AUTH_1_REQUEST_HELPER.verify(pr(null, "2", 3, "4", "5"), builder.oAuth1Params) must throwA(new MalformedRequest("no value for scheme"))
     }
     "throw on null host" in {
-      OAuth1Request.verify(pr("1", null, 3, "4", "5"), builder.oAuth1Params) must throwA(new MalformedRequest("no value for host"))
+      UnpackedRequest.O_AUTH_1_REQUEST_HELPER.verify(pr("1", null, 3, "4", "5"), builder.oAuth1Params) must throwA(new MalformedRequest("no value for host"))
     }
     "throw on null port" in {
-      OAuth1Request.verify(pr("1", "2", -1, "4", "5"), builder.oAuth1Params) must throwA(new MalformedRequest("no value for port"))
+      UnpackedRequest.O_AUTH_1_REQUEST_HELPER.verify(pr("1", "2", -1, "4", "5"), builder.oAuth1Params) must throwA(new MalformedRequest("no value for port"))
     }
     "throw on null verb" in {
-      OAuth1Request.verify(pr("1", "2", 3, null, "5"), builder.oAuth1Params) must throwA(new MalformedRequest("no value for verb"))
+      UnpackedRequest.O_AUTH_1_REQUEST_HELPER.verify(pr("1", "2", 3, null, "5"), builder.oAuth1Params) must throwA(new MalformedRequest("no value for verb"))
     }
     "throw on null path" in {
-      OAuth1Request.verify(pr("1", "2", 3, "4", null), builder.oAuth1Params) must throwA(new MalformedRequest("no value for path"))
+      UnpackedRequest.O_AUTH_1_REQUEST_HELPER.verify(pr("1", "2", 3, "4", null), builder.oAuth1Params) must throwA(new MalformedRequest("no value for path"))
     }
     "throw on null signature method" in {
-      OAuth1Request.verify(pr("1", "2", 3, "4", "5"), builder.oAuth1Params) must throwA(new MalformedRequest("unsupported signature method: null"))
+      UnpackedRequest.O_AUTH_1_REQUEST_HELPER.verify(pr("1", "2", 3, "4", "5"), builder.oAuth1Params) must throwA(new MalformedRequest("unsupported signature method: null"))
     }
     "throw on unsupported signature method" in {
       builder.queryHandler.handle("oauth_signature_method", "foo")
-      OAuth1Request.verify(pr("1", "2", 3, "4", "5"), builder.oAuth1Params) must throwA(new MalformedRequest("unsupported signature method: foo"))
+      UnpackedRequest.O_AUTH_1_REQUEST_HELPER.verify(pr("1", "2", 3, "4", "5"), builder.oAuth1Params) must throwA(new MalformedRequest("unsupported signature method: foo"))
     }
     "throw on unsupported oauth version" in {
       builder.queryHandler.handle("oauth_signature_method", "HMAC-SHA1")
       builder.queryHandler.handle("oauth_version", "1.1")
-      OAuth1Request.verify(pr("1", "2", 3, "4", "5"), builder.oAuth1Params) must throwA(new MalformedRequest("unsupported oauth version: 1.1"))
+      UnpackedRequest.O_AUTH_1_REQUEST_HELPER.verify(pr("1", "2", 3, "4", "5"), builder.oAuth1Params) must throwA(new MalformedRequest("unsupported oauth version: 1.1"))
     }
     "not throw for null oauth version" in {
       builder.queryHandler.handle("oauth_signature_method", "HMAC-SHA1")
-      OAuth1Request.verify(pr("1", "2", 3, "4", "5"), builder.oAuth1Params)
+      UnpackedRequest.O_AUTH_1_REQUEST_HELPER.verify(pr("1", "2", 3, "4", "5"), builder.oAuth1Params)
       1 must be_==(1)
     }
     "not throw for 1.0a oauth version" in {
       builder.queryHandler.handle("oauth_signature_method", "HMAC-SHA1")
       builder.queryHandler.handle("oauth_version", "1.0a")
-      OAuth1Request.verify(pr("1", "2", 3, "4", "5"), builder.oAuth1Params)
+      UnpackedRequest.O_AUTH_1_REQUEST_HELPER.verify(pr("1", "2", 3, "4", "5"), builder.oAuth1Params)
       1 must be_==(1)
     }
     "throw on malformed token" in {
       builder.queryHandler.handle("oauth_signature_method", "HMAC-SHA1")
       builder.queryHandler.handle("oauth_version", "1.0")
       builder.queryHandler.handle("oauth_token", "this ain't a token")
-      OAuth1Request.verify(pr("1", "2", 3, "4", "5"), builder.oAuth1Params) must throwA(new MalformedRequest("malformed oauth token: this ain't a token"))
+      UnpackedRequest.O_AUTH_1_REQUEST_HELPER.verify(pr("1", "2", 3, "4", "5"), builder.oAuth1Params) must throwA(new MalformedRequest("malformed oauth token: this ain't a token"))
     }
     "trim extra spaces on token" in {
       builder.queryHandler.handle("oauth_token", "  some_token  ")

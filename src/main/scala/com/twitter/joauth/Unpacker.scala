@@ -36,8 +36,8 @@ trait Unpacker[RequestImpl <: Request] {
 /**
  * for testing. Always returns the same result.
  */
-class ConstUnpacker[RequestImpl <: Request](result: OAuthRequest) extends Unpacker[RequestImpl] {
-  override def apply(request: RequestImpl, kvHandlers: Seq[KeyValueHandler]): OAuthRequest = result
+class ConstUnpacker[RequestImpl <: Request](result: UnpackedRequest.OAuthRequest) extends Unpacker[RequestImpl] {
+  override def apply(request: RequestImpl, kvHandlers: Seq[KeyValueHandler]): UnpackedRequest.OAuthRequest = result
 }
 
 /**
@@ -90,7 +90,7 @@ class CustomizableUnpacker[RequestImpl <: Request](
         getOAuth1Request(parsedRequest, oAuthParamsBuilder.oAuth1Params)
       } else if (oAuthParamsBuilder.isOAuth1TwoLegged) {
         getOAuth1TwoLeggedRequest(parsedRequest, oAuthParamsBuilder.oAuth1Params)
-      } else UnknownRequest(parsedRequest)
+      } else new UnpackedRequest.UnknownRequest(parsedRequest)
 
     } catch {
       // just rethrow UnpackerExceptions
@@ -103,29 +103,29 @@ class CustomizableUnpacker[RequestImpl <: Request](
 
   @throws(classOf[MalformedRequest])
   def getOAuth1Request(
-    parsedRequest: Request.ParsedRequest, oAuth1Params: OAuthParams.OAuth1Params): OAuth1Request = {
+    parsedRequest: Request.ParsedRequest, oAuth1Params: OAuthParams.OAuth1Params): UnpackedRequest.OAuth1Request = {
     log.debug("building oauth1 request -> path = {}, host = {}, token = {}, consumer key = {}, signature = {}, method = {}",
       parsedRequest.path, parsedRequest.host, oAuth1Params.token,
       oAuth1Params.consumerKey, oAuth1Params.signature, oAuth1Params.signatureMethod)
-    OAuth1Request.buildOAuth1Request(parsedRequest, oAuth1Params, normalizer)
+    UnpackedRequest.O_AUTH_1_REQUEST_HELPER.buildOAuth1Request(parsedRequest, oAuth1Params, normalizer)
   }
 
   @throws(classOf[MalformedRequest])
   def getOAuth1TwoLeggedRequest(
-    parsedRequest: Request.ParsedRequest, oAuth1Params: OAuthParams.OAuth1Params): OAuth1TwoLeggedRequest = {
+    parsedRequest: Request.ParsedRequest, oAuth1Params: OAuthParams.OAuth1Params): UnpackedRequest.OAuth1TwoLeggedRequest = {
     log.debug("building oauth1 two-legged request -> path = {}, host = {}, consumer key = {}, signature = {}, method = {}",
       parsedRequest.path, parsedRequest.host, oAuth1Params.consumerKey,
       oAuth1Params.signature, oAuth1Params.signatureMethod)
-    OAuth1Request.buildOAuth1TwoLeggedRequest(parsedRequest, oAuth1Params, normalizer)
+    UnpackedRequest.O_AUTH_1_REQUEST_HELPER.buildOAuth1TwoLeggedRequest(parsedRequest, oAuth1Params, normalizer)
   }
 
   @throws(classOf[MalformedRequest])
-  def getOAuth2Request(request: RequestImpl, parsedRequest: Request.ParsedRequest, token: String): OAuth2Request = {
+  def getOAuth2Request(request: RequestImpl, parsedRequest: Request.ParsedRequest, token: String): UnpackedRequest.OAuth2Request = {
     // OAuth 2.0 requests are totally insecure without SSL, so depend on HTTPS to provide
     // protection against replay and man-in-the-middle attacks.
     log.debug("building oauth2 request -> path = {}, host = {}, token = {}",
       parsedRequest.path, parsedRequest.host, token)
-    if (shouldAllowOAuth2(request, parsedRequest)) OAuth2Request(UrlCodec.decode(token), parsedRequest)
+    if (shouldAllowOAuth2(request, parsedRequest)) new UnpackedRequest.OAuth2Request(UrlCodec.decode(token), parsedRequest, "")
     else throw new MalformedRequest("OAuth 2.0 requests not allowed")
   }
 

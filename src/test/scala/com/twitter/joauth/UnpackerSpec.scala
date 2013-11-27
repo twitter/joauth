@@ -25,7 +25,7 @@ class UnpackerSpec extends SpecificationWithJUnit with Mockito {
       def apply(r: => UnpackedRequest) = {
         val (result, badresponse) = r match {
           case null => (false, "unpacked request is null")
-          case u:OAuth2Request => (u.token == token,"unpacked request has incorrect token: " + u.token)
+          case u:UnpackedRequest.OAuth2Request => (u.token == token,"unpacked request has incorrect token: " + u.token)
           case _ => (false, "unknown request")
         }
         (result, goodresponse, badresponse)
@@ -53,7 +53,7 @@ class UnpackerSpec extends SpecificationWithJUnit with Mockito {
     "unpack as unknown request when no bearer token exists" in {
       val request = MockRequestFactory.oAuth2RequestInParams("a")
       request.scheme = "https"
-      unpacker(request) must haveClass[UnknownRequest]
+      unpacker(request) must haveClass[UnpackedRequest.UnknownRequest]
     }
   }
 
@@ -94,7 +94,6 @@ class UnpackerSpec extends SpecificationWithJUnit with Mockito {
         val request = testCase.request(oAuthInParams, oAuthInHeader, paramsInRequestBody)
         val oAuthParamsBuilder = unpacker.parseRequest(request, Seq(kvHandler))
         val parsedRequest = request.parsedRequest(oAuthParamsBuilder.otherParams)
-
         unpacker.getOAuth1Request(parsedRequest, oAuthParamsBuilder.oAuth1Params) must be_==(testCase.oAuth1Request(paramsInRequestBody, oAuthInHeader))
       }
 
@@ -142,7 +141,7 @@ class UnpackerSpec extends SpecificationWithJUnit with Mockito {
       // handle unknown
       getTestName("handle unknown", testCase.testName, oAuthInParams, oAuthInHeader, paramsInRequestBody) in {
         val request = testCase.request(oAuthInParams, oAuthInHeader, paramsInRequestBody)
-        unpacker(request) must be_==(UnknownRequest(testCase.parsedRequest(paramsInRequestBody, oAuthInHeader)))
+        unpacker(request) must be_==(new UnpackedRequest.UnknownRequest(testCase.parsedRequest(paramsInRequestBody, oAuthInHeader)))
       }
     }
   }
