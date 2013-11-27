@@ -232,10 +232,10 @@ object StandardUnpacker {
   val UTF_8 = CustomizableUnpacker.UTF_8
 
   def apply(): StandardUnpacker[Request] = new StandardUnpacker[Request](
-    OAuthParams.StandardOAuthParamsHelper, Normalizer(), KeyValueParser.QueryKeyValueParser, KeyValueParser.HeaderKeyValueParser)
+    OAuthParams.StandardOAuthParamsHelper, Normalizer.STANDARD_NORMALIZER, KeyValueParser.QueryKeyValueParser, KeyValueParser.HeaderKeyValueParser)
 
   def apply(helper: OAuthParams.OAuthParamsHelper): StandardUnpacker[Request] =
-    new StandardUnpacker[Request](helper, Normalizer(), KeyValueParser.QueryKeyValueParser, KeyValueParser.HeaderKeyValueParser)
+    new StandardUnpacker[Request](helper, Normalizer.STANDARD_NORMALIZER, KeyValueParser.QueryKeyValueParser, KeyValueParser.HeaderKeyValueParser)
 }
 
 class StandardUnpacker[RequestImpl <: Request](

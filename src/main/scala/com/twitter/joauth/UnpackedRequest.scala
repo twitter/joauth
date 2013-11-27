@@ -170,7 +170,7 @@ object OAuth1Request {
       oAuth1Params.signatureMethod,
       oAuth1Params.version,
       parsedRequest,
-      normalize(parsedRequest, oAuth1Params)
+      normalize.normalize(parsedRequest, oAuth1Params)
     )
   }
 
@@ -191,7 +191,7 @@ object OAuth1Request {
       oAuth1Params.signatureMethod,
       oAuth1Params.version,
       parsedRequest,
-      normalize(parsedRequest, oAuth1Params)
+      normalize.normalize(parsedRequest, oAuth1Params)
     )
   }
 

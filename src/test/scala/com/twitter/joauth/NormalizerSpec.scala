@@ -17,7 +17,7 @@ import com.twitter.joauth.testhelpers.OAuth1TestCases
 import org.specs.SpecificationWithJUnit
 
 class NormalizerSpec extends SpecificationWithJUnit {
-  val normalize = StandardNormalizer
+  val normalize = Normalizer.STANDARD_NORMALIZER
   "Include Port String" should {
     "skip port for 80/HTTP" in { normalize.includePortString(80, "http") must beFalse }
     "skip port for 80/hTtP" in { normalize.includePortString(80, "hTtP") must beFalse }
@@ -40,7 +40,7 @@ class NormalizerSpec extends SpecificationWithJUnit {
             val verb = if (post) "POST" else "GET"
             "normalize %s/%s".format(post, testCase.testName) in {
 
-              val result = normalize(
+              val result = normalize.normalize(
                 testCase.scheme,
                 testCase.host,
                 testCase.port,
