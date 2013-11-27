@@ -85,19 +85,19 @@ class VerifierSpec extends SpecificationWithJUnit with Mockito {
       val verify = new StandardVerifier(signer, -1, -1, checkNonce)
       request.nonce returns "nonce"
       request.timestampSecs returns 1363119598
-      checkNonce.apply("nonce") returns false
+      checkNonce.validate("nonce") returns false
       verify(request, "readsecret", "writesecret") must be_==(VerifierResult.BAD_NONCE)
     }
     "return BAD_TIMESTAMP for bad timestamp" in {
       request.nonce returns "nonce"
-      checkNonce.apply("nonce") returns true
+      checkNonce.validate("nonce") returns true
       request.timestampSecs returns longAgoSecs
       verify(request, "readsecret", "writesecret") must be_==(VerifierResult.BAD_TIMESTAMP)
     }
     "return BAD_SIGNATURE for bad signature" in {
       val verify = new StandardVerifier(signer, -1, -1, checkNonce)
       request.nonce returns "nonce"
-      checkNonce.apply("nonce") returns true
+      checkNonce.validate("nonce") returns true
       request.timestampSecs returns 1363119598
       request.signature returns "cNwF13Zo%2FIaX8MT6QdYlJWn%2B4%2F4%3D"
       request.normalizedRequest returns "GET&https%3A%2F%2Fapi.twitter.com%2F1.1%2Fusers%2Flookup.json&oauth_consumer_key%3Dabcd%26oauth_nonce%3Dnonce%26oauth_signature_method%3DHMAC-SHA1%26oauth_timestamp%3D1363119598%26oauth_token%3Dijkl%26oauth_version%3D1.0%26user_id%3D1234567890"
@@ -106,7 +106,7 @@ class VerifierSpec extends SpecificationWithJUnit with Mockito {
     "return OK for good request" in {
       val verify = new StandardVerifier(signer, -1, -1, checkNonce)
       request.nonce returns "nonce"
-      checkNonce.apply("nonce") returns true
+      checkNonce.validate("nonce") returns true
       request.timestampSecs returns 1363119598
       request.signature returns "rEh%2FpUnLF9ZSV8WmIMGARQlM2VQ%3D"
       request.normalizedRequest returns "GET&https%3A%2F%2Fapi.twitter.com%2F1.1%2Fusers%2Flookup.json&oauth_consumer_key%3Dabcd%26oauth_nonce%3Dnonce%26oauth_signature_method%3DHMAC-SHA1%26oauth_timestamp%3D1363119598%26oauth_token%3Dijkl%26oauth_version%3D1.0%26user_id%3D1234567890"

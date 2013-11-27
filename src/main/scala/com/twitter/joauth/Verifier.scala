@@ -42,9 +42,9 @@ object Verifier {
   val NO_TIMESTAMP_CHECK = -1
 
   def apply(): Verifier = new StandardVerifier(
-    Signer.getStandardSigner, NO_TIMESTAMP_CHECK, NO_TIMESTAMP_CHECK, NoopNonceValidator)
+    Signer.getStandardSigner, NO_TIMESTAMP_CHECK, NO_TIMESTAMP_CHECK, NonceValidator.NO_OP_NONCE_VALIDATOR)
   def apply(maxClockFloatAheadMins: Int, maxClockFloatBehindMins: Int) = new StandardVerifier(
-    Signer.getStandardSigner, maxClockFloatAheadMins, maxClockFloatBehindMins, NoopNonceValidator)
+    Signer.getStandardSigner, maxClockFloatAheadMins, maxClockFloatBehindMins, NonceValidator.NO_OP_NONCE_VALIDATOR)
   def apply(
     maxClockFloatAheadMins: Int,
     maxClockFloatBehindMins: Int,
@@ -113,7 +113,7 @@ extends Verifier {
     if (!validateTimestampSecs(timestampSecs)) {
       log.debug("bad timestamp -> {}", request.toString)
       VerifierResult.BAD_TIMESTAMP
-    } else if (!validateNonce(nonce)) {
+    } else if (!validateNonce.validate(nonce)) {
       log.debug("bad nonce -> {}", request.toString)
       VerifierResult.BAD_NONCE
     } else if (!validateSignature(normalizedRequest, signature, tokenSecret, consumerSecret)) {
