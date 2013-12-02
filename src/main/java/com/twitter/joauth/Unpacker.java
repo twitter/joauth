@@ -1,0 +1,342 @@
+// Copyright 2011 Twitter, Inc.
+//
+// Licensed under the Apache License, Version 2.0 (the "License"); you may not use this
+// file except in compliance with the License. You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software distributed
+// under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
+// CONDITIONS OF ANY KIND, either express or implied. See the License for the
+// specific language governing permissions and limitations under the License.
+
+package com.twitter.joauth;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import com.twitter.joauth.keyvalue.*;
+
+import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+
+/**
+ * An Unpacker takes an Request and optionally a Seq[KeyValueHandler],
+ * and parses the request into an OAuthRequest instance, invoking each KeyValueHandler
+ * for every key/value pair obtained from either the queryString or the request body.
+ * If no valid request can be obtained, an UnpackerException is thrown.
+ */
+public interface Unpacker {
+  public UnpackedRequest unpack(Request request) throws UnpackerException;
+    //apply(request, Seq());
+
+  public UnpackedRequest unpack(Request request, KeyValueHandler kvHandler) throws UnpackerException;
+//    apply(request, Seq(kvHandler))
+
+  public UnpackedRequest unpack(Request request, ArrayList<KeyValueHandler> kvHandlers) throws UnpackerException;
+
+/**
+ * A convenience factory for a StandardUnpacker
+ */
+/*
+object Unpacker {
+  def apply(): Unpacker[Request] = StandardUnpacker()
+
+  def apply(
+    helper: OAuthParams.OAuthParamsHelper,
+    normalizer: Normalizer,
+    queryParser: KeyValueParser,
+    headerParser: KeyValueParser): Unpacker[Request] =
+  new StandardUnpacker[Request](helper, normalizer, queryParser, headerParser)
+}
+
+object CustomizableUnpacker {
+  val AUTH_HEADER_REGEX = """^(\S+)\s+(.*)$""".r
+  val WWW_FORM_URLENCODED = "application/x-www-form-urlencoded"
+  val HTTPS = "HTTPS"
+  val UTF_8 = "UTF-8"
+
+  private val log = LoggerFactory.getLogger(getClass.getName)
+
+}
+*/
+
+
+  public static interface KeyValueCallback {
+    public KeyValueHandler invoke(KeyValueHandler input);
+  }
+
+  public static interface OAuth2Checker {
+    public boolean shouldAllowOAuth2(Request request, Request.ParsedRequest parsedRequest);
+  }
+
+
+  public static class CustomizableUnpacker implements Unpacker {
+
+    private static final String WWW_FORM_URLENCODED = "application/x-www-form-urlencoded";
+    static final String HTTPS = "HTTPS";
+    private static final Logger log = LoggerFactory.getLogger("CustomizableUnpacker");
+
+    OAuthParams.OAuthParamsHelper helper;
+    Normalizer normalizer;
+    KeyValueParser queryParser;
+    KeyValueParser headerParser;
+    KeyValueCallback queryParamTransformer;
+    KeyValueCallback bodyParamTransformer;
+    KeyValueCallback headerTransformer;
+    OAuth2Checker shouldAllowOAuth2;
+
+    public CustomizableUnpacker(
+      OAuthParams.OAuthParamsHelper helper,
+      Normalizer normalizer,
+      KeyValueParser queryParser,
+      KeyValueParser headerParser,
+      KeyValueCallback queryParamTransformer,
+      KeyValueCallback bodyParamTransformer,
+      KeyValueCallback headerTransformer,
+      OAuth2Checker shouldAllowOAuth2
+    ) {
+      this.helper = helper;
+      this.normalizer = normalizer;
+      this.queryParser = queryParser;
+      this.headerParser = headerParser;
+      this.queryParamTransformer = queryParamTransformer;
+      this.bodyParamTransformer = bodyParamTransformer;
+      this.headerTransformer = headerTransformer;
+      this.shouldAllowOAuth2 = shouldAllowOAuth2;
+    }
+
+    private KeyValueHandler createKeyValueHandler(
+      KeyValueHandler kvHandler,
+      KeyValueCallback transformer
+    ) {
+
+      Transformer processKey = new Transformer() {
+        public String transform(String input) {
+          return helper.processKey(input);
+        }
+      };
+
+      return new KeyValueHandler.KeyTransformingKeyValueHandler(
+          new KeyValueHandler.TrimmingKeyValueHandler(transformer.invoke(kvHandler)),
+          processKey);
+    }
+
+    public KeyValueHandler queryParamKeyValueHandler(KeyValueHandler kvHandler) {
+      return createKeyValueHandler(kvHandler, queryParamTransformer);
+    }
+
+    public KeyValueHandler bodyParamKeyValueHandler(KeyValueHandler kvHandler) {
+      return createKeyValueHandler(kvHandler, bodyParamTransformer);
+    }
+
+    public KeyValueHandler headerParamKeyValueHandler(KeyValueHandler kvHandler) {
+      return createKeyValueHandler(kvHandler, headerTransformer);
+    }
+
+
+    public void parseHeader(String header, KeyValueHandler nonTransformingHandler){
+      // trim, normalize encodings
+      KeyValueHandler handler = headerParamKeyValueHandler(nonTransformingHandler);
+
+      // check for OAuth credentials in the header. OAuth 1.0a and 2.0 have
+      // different header schemes, so match first on the auth scheme.
+      if (header != null) {
+        int spaceIndex = header.indexOf(' ');
+
+        if (spaceIndex != -1 && spaceIndex != 0 && spaceIndex + 1 < header.length()) {
+          String authType = header.substring(0, spaceIndex);
+          String authString = header.substring(spaceIndex+1, header.length());
+
+          boolean shouldParse = false;
+          boolean oauth2 = false;
+
+          if (authType.toLowerCase().equals(OAuthParams.OAUTH2_HEADER_AUTHTYPE)) {
+            shouldParse = false;
+            oauth2 = true;
+          } else if (authType.toLowerCase().equals(OAuthParams.OAUTH1_HEADER_AUTHTYPE)) {
+            shouldParse = true;
+            oauth2 = false;
+          }
+
+          if (shouldParse) {
+            // if we were able match an appropriate auth header,
+            // we'll wrap that handler with a MaybeQuotedValueKeyValueHandler,
+            // which will strip quotes from quoted values before passing
+            // to the underlying handler
+            KeyValueHandler quotedHandler = new KeyValueHandler.MaybeQuotedValueKeyValueHandler(handler);
+
+            // now we'll pass the handler to the headerParser,
+            // which splits on commas rather than ampersands,
+            // and is more forgiving with whitespace
+            ArrayList<KeyValueHandler> handlers = new ArrayList<KeyValueHandler>(1);
+            handlers.add(quotedHandler);
+            headerParser.parse(authString, handlers);
+          } else if (oauth2) {
+            nonTransformingHandler.handle(OAuthParams.BEARER_TOKEN, authString);
+          }
+        }
+      }
+    }
+
+    public OAuthParams.OAuthParamsBuilder parseRequest(Request request, ArrayList<KeyValueHandler> kvHandlers) {
+      // use an oAuthParamsBuilder instance to accumulate key/values from
+      // the query string, the request body (if the appropriate Content-Type),
+      // and the Authorization header, if any.
+      OAuthParams.OAuthParamsBuilder oAuthParamsBuilder = new OAuthParams.OAuthParamsBuilder(helper);
+
+      // parse the header, if present
+      parseHeader(request.authHeader(), oAuthParamsBuilder.headerHandler);
+
+      // If it is an oAuth2 we do not need to process any further
+      if (!oAuthParamsBuilder.isOAuth2()) {
+
+        // add our handlers to the passed-in handlers, to which
+        // we'll only send non-oauth key/values.
+        ArrayList<KeyValueHandler> queryHandlers = new ArrayList<KeyValueHandler>();
+        queryHandlers.add(queryParamKeyValueHandler(oAuthParamsBuilder.queryHandler));
+        queryHandlers.addAll(kvHandlers);
+
+        ArrayList<KeyValueHandler> bodyParamHandlers = new ArrayList<KeyValueHandler>();
+        bodyParamHandlers.add(bodyParamKeyValueHandler(oAuthParamsBuilder.queryHandler));
+        bodyParamHandlers.addAll(kvHandlers);
+
+        // parse the GET query string
+        queryParser.parse(request.queryString(), queryHandlers);
+
+        // parse the request body if the Content-Type is appropriate. Use the
+        // same set of KeyValueHandlers that we used to parse the query string.
+        if (request.contentType() != null &&
+            request.contentType().startsWith(WWW_FORM_URLENCODED)) {
+          queryParser.parse(request.body(), bodyParamHandlers);
+        }
+      }
+
+      // now we just return the accumulated parameters and OAuthParams
+      return oAuthParamsBuilder;
+    }
+
+
+
+    public UnpackedRequest unpack(Request request, ArrayList<KeyValueHandler> kvHandlers) throws UnpackerException {
+      try {
+        OAuthParams.OAuthParamsBuilder oAuthParamsBuilder = parseRequest(request, kvHandlers);
+        Request.ParsedRequest parsedRequest = request.parsedRequest(oAuthParamsBuilder.otherParams());
+
+        if (oAuthParamsBuilder.isOAuth2()) {
+          return getOAuth2Request(request, parsedRequest, oAuthParamsBuilder.oAuth2Token());
+        } else if (oAuthParamsBuilder.isOAuth1()) {
+          return getOAuth1Request(parsedRequest, oAuthParamsBuilder.oAuth1Params());
+        } else if (oAuthParamsBuilder.isOAuth1TwoLegged()) {
+          return getOAuth1TwoLeggedRequest(parsedRequest, oAuthParamsBuilder.oAuth1Params());
+        } else return new UnpackedRequest.UnknownRequest(parsedRequest);
+
+      } catch (UnpackerException u) {
+        throw u;
+      } catch (Throwable t) {
+        t.printStackTrace(); //log
+        throw new UnpackerException("could not unpack request: " + t, t);
+      }
+    }
+
+    @Override
+    public UnpackedRequest unpack(Request request) throws UnpackerException {
+      return unpack(request, new ArrayList<KeyValueHandler>());
+    }
+
+    @Override
+    public UnpackedRequest unpack(Request request, KeyValueHandler kvHandler) throws UnpackerException {
+      ArrayList<KeyValueHandler> handlers = new ArrayList<KeyValueHandler>();
+      handlers.add(kvHandler);
+      return unpack(request, handlers);
+    }
+
+    public UnpackedRequest.OAuth1Request getOAuth1Request(
+    Request.ParsedRequest parsedRequest, OAuthParams.OAuth1Params oAuth1Params) throws MalformedRequest, UnsupportedEncodingException {
+
+    log.debug("building oauth1 request -> path = {}, host = {}, token = {}, consumer key = {}, signature = {}, method = {}",
+      parsedRequest.path, parsedRequest.host, oAuth1Params.token,
+      oAuth1Params.consumerKey, oAuth1Params.signature, oAuth1Params.signatureMethod);
+
+    return UnpackedRequest.O_AUTH_1_REQUEST_HELPER.buildOAuth1Request(parsedRequest, oAuth1Params, normalizer);
+  }
+
+  public UnpackedRequest.OAuth1TwoLeggedRequest getOAuth1TwoLeggedRequest(
+    Request.ParsedRequest parsedRequest, OAuthParams.OAuth1Params oAuth1Params) throws MalformedRequest, UnsupportedEncodingException {
+
+    log.debug("building oauth1 two-legged request -> path = {}, host = {}, consumer key = {}, signature = {}, method = {}",
+      parsedRequest.path, parsedRequest.host, oAuth1Params.consumerKey,
+      oAuth1Params.signature, oAuth1Params.signatureMethod);
+
+    return UnpackedRequest.O_AUTH_1_REQUEST_HELPER.buildOAuth1TwoLeggedRequest(parsedRequest, oAuth1Params, normalizer);
+  }
+
+  public UnpackedRequest.OAuth2Request getOAuth2Request(Request request, Request.ParsedRequest parsedRequest, String token) throws UnsupportedEncodingException, MalformedRequest {
+    // OAuth 2.0 requests are totally insecure without SSL, so depend on HTTPS to provide
+    // protection against replay and man-in-the-middle attacks.
+    log.debug("building oauth2 request -> path = {}, host = {}, token = {}",
+      parsedRequest.path, parsedRequest.host, token);
+
+    if (shouldAllowOAuth2.shouldAllowOAuth2(request, parsedRequest)) {
+      return new UnpackedRequest.OAuth2Request(UrlCodec.decode(token), parsedRequest, "");
+    } else {
+      throw new MalformedRequest("OAuth 2.0 requests not allowed");
+    }
+  }
+}
+
+  /**
+   * StandardUnpacker constants, and a few more convenience factory methods, for tests
+   * that need to call methods of the StandardUnpacker directly.
+   */
+  static class StandardUnpackerFactory {
+
+    public static StandardUnpacker newUnpaker() {
+      return new StandardUnpacker(
+      OAuthParams.StandardOAuthParamsHelper, Normalizer.STANDARD_NORMALIZER, KeyValueParser.QueryKeyValueParser, KeyValueParser.HeaderKeyValueParser);
+    }
+
+    public static StandardUnpacker newUnpaker(OAuthParams.OAuthParamsHelper helper) {
+      return new StandardUnpacker(helper, Normalizer.STANDARD_NORMALIZER, KeyValueParser.QueryKeyValueParser, KeyValueParser.HeaderKeyValueParser);
+    }
+  }
+
+  class StandardUnpacker extends CustomizableUnpacker {
+
+    final static KeyValueCallback callback = new KeyValueCallback() {
+      @Override
+      public KeyValueHandler invoke(KeyValueHandler kvHandler) {
+        return new KeyValueHandler.UrlEncodingNormalizingKeyValueHandler(kvHandler);
+      }
+    };
+
+    final static OAuth2Checker checker = new OAuth2Checker() {
+      @Override
+      public boolean shouldAllowOAuth2(Request request, Request.ParsedRequest parsedRequest) {
+        return CustomizableUnpacker.HTTPS.equalsIgnoreCase(request.scheme());
+      }
+    };
+
+    public StandardUnpacker(
+      OAuthParams.OAuthParamsHelper helper,
+      Normalizer normalizer,
+      KeyValueParser queryParser,
+      KeyValueParser headerParser) {
+
+      super(helper, normalizer, queryParser, headerParser, callback, callback, callback, checker);
+    }
+
+    /*
+    helper,
+    normalizer,
+    queryParser,
+    headerParser,
+    (kvHandler: KeyValueHandler) => new KeyValueHandler.UrlEncodingNormalizingKeyValueHandler(kvHandler),
+    (kvHandler: KeyValueHandler) => new KeyValueHandler.UrlEncodingNormalizingKeyValueHandler(kvHandler),
+    (kvHandler: KeyValueHandler) => new KeyValueHandler.UrlEncodingNormalizingKeyValueHandler(kvHandler),
+    (_: RequestImpl, p: Request.ParsedRequest) => p.scheme == StandardUnpacker.HTTPS
+    )
+    */
+
+  }
+}
+
