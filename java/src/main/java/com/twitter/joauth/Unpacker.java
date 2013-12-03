@@ -12,12 +12,12 @@
 
 package com.twitter.joauth;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import com.twitter.joauth.keyvalue.*;
 
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * An Unpacker takes an Request and optionally a Seq[KeyValueHandler],
@@ -47,7 +47,7 @@ public interface Unpacker {
 
     private static final String WWW_FORM_URLENCODED = "application/x-www-form-urlencoded";
     static final String HTTPS = "HTTPS";
-    private static final Logger log = LoggerFactory.getLogger("CustomizableUnpacker");
+    private static final Logger log = Logger.getLogger("CustomizableUnpacker");
 
     private OAuthParams.OAuthParamsHelper helper;
     private Normalizer normalizer;
@@ -231,9 +231,11 @@ public interface Unpacker {
       OAuthParams.OAuth1Params oAuth1Params
     ) throws MalformedRequest, UnsupportedEncodingException {
 
-    log.debug("building oauth1 request -> path = {}, host = {}, token = {}, consumer key = {}, signature = {}, method = {}",
-      parsedRequest.path, parsedRequest.host, oAuth1Params.token,
-      oAuth1Params.consumerKey, oAuth1Params.signature, oAuth1Params.signatureMethod);
+    if (log.isLoggable(Level.FINE)) {
+      log.log(Level.FINE, String.format("building oauth1 request -> path = %s, host = %s, token = %s, consumer key = %s, signature = %s, method = %s",
+        parsedRequest.path, parsedRequest.host, oAuth1Params.token,
+        oAuth1Params.consumerKey, oAuth1Params.signature, oAuth1Params.signatureMethod));
+    }
 
     return UnpackedRequest.O_AUTH_1_REQUEST_HELPER.buildOAuth1Request(parsedRequest, oAuth1Params, normalizer);
   }
@@ -243,9 +245,11 @@ public interface Unpacker {
     OAuthParams.OAuth1Params oAuth1Params
   ) throws MalformedRequest, UnsupportedEncodingException {
 
-    log.debug("building oauth1 two-legged request -> path = {}, host = {}, consumer key = {}, signature = {}, method = {}",
-      parsedRequest.path, parsedRequest.host, oAuth1Params.consumerKey,
-      oAuth1Params.signature, oAuth1Params.signatureMethod);
+    if (log.isLoggable(Level.FINE)) {
+      log.log(Level.FINE, String.format("building oauth1 two-legged request -> path = %s, host = %s, consumer key = %s, signature = %s, method = %s",
+        parsedRequest.path, parsedRequest.host, oAuth1Params.consumerKey,
+        oAuth1Params.signature, oAuth1Params.signatureMethod));
+    }
 
     return UnpackedRequest.O_AUTH_1_REQUEST_HELPER.buildOAuth1TwoLeggedRequest(parsedRequest, oAuth1Params, normalizer);
   }
@@ -258,8 +262,10 @@ public interface Unpacker {
 
     // OAuth 2.0 requests are totally insecure without SSL, so depend on HTTPS to provide
     // protection against replay and man-in-the-middle attacks.
-    log.debug("building oauth2 request -> path = {}, host = {}, token = {}",
-      parsedRequest.path, parsedRequest.host, token);
+    if (log.isLoggable(Level.FINE)) {
+      log.log(Level.FINE, String.format("building oauth2 request -> path = %s, host = %s, token = %s",
+        parsedRequest.path, parsedRequest.host, token));
+    }
 
     if (shouldAllowOAuth2.shouldAllowOAuth2(request, parsedRequest)) {
       return new UnpackedRequest.OAuth2Request(UrlCodec.decode(token), parsedRequest, "");

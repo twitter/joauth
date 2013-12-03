@@ -12,8 +12,7 @@
 
 package com.twitter.joauth;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.logging.Logger;
 
 /**
  * A Verifier takes either
@@ -83,7 +82,7 @@ public interface Verifier {
     private final long maxClockFloatAheadSecs;
     private final long maxClockFloatBehindSecs;
 
-    private static final Logger log = LoggerFactory.getLogger("StandardVerifier");
+    private static final Logger log = Logger.getLogger("StandardVerifier");
 
     public StandardVerifier(
       Signer signer,
@@ -136,13 +135,13 @@ public interface Verifier {
       String normalizedRequest
     ) {
       if (!validateTimestampSecs(timestampSecs)) {
-        log.debug("bad timestamp -> {}", request.toString());
+        log.info(String.format("bad timestamp -> %s", request.toString()));
         return VerifierResult.BAD_TIMESTAMP;
       } else if (!validateNonce.validate(nonce)) {
-        log.debug("bad nonce -> {}", request.toString());
+        log.info(String.format("bad nonce -> %s", request.toString()));
         return VerifierResult.BAD_NONCE;
       } else if (!validateSignature(normalizedRequest, signature, tokenSecret, consumerSecret)) {
-        log.debug("bad signature -> {}", request.toString());
+        log.info(String.format("bad signature -> %s", request.toString()));
         return VerifierResult.BAD_SIGNATURE;
       } else {
         return VerifierResult.OK;
