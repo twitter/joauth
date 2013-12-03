@@ -30,7 +30,6 @@ public interface Verifier {
   public VerifierResult verify(UnpackedRequest.OAuth1Request request, String tokenSecret, String consumerSecret);
   public VerifierResult verify(UnpackedRequest.OAuth1TwoLeggedRequest request, String consumerSecret);
 
-
   /**
    * a factory with various convenience constructors for a StandardVerifier
    */
