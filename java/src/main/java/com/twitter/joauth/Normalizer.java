@@ -24,11 +24,8 @@ public abstract class Normalizer {
 
   static final String HTTP = "HTTP";
   static final String HTTPS = "HTTPS";
-  static final String AND = "&";
-  static final String COLON = ":";
-  static final String EQ = "=";
-  static final String COLON_SLASH_SLASH = "://";
 
+  public static final StandardNormalizer STANDARD_NORMALIZER = new StandardNormalizer();
 
   public abstract String normalize(
     String scheme,
@@ -37,14 +34,12 @@ public abstract class Normalizer {
     String verb,
     String path,
     ArrayList<Request.Pair> params,
-    OAuthParams.OAuth1Params oAuth1Params);
+    OAuthParams.OAuth1Params oAuth1Params
+  );
 
   public String normalize(Request.ParsedRequest req, OAuthParams.OAuth1Params oAuth1Params) {
     return normalize(req.scheme, req.host, req.port, req.verb, req.path, req.params, oAuth1Params);
   }
-
-  public static final StandardNormalizer STANDARD_NORMALIZER = new StandardNormalizer();
-
 
   /**
    * the standard implementation of the Normalizer trait. Though stateless and threadsafe,
@@ -53,15 +48,16 @@ public abstract class Normalizer {
    */
   static class StandardNormalizer extends Normalizer {
 
-    //case class ParameterValuePair(param: String, value: String)
+    /* TODO: there is no way to clear string builder in java. see what can be done here.
+     Not using thread local.
 
-    /* TODO: there is no way to clear string builder in java. see what can be done here */
     private static final ThreadLocal<StringBuilder> builders = new ThreadLocal<StringBuilder>() {
       @Override
       protected StringBuilder initialValue() {
         return new StringBuilder(512);
       }
     };
+    */
 
     public String normalize(
         String scheme,
@@ -70,7 +66,8 @@ public abstract class Normalizer {
         String verb,
         String path,
         ArrayList<Request.Pair> params,
-        OAuthParams.OAuth1Params oAuth1Params) {
+        OAuthParams.OAuth1Params oAuth1Params
+    ) {
 
       // We only need the stringbuilder for the duration of this method
       StringBuilder paramsBuilder = new StringBuilder(512);

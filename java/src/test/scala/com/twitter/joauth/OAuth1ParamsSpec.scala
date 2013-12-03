@@ -12,8 +12,6 @@
 
 package com.twitter.joauth
 
-import com.twitter.joauth.keyvalue.KeyValueHandler
-
 import org.specs.mock.Mockito
 import org.specs.SpecificationWithJUnit
 
@@ -174,13 +172,13 @@ class OAuthParamsSpec extends SpecificationWithJUnit with Mockito {
   }
   "StandardOAuthParamsHelper.parseTimestamp" should {
     "parse legit timestamp" in {
-      OAuthParams.StandardOAuthParamsHelper.parseTimestamp("45") mustEqual 45
+      OAuthParams.STANDARD_OAUTH_PARAMS_HELPER.parseTimestamp("45") mustEqual 45
     }
     "return None for bad timestamp" in {
-      OAuthParams.StandardOAuthParamsHelper.parseTimestamp("abdf") must beNull
+      OAuthParams.STANDARD_OAUTH_PARAMS_HELPER.parseTimestamp("abdf") must beNull
     }
     "return None for null timestamp" in {
-      OAuthParams.StandardOAuthParamsHelper.parseTimestamp(null) must beNull
+      OAuthParams.STANDARD_OAUTH_PARAMS_HELPER.parseTimestamp(null) must beNull
     }
   }
 }

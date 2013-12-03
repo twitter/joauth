@@ -47,7 +47,7 @@ class NormalizerSpec extends SpecificationWithJUnit {
                 verb,
                 testCase.path,
                 ConversionUtil.toArrayList(testCase.parameters.map { case (k, v) =>
-                  new Request.Pair(Transformer.urlEncodingNormalizingTransformer.transform(k), Transformer.urlEncodingNormalizingTransformer.transform(v))
+                  new Request.Pair(Transformer.URL_ENCODING_NORMALIZING_TRANSFORMER.transform(k), Transformer.URL_ENCODING_NORMALIZING_TRANSFORMER.transform(v))
                 }),
                 testCase.oAuth1Params(post))
 

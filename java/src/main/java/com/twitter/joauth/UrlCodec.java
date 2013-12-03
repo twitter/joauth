@@ -49,6 +49,7 @@ public class UrlCodec {
     if (s == null) {
       return null;
     }
+
     StringBuilder sb = null;
 
     int startingIndex = 0;

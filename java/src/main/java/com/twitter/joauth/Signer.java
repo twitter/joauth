@@ -25,7 +25,7 @@ import java.security.NoSuchAlgorithmException;
  */
 public abstract class Signer {
 
-  private static final Signer standardSigner = new StandardSigner();
+  private static final Signer STANDARD_SIGNER = new StandardSigner();
 
   /**
    * produce an encoded signature string
@@ -46,12 +46,12 @@ public abstract class Signer {
 
 
   public static Signer getStandardSigner() {
-    return standardSigner;
+    return STANDARD_SIGNER;
   }
 
 
   /**
-   * the standard implmenentation of the Signer trait. Though stateless and threadsafe,
+   * the standard implementation of the Signer trait. Though stateless and threadsafe,
    * this is a class rather than an object to allow easy access from Java. Scala codebases
    * should use the corresponding StandardSigner object instead.
    */
@@ -74,7 +74,7 @@ public abstract class Signer {
       String key = consumerSecret + AND + tokenSecret;
       SecretKeySpec signingKey = new SecretKeySpec(key.getBytes(StandardSigner.UTF_8), HMACSHA1);
 
-      // TODO: consider synchronizing this, apparently Mac may not be threadsafe
+      // TODO: consider synchronizing this, apparently Mac may not be threadsafe, or use a thread local
       Mac mac = Mac.getInstance(HMACSHA1);
       mac.init(signingKey);
       return mac.doFinal(str.getBytes(UTF_8));
@@ -84,8 +84,6 @@ public abstract class Signer {
       return Base64.decodeBase64(UrlCodec.decode(signature).trim());
     }
   }
-
-
 
   /**
    * For testing. Always returns the same string

@@ -26,6 +26,8 @@ import org.slf4j.LoggerFactory;
 public interface Verifier {
   static int NO_TIMESTAMP_CHECK = -1;
 
+  //TODO: swap the order of the consumerSecret and tokenSecret because consumer secrets are required for all oauth1 requests
+
   public VerifierResult verify(UnpackedRequest.OAuth1Request request, String tokenSecret, String consumerSecret);
   public VerifierResult verify(UnpackedRequest.OAuth1TwoLeggedRequest request, String consumerSecret);
 
@@ -35,30 +37,37 @@ public interface Verifier {
    */
   public static class VerifierFactory {
 
-
     public static Verifier newVerifier() {
       return newVerifier(
-          Signer.getStandardSigner(), NO_TIMESTAMP_CHECK, NO_TIMESTAMP_CHECK, NonceValidator.NO_OP_NONCE_VALIDATOR);
+        Signer.getStandardSigner(),
+        NO_TIMESTAMP_CHECK,
+        NO_TIMESTAMP_CHECK,
+        NonceValidator.NO_OP_NONCE_VALIDATOR
+      );
     }
 
     public static Verifier newVerifier(int maxClockFloatAheadMins, int maxClockFloatBehindMins) {
-      return newVerifier(Signer.getStandardSigner(), maxClockFloatAheadMins,
-          maxClockFloatBehindMins, NonceValidator.NO_OP_NONCE_VALIDATOR);
+      return newVerifier(
+        Signer.getStandardSigner(),
+        maxClockFloatAheadMins,
+        maxClockFloatBehindMins,
+        NonceValidator.NO_OP_NONCE_VALIDATOR
+      );
     }
 
     public static Verifier newVerifier(
-        int maxClockFloatAheadMins,
-        int maxClockFloatBehindMins,
-        NonceValidator validateNonce
+      int maxClockFloatAheadMins,
+      int maxClockFloatBehindMins,
+      NonceValidator validateNonce
     ) {
       return newVerifier(Signer.getStandardSigner(), maxClockFloatAheadMins, maxClockFloatBehindMins, validateNonce);
     }
 
     public static Verifier newVerifier(
-        Signer sign,
-        int maxClockFloatAheadMins,
-        int maxClockFloatBehindMins,
-        NonceValidator validateNonce
+      Signer sign,
+      int maxClockFloatAheadMins,
+      int maxClockFloatBehindMins,
+      NonceValidator validateNonce
     ) {
       return new StandardVerifier(sign, maxClockFloatAheadMins, maxClockFloatBehindMins, validateNonce);
     }
@@ -94,26 +103,26 @@ public interface Verifier {
     @Override
     public VerifierResult verify(UnpackedRequest.OAuth1TwoLeggedRequest request, String consumerSecret) {
       return verifyOAuth1(
-          request,
-          request.nonce(),
-          request.timestampSecs(),
-          "",
-          consumerSecret,
-          request.signature(),
-          request.normalizedRequest()
+        request,
+        request.nonce(),
+        request.timestampSecs(),
+        "",
+        consumerSecret,
+        request.signature(),
+        request.normalizedRequest()
       );
     }
 
     @Override
     public VerifierResult verify(UnpackedRequest.OAuth1Request request, String tokenSecret, String consumerSecret) {
       return verifyOAuth1(
-          request,
-          request.nonce(),
-          request.timestampSecs(),
-          tokenSecret,
-          consumerSecret,
-          request.signature(),
-          request.normalizedRequest()
+        request,
+        request.nonce(),
+        request.timestampSecs(),
+        tokenSecret,
+        consumerSecret,
+        request.signature(),
+        request.normalizedRequest()
       );
     }
 
@@ -142,15 +151,17 @@ public interface Verifier {
 
     public boolean validateTimestampSecs(long timestampSecs) {
       long nowSecs = System.currentTimeMillis() / 1000;
+
       return (maxClockFloatBehindMins < 0 || (timestampSecs >= nowSecs - maxClockFloatBehindSecs)) &&
-          (maxClockFloatAheadMins < 0 || (timestampSecs <= nowSecs + maxClockFloatAheadSecs));
+        (maxClockFloatAheadMins < 0 || (timestampSecs <= nowSecs + maxClockFloatAheadSecs));
     }
 
     boolean validateSignature(
-        String normalizedRequest,
-        String signature,
-        String tokenSecret,
-        String consumerSecret) {
+      String normalizedRequest,
+      String signature,
+      String tokenSecret,
+      String consumerSecret
+    ) {
       try {
         return Base64Util.equals(UrlCodec.decode(signature).trim(),
             signer.getBytes(normalizedRequest, tokenSecret, consumerSecret));

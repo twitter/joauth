@@ -23,8 +23,7 @@ import java.util.*;
 public interface KeyValueHandler {
   public void handle(String key, String value);
 
-
-  public final KeyValueHandler nullKeyValueHandler = new NullKeyValueHandler();
+  public final KeyValueHandler NULL_KEY_VALUE_HANDLER = new NullKeyValueHandler();
 
   static class NullKeyValueHandler implements KeyValueHandler {
     public void handle(String key, String value) {
@@ -44,7 +43,6 @@ public interface KeyValueHandler {
 
     public ArrayList<Request.Pair> toList() {
       return buffer;
-      //return (ArrayList<Request.Pair>) buffer.clone();
     }
   }
 
@@ -118,7 +116,6 @@ public interface KeyValueHandler {
    * underlying KeyValueHandler
    */
   public static class TransformingKeyValueHandler implements KeyValueHandler {
-
     protected final KeyValueHandler underlying;
     protected final Transformer keyTransformer;
     protected final Transformer valueTransformer;
@@ -141,7 +138,7 @@ public interface KeyValueHandler {
   public class TrimmingKeyValueHandler extends TransformingKeyValueHandler {
 
     public TrimmingKeyValueHandler(KeyValueHandler underlying) {
-      super(underlying, Transformer.trimTransformer, Transformer.trimTransformer);
+      super(underlying, Transformer.TRIM_TRANSFORMER, Transformer.TRIM_TRANSFORMER);
     }
   }
 
@@ -182,7 +179,7 @@ public interface KeyValueHandler {
   public static class UrlEncodingNormalizingKeyValueHandler extends TransformingKeyValueHandler {
 
     public UrlEncodingNormalizingKeyValueHandler(KeyValueHandler underlying) {
-      super(underlying, Transformer.urlEncodingNormalizingTransformer, Transformer.urlEncodingNormalizingTransformer);
+      super(underlying, Transformer.URL_ENCODING_NORMALIZING_TRANSFORMER, Transformer.URL_ENCODING_NORMALIZING_TRANSFORMER);
     }
   }
 
@@ -199,7 +196,7 @@ public interface KeyValueHandler {
       if (invoked) {
         if (_key != null) _key = null;
       } else {
-        invoked = true; //todo: bug, should invoked be set to true, if _key is not set?
+        invoked = true; //TODO: bug? should invoked be set to true, if _key is not set?
         if (value == null || value.equals("")) _key = key;
       }
     }
@@ -209,48 +206,3 @@ public interface KeyValueHandler {
     }
   }
 }
-
-
-/**
- * The MaybeQuotedValueKeyValueHandler passes quoted and unquoted values,
- * removing quotes along the way.
- */
-/*
-object MaybeQuotedSingleKeyValueHandler {
-  val QUOTED_REGEX = """^\s*\"(.*)\"\s*$""".r
-}
-class MaybeQuotedValueKeyValueHandler(underlying: KeyValueHandler) extends KeyValueHandler {
-  import MaybeQuotedSingleKeyValueHandler._
-  override def apply(k: String, v: String): Unit = {
-    v match {
-      case QUOTED_REGEX(quotedV) => underlying(k, quotedV)
-      case _ => underlying(k, v)
-    }
-  }
-}
-*/
-
-
-
-
-
-/**
- * ValueTransformingKeyValueHandler applies a Transformer to the value
- * before passing the key value pair to the underlying KeyValueHandler
- */
-/*
-class ValueTransformingKeyValueHandler(
-    underlying: KeyValueHandler, valueTransform: String => String) extends KeyValueHandler {
-  override def apply(k: String, v: String): Unit = underlying(k, valueTransform(v))
-}
-*/
-
-/**
- * UrlEncodingNormalizingKeyValueHandler normalizes URLEncoded
- * keys and values, to properly capitalize them
- */
-/*
-class UrlEncodingNormalizingKeyValueHandler(underlying: KeyValueHandler)
-    extends TransformingKeyValueHandler(
-      underlying, Transformer.urlEncodingNormalizingTransformer, Transformer.urlEncodingNormalizingTransformer)
-      */

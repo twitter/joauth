@@ -1,6 +1,5 @@
 package com.twitter.joauth
 
-
 object ConversionUtil {
 
   def toSeq[T](arrayList: java.util.ArrayList[T]) = {

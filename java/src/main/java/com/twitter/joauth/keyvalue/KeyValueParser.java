@@ -15,13 +15,13 @@ package com.twitter.joauth.keyvalue;
 import com.twitter.joauth.Request;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 
 /**
  * The KeyValueParser trait describes a parser that takes a String and a Seq[KeyValueHandler],
  * and calls each handler for each key/value pair encountered in the parsed String
  */
 public interface KeyValueParser {
+
   public void parse(String input, ArrayList<KeyValueHandler> handlers);
 
 
@@ -58,6 +58,7 @@ public interface KeyValueParser {
       if (empty(input)) return;
 
       String[] tokens = input.split(delimiter);
+
       for (String token : tokens) {
         String[] keyAndValue = token.split(kvDelimiter);
         switch (keyAndValue.length) {
@@ -86,6 +87,7 @@ public interface KeyValueParser {
   /**
    * For testing. Calls the KeyValueParsers with the same List of key/value pairs every time
    */
+  //TODO: This is not used, remove?
   public static class ConstKeyValueParser implements KeyValueParser {
     ArrayList<Request.Pair> pairs;
 

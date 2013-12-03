@@ -15,6 +15,8 @@ package com.twitter.joauth;
 import java.util.ArrayList;
 
 public abstract class Request {
+  //TODO use java style getXXX getters
+
   abstract public String authHeader();
   abstract public String body();
   abstract public String contentType();
@@ -25,20 +27,19 @@ public abstract class Request {
   abstract public String queryString();
   abstract public String scheme();
 
-
   public ParsedRequest parsedRequest(ArrayList<Pair> params) {
-    ParsedRequest request = new ParsedRequest();
-    if (scheme() != null) request.scheme = scheme().toUpperCase();
-    request.host = host();
-    request.port = port();
-    if (method() != null) request.verb = method().toUpperCase();
-    request.path = path();
-    request.params = params;
-
-    return request;
+    return new ParsedRequest(
+      (scheme() == null) ? null : scheme().toUpperCase(),
+      host(),
+      port(),
+      (method() == null) ? null : method().toUpperCase(),
+      path(),
+      params
+    );
   }
 
   public static class Pair {
+
     public Pair(String key, String value) {
       this.key = key;
       this.value = value;
@@ -77,8 +78,12 @@ public abstract class Request {
   }
 
   public static class ParsedRequest {
-    ParsedRequest() {
-    }
+    public final String scheme;
+    public final String host;
+    public final int port;
+    public final String verb;
+    public final String path;
+    public final ArrayList<Pair> params;
 
     public ParsedRequest(String scheme, String host, int port, String verb, String path, ArrayList<Pair> params) {
       this.scheme = scheme;
@@ -89,12 +94,6 @@ public abstract class Request {
       this.params = params;
     }
 
-    public String scheme;
-    public String host;
-    public int port;
-    public String verb;
-    public String path;
-    public ArrayList<Pair> params;
 
     @Override
     public String toString() {

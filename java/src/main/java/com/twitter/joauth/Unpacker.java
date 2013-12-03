@@ -27,40 +27,13 @@ import java.util.ArrayList;
  */
 public interface Unpacker {
   public UnpackedRequest unpack(Request request) throws UnpackerException;
-    //apply(request, Seq());
 
   public UnpackedRequest unpack(Request request, KeyValueHandler kvHandler) throws UnpackerException;
-//    apply(request, Seq(kvHandler))
 
   public UnpackedRequest unpack(Request request, ArrayList<KeyValueHandler> kvHandlers) throws UnpackerException;
 
-/**
- * A convenience factory for a StandardUnpacker
- */
-/*
-object Unpacker {
-  def apply(): Unpacker[Request] = StandardUnpacker()
 
-  def apply(
-    helper: OAuthParams.OAuthParamsHelper,
-    normalizer: Normalizer,
-    queryParser: KeyValueParser,
-    headerParser: KeyValueParser): Unpacker[Request] =
-  new StandardUnpacker[Request](helper, normalizer, queryParser, headerParser)
-}
-
-object CustomizableUnpacker {
-  val AUTH_HEADER_REGEX = """^(\S+)\s+(.*)$""".r
-  val WWW_FORM_URLENCODED = "application/x-www-form-urlencoded"
-  val HTTPS = "HTTPS"
-  val UTF_8 = "UTF-8"
-
-  private val log = LoggerFactory.getLogger(getClass.getName)
-
-}
-*/
-
-
+  //TODO: callback and checker can be removed. unnecessary indirection, carried over from scala.
   public static interface KeyValueCallback {
     public KeyValueHandler invoke(KeyValueHandler input);
   }
@@ -76,14 +49,14 @@ object CustomizableUnpacker {
     static final String HTTPS = "HTTPS";
     private static final Logger log = LoggerFactory.getLogger("CustomizableUnpacker");
 
-    OAuthParams.OAuthParamsHelper helper;
-    Normalizer normalizer;
-    KeyValueParser queryParser;
-    KeyValueParser headerParser;
-    KeyValueCallback queryParamTransformer;
-    KeyValueCallback bodyParamTransformer;
-    KeyValueCallback headerTransformer;
-    OAuth2Checker shouldAllowOAuth2;
+    private OAuthParams.OAuthParamsHelper helper;
+    private Normalizer normalizer;
+    private KeyValueParser queryParser;
+    private KeyValueParser headerParser;
+    private KeyValueCallback queryParamTransformer;
+    private KeyValueCallback bodyParamTransformer;
+    private KeyValueCallback headerTransformer;
+    private OAuth2Checker shouldAllowOAuth2;
 
     public CustomizableUnpacker(
       OAuthParams.OAuthParamsHelper helper,
@@ -133,7 +106,6 @@ object CustomizableUnpacker {
       return createKeyValueHandler(kvHandler, headerTransformer);
     }
 
-
     public void parseHeader(String header, KeyValueHandler nonTransformingHandler){
       // trim, normalize encodings
       KeyValueHandler handler = headerParamKeyValueHandler(nonTransformingHandler);
@@ -141,6 +113,8 @@ object CustomizableUnpacker {
       // check for OAuth credentials in the header. OAuth 1.0a and 2.0 have
       // different header schemes, so match first on the auth scheme.
       if (header != null) {
+        //TODO: make sure oauth1 and oauth2 check is correct.
+
         int spaceIndex = header.indexOf(' ');
 
         if (spaceIndex != -1 && spaceIndex != 0 && spaceIndex + 1 < header.length()) {
@@ -228,12 +202,14 @@ object CustomizableUnpacker {
           return getOAuth1Request(parsedRequest, oAuthParamsBuilder.oAuth1Params());
         } else if (oAuthParamsBuilder.isOAuth1TwoLegged()) {
           return getOAuth1TwoLeggedRequest(parsedRequest, oAuthParamsBuilder.oAuth1Params());
-        } else return new UnpackedRequest.UnknownRequest(parsedRequest);
+        } else {
+          return new UnpackedRequest.UnknownRequest(parsedRequest);
+        }
 
       } catch (UnpackerException u) {
         throw u;
       } catch (Throwable t) {
-        t.printStackTrace(); //log
+        t.printStackTrace(); //TODO: log instead?
         throw new UnpackerException("could not unpack request: " + t, t);
       }
     }
@@ -251,7 +227,9 @@ object CustomizableUnpacker {
     }
 
     public UnpackedRequest.OAuth1Request getOAuth1Request(
-    Request.ParsedRequest parsedRequest, OAuthParams.OAuth1Params oAuth1Params) throws MalformedRequest, UnsupportedEncodingException {
+      Request.ParsedRequest parsedRequest,
+      OAuthParams.OAuth1Params oAuth1Params
+    ) throws MalformedRequest, UnsupportedEncodingException {
 
     log.debug("building oauth1 request -> path = {}, host = {}, token = {}, consumer key = {}, signature = {}, method = {}",
       parsedRequest.path, parsedRequest.host, oAuth1Params.token,
@@ -261,7 +239,9 @@ object CustomizableUnpacker {
   }
 
   public UnpackedRequest.OAuth1TwoLeggedRequest getOAuth1TwoLeggedRequest(
-    Request.ParsedRequest parsedRequest, OAuthParams.OAuth1Params oAuth1Params) throws MalformedRequest, UnsupportedEncodingException {
+    Request.ParsedRequest parsedRequest,
+    OAuthParams.OAuth1Params oAuth1Params
+  ) throws MalformedRequest, UnsupportedEncodingException {
 
     log.debug("building oauth1 two-legged request -> path = {}, host = {}, consumer key = {}, signature = {}, method = {}",
       parsedRequest.path, parsedRequest.host, oAuth1Params.consumerKey,
@@ -270,7 +250,12 @@ object CustomizableUnpacker {
     return UnpackedRequest.O_AUTH_1_REQUEST_HELPER.buildOAuth1TwoLeggedRequest(parsedRequest, oAuth1Params, normalizer);
   }
 
-  public UnpackedRequest.OAuth2Request getOAuth2Request(Request request, Request.ParsedRequest parsedRequest, String token) throws UnsupportedEncodingException, MalformedRequest {
+  public UnpackedRequest.OAuth2Request getOAuth2Request(
+    Request request,
+    Request.ParsedRequest parsedRequest,
+    String token
+  ) throws UnsupportedEncodingException, MalformedRequest {
+
     // OAuth 2.0 requests are totally insecure without SSL, so depend on HTTPS to provide
     // protection against replay and man-in-the-middle attacks.
     log.debug("building oauth2 request -> path = {}, host = {}, token = {}",
@@ -292,11 +277,20 @@ object CustomizableUnpacker {
 
     public static StandardUnpacker newUnpaker() {
       return new StandardUnpacker(
-      OAuthParams.StandardOAuthParamsHelper, Normalizer.STANDARD_NORMALIZER, KeyValueParser.QueryKeyValueParser, KeyValueParser.HeaderKeyValueParser);
+        OAuthParams.STANDARD_OAUTH_PARAMS_HELPER,
+        Normalizer.STANDARD_NORMALIZER,
+        KeyValueParser.QueryKeyValueParser,
+        KeyValueParser.HeaderKeyValueParser
+      );
     }
 
     public static StandardUnpacker newUnpaker(OAuthParams.OAuthParamsHelper helper) {
-      return new StandardUnpacker(helper, Normalizer.STANDARD_NORMALIZER, KeyValueParser.QueryKeyValueParser, KeyValueParser.HeaderKeyValueParser);
+      return new StandardUnpacker(
+        helper,
+        Normalizer.STANDARD_NORMALIZER,
+        KeyValueParser.QueryKeyValueParser,
+        KeyValueParser.HeaderKeyValueParser
+      );
     }
   }
 
@@ -320,23 +314,10 @@ object CustomizableUnpacker {
       OAuthParams.OAuthParamsHelper helper,
       Normalizer normalizer,
       KeyValueParser queryParser,
-      KeyValueParser headerParser) {
-
+      KeyValueParser headerParser
+    ) {
       super(helper, normalizer, queryParser, headerParser, callback, callback, callback, checker);
     }
-
-    /*
-    helper,
-    normalizer,
-    queryParser,
-    headerParser,
-    (kvHandler: KeyValueHandler) => new KeyValueHandler.UrlEncodingNormalizingKeyValueHandler(kvHandler),
-    (kvHandler: KeyValueHandler) => new KeyValueHandler.UrlEncodingNormalizingKeyValueHandler(kvHandler),
-    (kvHandler: KeyValueHandler) => new KeyValueHandler.UrlEncodingNormalizingKeyValueHandler(kvHandler),
-    (_: RequestImpl, p: Request.ParsedRequest) => p.scheme == StandardUnpacker.HTTPS
-    )
-    */
-
   }
 }
 

@@ -47,6 +47,7 @@ class Base64Util {
     38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51};
 
   private static final Charset UTF_8 = Charset.forName("UTF-8");
+
   /**
    * Compare each decoded byte with the passed in byte array. This code could theoretically
    * suffer from timing attacks. We should consider not returning early and just ultimately

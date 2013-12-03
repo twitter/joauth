@@ -85,7 +85,7 @@ case class OAuth1TestCase(
           } else {
             k -> v
           }
-        new Request.Pair(Transformer.urlEncodingNormalizingTransformer.transform(ek), Transformer.urlEncodingNormalizingTransformer.transform(ev))
+        new Request.Pair(Transformer.URL_ENCODING_NORMALIZING_TRANSFORMER.transform(ek), Transformer.URL_ENCODING_NORMALIZING_TRANSFORMER.transform(ev))
       })
     )
   }

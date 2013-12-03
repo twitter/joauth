@@ -21,8 +21,9 @@ import com.twitter.joauth.UrlCodec;
 public interface Transformer {
   public String transform(String input);
 
-  public final Transformer trimTransformer = new TrimTransformer();
-  public final Transformer urlEncodingNormalizingTransformer = new UrlEncodingNormalizingTransformer();
+  public final Transformer TRIM_TRANSFORMER = new TrimTransformer();
+  public final Transformer URL_ENCODING_NORMALIZING_TRANSFORMER = new UrlEncodingNormalizingTransformer();
+
 
   /**
    * The TrimTransformer trims the string

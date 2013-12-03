@@ -14,9 +14,11 @@ package com.twitter.joauth;
 
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
-import com.twitter.joauth.OAuthParams;
 
 public interface UnpackedRequest {
+
+  public static final OAuth1RequestHelper O_AUTH_1_REQUEST_HELPER = new OAuth1RequestHelper();
+
   public Request.ParsedRequest parsedRequest();
 
   public static class UnknownRequest implements UnpackedRequest {
@@ -48,8 +50,6 @@ public interface UnpackedRequest {
       return parsedRequest != null ? parsedRequest.hashCode() : 0;
     }
   }
-
-  public static final OAuth1RequestHelper O_AUTH_1_REQUEST_HELPER = new OAuth1RequestHelper();
 
   /**
    * Both OAuth 1.0a and 2.0 requests have access tokens,
@@ -149,7 +149,7 @@ public interface UnpackedRequest {
     }
 
     public String toString() {
-      return "{consumerKey -> %s, nonce -> %s, timestamp -> %s, signature -> %s, method -> %s}".format(
+      return String.format("{consumerKey -> %s, nonce -> %s, timestamp -> %s, signature -> %s, method -> %s}",
           consumerKey, nonce, timestampSecs, signature, signatureMethod
       );
     }
@@ -190,7 +190,7 @@ public interface UnpackedRequest {
   }
 
   public static class OAuth1Request extends OAuth1TwoLeggedRequest {
-    String token;
+    private String token;
 
     public OAuth1Request(
         String token,
@@ -245,9 +245,9 @@ public interface UnpackedRequest {
    * models an OAuth 2.0 rev 25 request. Just a wrapper for the token, really.
    */
   public static class OAuth2Request implements OAuthRequest {
-    String token;
-    Request.ParsedRequest parsedRequest;
-    String clientId;
+    public final String token;
+    private final Request.ParsedRequest parsedRequest;
+    private final String clientId;
 
     public OAuth2Request(String token, Request.ParsedRequest parsedRequest, String clientId) {
       this.token = token;
@@ -317,7 +317,6 @@ public interface UnpackedRequest {
       throw new MalformedRequest(NO_VALUE_FOR+name);
     }
 
-
     public void verify(Request.ParsedRequest parsedRequest, OAuthParams.OAuth1Params oAuth1Params) throws MalformedRequest {
       if (parsedRequest.scheme == null) throwNullException(SCHEME);
       else if (parsedRequest.host == null) throwNullException(HOST);
@@ -350,16 +349,16 @@ public interface UnpackedRequest {
       verify(parsedRequest, oAuth1Params);
 
       return new OAuth1Request(
-            UrlCodec.decode(oAuth1Params.token), // should never be called when token is None
-            UrlCodec.decode(oAuth1Params.consumerKey),
-            UrlCodec.decode(oAuth1Params.nonce),
-            oAuth1Params.timestampSecs,
-            oAuth1Params.signature,
-            oAuth1Params.signatureMethod,
-            oAuth1Params.version,
-            parsedRequest,
-            normalize.normalize(parsedRequest, oAuth1Params)
-        );
+        UrlCodec.decode(oAuth1Params.token), // should never be called when token is None
+        UrlCodec.decode(oAuth1Params.consumerKey),
+        UrlCodec.decode(oAuth1Params.nonce),
+        oAuth1Params.timestampSecs,
+        oAuth1Params.signature,
+        oAuth1Params.signatureMethod,
+        oAuth1Params.version,
+        parsedRequest,
+        normalize.normalize(parsedRequest, oAuth1Params)
+      );
     }
 
 
@@ -372,14 +371,14 @@ public interface UnpackedRequest {
       verify(parsedRequest, oAuth1Params);
 
       return new OAuth1TwoLeggedRequest(
-            UrlCodec.decode(oAuth1Params.consumerKey),
-            UrlCodec.decode(oAuth1Params.nonce),
-            oAuth1Params.timestampSecs,
-            oAuth1Params.signature,
-            oAuth1Params.signatureMethod,
-            oAuth1Params.version,
-            parsedRequest,
-            normalize.normalize(parsedRequest, oAuth1Params)
+        UrlCodec.decode(oAuth1Params.consumerKey),
+        UrlCodec.decode(oAuth1Params.nonce),
+        oAuth1Params.timestampSecs,
+        oAuth1Params.signature,
+        oAuth1Params.signatureMethod,
+        oAuth1Params.version,
+        parsedRequest,
+        normalize.normalize(parsedRequest, oAuth1Params)
       );
     }
   }

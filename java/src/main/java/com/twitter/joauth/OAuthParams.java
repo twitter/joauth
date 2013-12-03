@@ -20,7 +20,7 @@ public class OAuthParams {
   /**
    * the singleton object of StandardOAuthParamsHelper
    */
-  public static final OAuthParamsHelper StandardOAuthParamsHelper = new StandardOAuthParamsHelperImpl();
+  public static final OAuthParamsHelper STANDARD_OAUTH_PARAMS_HELPER = new StandardOAuthParamsHelperImpl();
 
 
   /**
@@ -29,25 +29,23 @@ public class OAuthParams {
    * OAuth 1.0 fieldname.
    */
   public static final String BEARER_TOKEN = "Bearer";
-  public static final String  CLIENT_ID = "client_id";
-  public static final String  OAUTH_TOKEN = "oauth_token";
-  public static final String  OAUTH_CONSUMER_KEY = "oauth_consumer_key";
-  public static final String  OAUTH_SIGNATURE = "oauth_signature";
-  public static final String  OAUTH_NONCE = "oauth_nonce";
-  public static final String  OAUTH_TIMESTAMP = "oauth_timestamp";
-  public static final String  OAUTH_SIGNATURE_METHOD = "oauth_signature_method";
-  public static final String  OAUTH_VERSION = "oauth_version";
-  public static final String  NORMALIZED_REQUEST = "normalized_request";
-  public static final String  UNSET = "(unset)";
+  public static final String CLIENT_ID = "client_id";
+  public static final String OAUTH_TOKEN = "oauth_token";
+  public static final String OAUTH_CONSUMER_KEY = "oauth_consumer_key";
+  public static final String OAUTH_SIGNATURE = "oauth_signature";
+  public static final String OAUTH_NONCE = "oauth_nonce";
+  public static final String OAUTH_TIMESTAMP = "oauth_timestamp";
+  public static final String OAUTH_SIGNATURE_METHOD = "oauth_signature_method";
+  public static final String OAUTH_VERSION = "oauth_version";
+  public static final String NORMALIZED_REQUEST = "normalized_request";
+  public static final String UNSET = "(unset)";
 
-  public static final String  OAUTH_PREFIX_REGEX = "^oauth_[a-z_]+$";
+  public static final String HMAC_SHA1 = "HMAC-SHA1";
+  public static final String ONE_DOT_OH = "1.0";
+  public static final String ONE_DOT_OH_A = "1.0a";
 
-  public static final String  HMAC_SHA1 = "HMAC-SHA1";
-  public static final String  ONE_DOT_OH = "1.0";
-  public static final String  ONE_DOT_OH_A = "1.0a";
-
-  public static final String  OAUTH1_HEADER_AUTHTYPE = "oauth";
-  public static final String  OAUTH2_HEADER_AUTHTYPE = "bearer";
+  public static final String OAUTH1_HEADER_AUTHTYPE = "oauth";
+  public static final String OAUTH2_HEADER_AUTHTYPE = "bearer";
 
 
   private static String valueOrUnset(String value) {
@@ -59,6 +57,15 @@ public class OAuthParams {
    * The token is optional to allow for OAuth 1.0 two-legged requests.
    */
   public static class OAuth1Params {
+    final String token;
+    final String consumerKey;
+    final String nonce;
+    final Long timestampSecs;
+    final String timestampStr;
+    final String signature;
+    final String signatureMethod;
+    final String version;
+
 
     public OAuth1Params(
       String token,
@@ -81,14 +88,6 @@ public class OAuthParams {
     }
 
 
-    String token;
-    String consumerKey;
-    String nonce;
-    Long timestampSecs;
-    String timestampStr;
-    String signature;
-    String signatureMethod;
-    String version;
 
     public ArrayList<Request.Pair> toList(boolean includeSig) {
       ArrayList<Request.Pair> buf = new ArrayList<Request.Pair>();
@@ -107,7 +106,7 @@ public class OAuthParams {
     // we use String.format here, because we're probably not that worried about
     // effeciency when printing the class for debugging
     public String toString() {
-      return "%s=%s,%s=%s,%s=%s,%s=%s(->%s),%s=%s,%s=%s,%s=%s".format(
+      return String.format("%s=%s,%s=%s,%s=%s,%s=%s(->%s),%s=%s,%s=%s,%s=%s",
             OAUTH_TOKEN, valueOrUnset(token),
             OAUTH_CONSUMER_KEY, valueOrUnset(consumerKey),
             OAUTH_NONCE, valueOrUnset(nonce),
@@ -123,18 +122,15 @@ public class OAuthParams {
  * if it has all OAuth parameters set, just the token set, and for obtaining
  * a list of all params for use in producing the normalized request.
  */
-
   public static class OAuthParamsBuilder {
 
     private OAuthParamsHelper helper;
 
     public OAuthParamsBuilder(OAuthParamsHelper helper) {
       this.helper = helper;
-
     }
 
     //todo: make this final
-
     public String v2Token;
     public String token;
     public String consumerKey;
@@ -165,12 +161,10 @@ public class OAuthParams {
       return (value != null && !value.equals(""));
     }
 
-
     private void handleKeyValue(String key, String value, boolean fromHeader) {
 
-      // TODO: This needs clean up. Known keys can be in an enum,
-      // and parser can be update to point to these keys, instead of creating a new key string.
-
+      // TODO: This needs clean up. replace the if/else with enum/map-lookup
+      // Known keys can be in an enum, and parser can be updated to point to these keys, instead of creating a new key string.
 
       // empty values for these keys are swallowed
       if(BEARER_TOKEN.equals(key)) {
@@ -265,17 +259,6 @@ public class OAuthParams {
     public ArrayList<Request.Pair> otherParams() {
       ArrayList<Request.Pair> list = paramsHandler.toList();
       list.addAll(otherOAuthParamsHandler.toList());
-      /*
-      val result = paramsHandler.toList.addAll(otherOAuthParamsHandler.toList)
-      val arrayList = new java.util.ArrayList[Request.Pair]
-
-      result foreach { case (key, value) =>
-        arrayList.add(new Request.Pair(key, value))
-      }
-
-      arrayList
-      */
-      //return (ArrayList<Request.Pair>) list.clone();
       return list;
     }
 
