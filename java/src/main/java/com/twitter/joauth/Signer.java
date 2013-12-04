@@ -16,7 +16,6 @@ import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
-import org.apache.commons.codec.binary.Base64;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 
@@ -64,8 +63,7 @@ public abstract class Signer {
     public String getString(String str, String tokenSecret, String consumerSecret)
         throws InvalidKeyException, NoSuchAlgorithmException {
 
-        return UrlCodec.encode(new String(Base64.encodeBase64(
-            getBytes(str, tokenSecret, consumerSecret), false), UTF_8));
+        return UrlCodec.encode(Base64Util.encode(getBytes(str, tokenSecret, consumerSecret)));
     }
 
     public byte[] getBytes(String str, String tokenSecret, String consumerSecret)
@@ -81,7 +79,7 @@ public abstract class Signer {
     }
 
     public byte[] toBytes(String signature) throws UnsupportedEncodingException {
-      return Base64.decodeBase64(UrlCodec.decode(signature).trim());
+      return Base64Util.decode(UrlCodec.decode(signature).trim());
     }
   }
 
