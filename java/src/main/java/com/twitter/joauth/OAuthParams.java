@@ -105,6 +105,7 @@ public class OAuthParams {
 
     // we use String.format here, because we're probably not that worried about
     // effeciency when printing the class for debugging
+    @Override
     public String toString() {
       return String.format("%s=%s,%s=%s,%s=%s,%s=%s(->%s),%s=%s,%s=%s,%s=%s",
             OAUTH_TOKEN, valueOrUnset(token),
@@ -145,6 +146,7 @@ public class OAuthParams {
     private KeyValueHandler.SingleKeyValueHandler otherOAuthParamsHandler = new KeyValueHandler.SingleKeyValueHandler();
 
     public KeyValueHandler headerHandler = new KeyValueHandler() {
+      @Override
       public void handle(String key, String value) {
         handleKeyValue(key, value, true);
       }

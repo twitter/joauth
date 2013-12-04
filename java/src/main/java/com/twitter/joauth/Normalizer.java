@@ -59,6 +59,7 @@ public abstract class Normalizer {
     };
     */
 
+    @Override
     public String normalize(
         String scheme,
         String host,

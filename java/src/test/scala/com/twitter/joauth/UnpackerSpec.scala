@@ -32,7 +32,7 @@ class UnpackerSpec extends SpecificationWithJUnit with Mockito {
       }
     }
 
-    val unpacker = Unpacker.StandardUnpackerFactory.newUnpaker()
+    val unpacker = Unpacker.StandardUnpackerFactory.newUnpacker()
     val kvHandler = mock[KeyValueHandler]
 
     "unpack request with bearer token in header HTTPS" in {
@@ -64,7 +64,7 @@ class UnpackerSpec extends SpecificationWithJUnit with Mockito {
   def doOAuth1Tests(testCase: OAuth1TestCase, oAuthInParams: Boolean, oAuthInHeader: Boolean, paramsInRequestBody: Boolean) = {
 
     val kvHandler = smartMock[KeyValueHandler]
-    val unpacker = Unpacker.StandardUnpackerFactory.newUnpaker()
+    val unpacker = Unpacker.StandardUnpackerFactory.newUnpacker()
 
     if (testCase.canBeUnpackedAsOAuth) {
       // KV Handler Called Once Per Param
@@ -198,7 +198,7 @@ class UnpackerSpec extends SpecificationWithJUnit with Mockito {
 
   "Unpacker for OAuth1 Two Legged" should {
     val kvHandler = smartMock[KeyValueHandler]
-    val unpacker = Unpacker.StandardUnpackerFactory.newUnpaker()
+    val unpacker = Unpacker.StandardUnpackerFactory.newUnpacker()
     val testCase = OAuth1TestCases.oAuthTwoLegged
 
     "correctly parse the request" in {

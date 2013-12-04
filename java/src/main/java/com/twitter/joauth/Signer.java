@@ -60,24 +60,30 @@ public abstract class Signer {
     private static final String AND = "&"; //TODO: move to Normalizer
     private static final String HMACSHA1 = "HmacSHA1";
 
+    @Override
     public String getString(String str, String tokenSecret, String consumerSecret)
         throws InvalidKeyException, NoSuchAlgorithmException {
 
         return UrlCodec.encode(Base64Util.encode(getBytes(str, tokenSecret, consumerSecret)));
     }
 
+    @Override
     public byte[] getBytes(String str, String tokenSecret, String consumerSecret)
         throws NoSuchAlgorithmException, InvalidKeyException {
 
       String key = consumerSecret + AND + tokenSecret;
       SecretKeySpec signingKey = new SecretKeySpec(key.getBytes(StandardSigner.UTF_8), HMACSHA1);
 
-      // TODO: consider synchronizing this, apparently Mac may not be threadsafe, or use a thread local
-      Mac mac = Mac.getInstance(HMACSHA1);
-      mac.init(signingKey);
-      return mac.doFinal(str.getBytes(UTF_8));
+      // TODO: consider synchronizing this, apparently Mac may not be threadsafe
+      // TODO: taking a VM wide lock. Mac per thread will not help, since the underlying provider is shared.
+      synchronized (STANDARD_SIGNER) {
+        Mac mac = Mac.getInstance(HMACSHA1);
+        mac.init(signingKey);
+        return mac.doFinal(str.getBytes(UTF_8));
+      }
     }
 
+    @Override
     public byte[] toBytes(String signature) throws UnsupportedEncodingException {
       return Base64Util.decode(UrlCodec.decode(signature).trim());
     }
@@ -96,14 +102,17 @@ public abstract class Signer {
       this.bytes = bytes;
     }
 
+    @Override
     public byte[] getBytes(String str, String tokenSecret, String consumerSecret) {
       return bytes;
     }
 
+    @Override
     public String getString(String str, String tokenSecret, String consumerSecret) {
       return str;
     }
 
+    @Override
     public byte[] toBytes(String signature) {
       return bytes;
     }

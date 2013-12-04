@@ -84,6 +84,7 @@ public interface Unpacker {
     ) {
 
       Transformer processKey = new Transformer() {
+        @Override
         public String transform(String input) {
           return helper.processKey(input);
         }
@@ -191,6 +192,7 @@ public interface Unpacker {
 
 
 
+    @Override
     public UnpackedRequest unpack(Request request, ArrayList<KeyValueHandler> kvHandlers) throws UnpackerException {
       try {
         OAuthParams.OAuthParamsBuilder oAuthParamsBuilder = parseRequest(request, kvHandlers);
@@ -281,7 +283,7 @@ public interface Unpacker {
    */
   static class StandardUnpackerFactory {
 
-    public static StandardUnpacker newUnpaker() {
+    public static StandardUnpacker newUnpacker() {
       return new StandardUnpacker(
         OAuthParams.STANDARD_OAUTH_PARAMS_HELPER,
         Normalizer.STANDARD_NORMALIZER,
@@ -290,7 +292,7 @@ public interface Unpacker {
       );
     }
 
-    public static StandardUnpacker newUnpaker(OAuthParams.OAuthParamsHelper helper) {
+    public static StandardUnpacker newUnpacker(OAuthParams.OAuthParamsHelper helper) {
       return new StandardUnpacker(
         helper,
         Normalizer.STANDARD_NORMALIZER,

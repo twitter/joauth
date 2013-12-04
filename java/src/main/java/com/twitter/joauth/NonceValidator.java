@@ -25,13 +25,9 @@ public interface NonceValidator {
    */
   public final NonceValidator NO_OP_NONCE_VALIDATOR = new NoopNonceValidator();
 
-  /**
-   * the default nonce validator, which always returns true. Though stateless and threadsafe,
-   * this is a class rather than an object to allow easy access from Java. Scala codebases
-   * should use the corresponding NonceValidator object instead.
-   */
-  public static class NoopNonceValidator implements NonceValidator {
+  static class NoopNonceValidator implements NonceValidator {
 
+    @Override
     public boolean validate(String nonce) {
       return true;
     }

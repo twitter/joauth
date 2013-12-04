@@ -26,6 +26,7 @@ public interface KeyValueHandler {
   public final KeyValueHandler NULL_KEY_VALUE_HANDLER = new NullKeyValueHandler();
 
   static class NullKeyValueHandler implements KeyValueHandler {
+    @Override
     public void handle(String key, String value) {
     }
   }
@@ -37,6 +38,7 @@ public interface KeyValueHandler {
   public static class DuplicateKeyValueHandler implements KeyValueHandler {
     ArrayList<Request.Pair> buffer = new ArrayList<Request.Pair>();
 
+    @Override
     public void handle(String key, String value) {
      buffer.add(new Request.Pair(key, value));
     }
@@ -54,6 +56,7 @@ public interface KeyValueHandler {
   public static class SingleKeyValueHandler implements KeyValueHandler {
     HashMap<String, String> kv = new LinkedHashMap<String, String>();
 
+    @Override
     public void handle(String key, String value) {
       kv.put(key, value);
     }
@@ -83,6 +86,7 @@ public interface KeyValueHandler {
       this.underlying = underlying;
     }
 
+    @Override
     public void handle(String key, String value) {
       String trimmed = value.trim();
       if (trimmed.length() > 1 && trimmed.charAt(0) == '"' && trimmed.charAt(trimmed.length()-1) == '"') {
@@ -104,6 +108,7 @@ public interface KeyValueHandler {
       this.prefix = prefix;
     }
 
+    @Override
     public void handle(String key, String value) {
       System.out.println("%s%s=%s".format(prefix, key, value));
     }
@@ -126,6 +131,7 @@ public interface KeyValueHandler {
       this.valueTransformer = valueTransformer;
     }
 
+    @Override
     public void handle(String key, String value) {
       underlying.handle(keyTransformer.transform(key), valueTransformer.transform(value));
     }
@@ -152,6 +158,7 @@ public interface KeyValueHandler {
       super(underlying, keyTransformer, null);
     }
 
+    @Override
     public void handle(String key, String value) {
       underlying.handle(keyTransformer.transform(key), value);
     }
@@ -167,6 +174,7 @@ public interface KeyValueHandler {
       super(underlying, null, valueTransformer);
     }
 
+    @Override
     public void handle(String key, String value) {
       underlying.handle(key, valueTransformer.transform(value));
     }
