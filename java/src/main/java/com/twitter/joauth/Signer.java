@@ -75,12 +75,11 @@ public abstract class Signer {
       SecretKeySpec signingKey = new SecretKeySpec(key.getBytes(StandardSigner.UTF_8), HMACSHA1);
 
       // TODO: consider synchronizing this, apparently Mac may not be threadsafe
-      // TODO: taking a VM wide lock. Mac per thread will not help, since the underlying provider is shared.
-      synchronized (STANDARD_SIGNER) {
-        Mac mac = Mac.getInstance(HMACSHA1);
-        mac.init(signingKey);
-        return mac.doFinal(str.getBytes(UTF_8));
-      }
+      // TODO: If mac is not thread safe, we need to take a VM wide lock.
+      // Mac per thread will not help, since the underlying provider is shared.
+      Mac mac = Mac.getInstance(HMACSHA1);
+      mac.init(signingKey);
+      return mac.doFinal(str.getBytes(UTF_8));
     }
 
     @Override
