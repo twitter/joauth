@@ -172,7 +172,7 @@ class OAuthParamsBuilder(helper: OAuthParamsHelper) {
         }
       }
       case CLIENT_ID => ifNonEmpty(v) { if(fromHeader) consumerKey = v }
-      case OAUTH_TOKEN => ifNonEmpty(v) { token = v.trim }
+      case OAUTH_TOKEN => if (v != null) { token = v.trim }
       case OAUTH_CONSUMER_KEY => ifNonEmpty(v) { consumerKey = v }
       case OAUTH_NONCE => ifNonEmpty(v) { nonce = v }
       case OAUTH_TIMESTAMP => ifNonEmpty(v) {
@@ -212,7 +212,7 @@ class OAuthParamsBuilder(helper: OAuthParamsHelper) {
   def isOAuth2: Boolean = v2Token != null && !isOAuth1 && !isOAuth1TwoLegged
 
   def isOAuth1TwoLegged: Boolean =
-    token == null &&
+    (token == null || token == "") &&
     consumerKey != null &&
     nonce != null &&
     timestampStr != null &&
@@ -221,6 +221,7 @@ class OAuthParamsBuilder(helper: OAuthParamsHelper) {
 
   def isOAuth1: Boolean =
     token != null &&
+    token != "" &&
     consumerKey != null &&
     nonce != null &&
     timestampStr != null &&
@@ -234,7 +235,7 @@ class OAuthParamsBuilder(helper: OAuthParamsHelper) {
 
   // make an immutable params instance
   def oAuth1Params = OAuth1Params(
-    if (token != null) Some(token) else None,
+    if (token != null && token != "") Some(token) else None,
     consumerKey,
     nonce,
     timestampSecs,
