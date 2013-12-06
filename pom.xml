@@ -4,10 +4,44 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.twitter</groupId>
   <artifactId>meta</artifactId>
-  <packaging>pom</packaging>
+  <packaging>jar</packaging>
   <version>5.0.1-SNAPSHOT</version>
   <url>http://github.com/twitter/joauth</url>
   <description>A Java library for authenticating HTTP requests using OAuth</description>
+  <dependencies>
+    <!-- project dependencies -->
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+      <version>15.0</version>
+    </dependency>
+    <!-- test dependencies -->
+    <dependency>
+      <groupId>org.scala-lang</groupId>
+      <artifactId>scala-library</artifactId>
+      <version>2.9.2</version>
+      <!--<scope>test</scope> -->
+    </dependency>
+    <dependency>
+      <groupId>org.scala-tools.testing</groupId>
+      <artifactId>specs_2.9.1</artifactId>
+      <version>1.6.9</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.11</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-all</artifactId>
+      <version>1.9.5</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
   <scm>
     <connection>scm:git:git@github.com:twitter/joauth.git</connection>
     <url>scm:git:git@github.com:twitter/joauth.git</url>
@@ -33,6 +67,14 @@
       <email>cheenath@twitter.com</email>
     </developer>
   </developers>
+
+  <properties>
+    <maven.compiler.source>1.6</maven.compiler.source>
+    <maven.compiler.target>1.6</maven.compiler.target>
+    <encoding>UTF-8</encoding>
+    <scala.version>2.9.2</scala.version>
+    <slf4j.version>1.7.5</slf4j.version>
+  </properties>
 
   <distributionManagement>
     <snapshotRepository>
@@ -60,60 +102,18 @@
      </repository>
   </repositories>
 
-  <dependencies>
-    <!-- project dependencies -->
-    <dependency>
-      <groupId>com.google.guava</groupId>
-      <artifactId>guava</artifactId>
-      <version>15.0</version>
-    </dependency>
-    <!-- test dependencies -->
-    <dependency>
-      <groupId>org.scala-lang</groupId>
-      <artifactId>scala-library</artifactId>
-      <version>2.9.2</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.scala-tools.testing</groupId>
-      <artifactId>specs_2.9.1</artifactId>
-      <version>1.6.9</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>4.11</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.mockito</groupId>
-      <artifactId>mockito-all</artifactId>
-      <version>1.9.5</version>
-      <scope>test</scope>
-    </dependency>
-  </dependencies>
-
-  <properties>
-    <maven.compiler.source>1.6</maven.compiler.source>
-    <maven.compiler.target>1.6</maven.compiler.target>
-    <encoding>UTF-8</encoding>
-    <scala.version>2.9.2</scala.version>
-    <slf4j.version>1.7.5</slf4j.version>
-  </properties>
-
   <build>
     <pluginManagement>
       <plugins>
         <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-release-plugin</artifactId>
-          <version>2.1</version>
-          <configuration>
-            <mavenExecutorId>forked-path</mavenExecutorId>
-            <useReleaseProfile>false</useReleaseProfile>
-            <arguments>-Psonatype-oss-release</arguments>
-          </configuration>
+         <groupId>org.apache.maven.plugins</groupId>
+         <artifactId>maven-release-plugin</artifactId>
+         <version>2.1</version>
+         <configuration>
+          <mavenExecutorId>forked-path</mavenExecutorId>
+          <useReleaseProfile>false</useReleaseProfile>
+          <arguments>-Psonatype-oss-release</arguments>
+         </configuration>
         </plugin>
       </plugins>
     </pluginManagement>
@@ -122,6 +122,13 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
         <version>2.5.1</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>compile</goal>
+            </goals>
+          </execution>
+        </executions>
         <configuration>
           <source>1.6</source>
           <target>1.6</target>
@@ -141,8 +148,7 @@
         </executions>
         <configuration>
           <sourceDir>src/main/java</sourceDir>
-          <testSourceDir>src/test/scala</testSourceDir>
-          <testSourceDir>src/test/java</testSourceDir>
+          <testSourceDir>src/test</testSourceDir>
         </configuration>
       </plugin>
       <plugin>
