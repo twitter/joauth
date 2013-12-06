@@ -235,7 +235,7 @@ class OAuthParamsBuilder(helper: OAuthParamsHelper) {
 
   // make an immutable params instance
   def oAuth1Params = OAuth1Params(
-    if (token != null && token != "") Some(token) else None,
+    if (token != null) Some(token) else None,
     consumerKey,
     nonce,
     timestampSecs,

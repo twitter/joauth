@@ -5,9 +5,21 @@
   <groupId>com.twitter</groupId>
   <artifactId>joauth</artifactId>
   <packaging>jar</packaging>
-  <version>5.0.1-SNAPSHOT</version>
+  <version>5.0.1-ALLOW_EMPTY_TOKEN_TWO_LEGGED-SNAPSHOT</version>
   <url>http://github.com/twitter/joauth</url>
   <description>A Scala library for authenticating HTTP requests using OAuth</description>
+  <distributionManagement>
+    <repository>
+      <id>artifactory-release</id>
+      <name>Twitter Artifactory Releases</name>
+      <url>http://artifactory.local.twitter.com/libs-releases-local</url>
+    </repository>
+    <snapshotRepository>
+      <id>artifactory-snapshot</id>
+      <name>Twitter Artifactory Snapshots</name>
+      <url>http://artifactory.local.twitter.com/libs-snapshots-local</url>
+    </snapshotRepository>
+  </distributionManagement>
   <dependencies>
     <!-- need scala -->
     <dependency>
@@ -77,32 +89,6 @@
     <scala.version>2.9.2</scala.version>
     <slf4j.version>1.7.5</slf4j.version>
   </properties>
-
-  <distributionManagement>
-    <snapshotRepository>
-      <id>sonatype-nexus-snapshots</id>
-      <name>Sonatype OSS</name>
-      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-    </snapshotRepository>
-    <repository>
-      <id>sonatype-nexus-staging</id>
-      <name>Nexus Release Repository</name>
-      <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-    </repository>
-  </distributionManagement>
-
-  <repositories>
-    <repository>
-      <id>sonatype-nexus-snapshots</id>
-      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-      <releases>
-        <enabled>false</enabled>
-      </releases>
-      <snapshots>
-        <enabled>true</enabled>
-      </snapshots>
-     </repository>
-  </repositories>
 
   <build>
     <pluginManagement>
