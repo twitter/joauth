@@ -91,8 +91,8 @@ public interface Unpacker {
       };
 
       return new KeyValueHandler.KeyTransformingKeyValueHandler(
-          new KeyValueHandler.TrimmingKeyValueHandler(transformer.invoke(kvHandler)),
-          processKey);
+        new KeyValueHandler.TrimmingKeyValueHandler(transformer.invoke(kvHandler)),
+        processKey);
     }
 
     public KeyValueHandler queryParamKeyValueHandler(KeyValueHandler kvHandler) {
@@ -234,7 +234,8 @@ public interface Unpacker {
     ) throws MalformedRequest, UnsupportedEncodingException {
 
     if (log.isLoggable(Level.FINE)) {
-      log.log(Level.FINE, String.format("building oauth1 request -> path = %s, host = %s, token = %s, consumer key = %s, signature = %s, method = %s",
+      log.log(Level.FINE, String.format(
+        "building oauth1 request -> path = %s, host = %s, token = %s, consumer key = %s, signature = %s, method = %s",
         parsedRequest.path, parsedRequest.host, oAuth1Params.token,
         oAuth1Params.consumerKey, oAuth1Params.signature, oAuth1Params.signatureMethod));
     }
@@ -248,7 +249,8 @@ public interface Unpacker {
   ) throws MalformedRequest, UnsupportedEncodingException {
 
     if (log.isLoggable(Level.FINE)) {
-      log.log(Level.FINE, String.format("building oauth1 two-legged request -> path = %s, host = %s, consumer key = %s, signature = %s, method = %s",
+      log.log(Level.FINE, String.format(
+        "building oauth1 two-legged request -> path = %s, host = %s, consumer key = %s, signature = %s, method = %s",
         parsedRequest.path, parsedRequest.host, oAuth1Params.consumerKey,
         oAuth1Params.signature, oAuth1Params.signatureMethod));
     }

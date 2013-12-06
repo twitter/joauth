@@ -121,11 +121,11 @@ class Base64Util {
     return pos == bytes.length;
   }
 
-  public static String encode(byte[] bytes) {
+  static String encode(byte[] bytes) {
     return BaseEncoding.base64().encode(bytes);
   }
 
-  public static byte[] decode(String str) {
+  static byte[] decode(String str) {
     return BaseEncoding.base64().decode(str);
   }
 }

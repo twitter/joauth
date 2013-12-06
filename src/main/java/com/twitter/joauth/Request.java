@@ -71,9 +71,9 @@ public abstract class Request {
     @Override
     public String toString() {
       return "Pair{" +
-          "key='" + key + '\'' +
-          ", value='" + value + '\'' +
-          '}';
+        "key='" + key + '\'' +
+        ", value='" + value + '\'' +
+        '}';
     }
   }
 
@@ -98,13 +98,13 @@ public abstract class Request {
     @Override
     public String toString() {
       return "ParsedRequest{" +
-          "scheme='" + scheme + '\'' +
-          ", host='" + host + '\'' +
-          ", port=" + port +
-          ", verb='" + verb + '\'' +
-          ", path='" + path + '\'' +
-          ", params=" + params +
-          '}';
+        "scheme='" + scheme + '\'' +
+        ", host='" + host + '\'' +
+        ", port=" + port +
+        ", verb='" + verb + '\'' +
+        ", path='" + path + '\'' +
+        ", params=" + params +
+        '}';
     }
 
     @Override

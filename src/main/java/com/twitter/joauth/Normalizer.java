@@ -94,7 +94,7 @@ public abstract class Normalizer {
 
       if (!sigParams.isEmpty()) {
         Request.Pair head = sigParams.get(0);
-        paramsBuilder.append(head.key).append("=").append(head.value);
+        paramsBuilder.append(head.key).append('=').append(head.value);
         for (int i=1; i<sigParams.size(); i++) {
           Request.Pair pair = sigParams.get(i);
           paramsBuilder.append('&').append(pair.key).append('=').append(pair.value);

@@ -14,6 +14,7 @@ package com.twitter.joauth;
 
 import com.twitter.joauth.keyvalue.KeyValueHandler;
 import java.util.ArrayList;
+import java.util.List;
 
 public class OAuthParams {
 
@@ -21,7 +22,6 @@ public class OAuthParams {
    * the singleton object of StandardOAuthParamsHelper
    */
   public static final OAuthParamsHelper STANDARD_OAUTH_PARAMS_HELPER = new StandardOAuthParamsHelperImpl();
-
 
   /**
    * pull all the OAuth parameter string constants into one place,
@@ -87,9 +87,7 @@ public class OAuthParams {
       this.version = version;
     }
 
-
-
-    public ArrayList<Request.Pair> toList(boolean includeSig) {
+    public List<Request.Pair> toList(boolean includeSig) {
       ArrayList<Request.Pair> buf = new ArrayList<Request.Pair>();
 
       buf.add(new Request.Pair(OAUTH_CONSUMER_KEY, consumerKey));
@@ -108,21 +106,21 @@ public class OAuthParams {
     @Override
     public String toString() {
       return String.format("%s=%s,%s=%s,%s=%s,%s=%s(->%s),%s=%s,%s=%s,%s=%s",
-            OAUTH_TOKEN, valueOrUnset(token),
-            OAUTH_CONSUMER_KEY, valueOrUnset(consumerKey),
-            OAUTH_NONCE, valueOrUnset(nonce),
-            OAUTH_TIMESTAMP, timestampStr, timestampSecs,
-            OAUTH_SIGNATURE, valueOrUnset(signature),
-            OAUTH_SIGNATURE_METHOD, valueOrUnset(signatureMethod),
-            OAUTH_VERSION, valueOrUnset(version));
+        OAUTH_TOKEN, valueOrUnset(token),
+        OAUTH_CONSUMER_KEY, valueOrUnset(consumerKey),
+        OAUTH_NONCE, valueOrUnset(nonce),
+        OAUTH_TIMESTAMP, timestampStr, timestampSecs,
+        OAUTH_SIGNATURE, valueOrUnset(signature),
+        OAUTH_SIGNATURE_METHOD, valueOrUnset(signatureMethod),
+        OAUTH_VERSION, valueOrUnset(version));
     }
   }
 
-/**
- * A collector for OAuth and other params. There are convenience methods for determining
- * if it has all OAuth parameters set, just the token set, and for obtaining
- * a list of all params for use in producing the normalized request.
- */
+  /**
+   * A collector for OAuth and other params. There are convenience methods for determining
+   * if it has all OAuth parameters set, just the token set, and for obtaining
+   * a list of all params for use in producing the normalized request.
+   */
   public static class OAuthParamsBuilder {
 
     private OAuthParamsHelper helper;

@@ -150,7 +150,7 @@ public interface UnpackedRequest {
 
     public String toString() {
       return String.format("{consumerKey -> %s, nonce -> %s, timestamp -> %s, signature -> %s, method -> %s}",
-          consumerKey, nonce, timestampSecs, signature, signatureMethod
+        consumerKey, nonce, timestampSecs, signature, signatureMethod
       );
     }
 
@@ -193,15 +193,15 @@ public interface UnpackedRequest {
     private String token;
 
     public OAuth1Request(
-        String token,
-        String consumerKey,
-        String nonce,
-        Long timestampSecs,
-        String signature,
-        String signatureMethod,
-        String version,
-        Request.ParsedRequest parsedRequest,
-        String normalizedRequest
+      String token,
+      String consumerKey,
+      String nonce,
+      Long timestampSecs,
+      String signature,
+      String signatureMethod,
+      String version,
+      Request.ParsedRequest parsedRequest,
+      String normalizedRequest
     ) {
       super(consumerKey, nonce, timestampSecs, signature, signatureMethod, version, parsedRequest, normalizedRequest);
       this.token = token;
@@ -216,7 +216,7 @@ public interface UnpackedRequest {
 
     public String toString() {
       return String.format("{token -> %s, consumerKey -> %s, nonce -> %s, timestamp -> %s, signature -> %s, method -> %s}",
-          token, consumerKey(), nonce(), timestampSecs(), signature(), signatureMethod()
+        token, consumerKey(), nonce(), timestampSecs(), signature(), signatureMethod()
       );
     }
 
