@@ -1,5 +1,6 @@
 <?xml version="1.0"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <name>JOAuth</name>
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.twitter</groupId>
@@ -20,7 +21,7 @@
       <groupId>org.scala-lang</groupId>
       <artifactId>scala-library</artifactId>
       <version>2.9.2</version>
-      <!--<scope>test</scope> -->
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.scala-tools.testing</groupId>
@@ -99,21 +100,21 @@
       <snapshots>
         <enabled>true</enabled>
       </snapshots>
-     </repository>
+    </repository>
   </repositories>
 
   <build>
     <pluginManagement>
       <plugins>
         <plugin>
-         <groupId>org.apache.maven.plugins</groupId>
-         <artifactId>maven-release-plugin</artifactId>
-         <version>2.1</version>
-         <configuration>
-          <mavenExecutorId>forked-path</mavenExecutorId>
-          <useReleaseProfile>false</useReleaseProfile>
-          <arguments>-Psonatype-oss-release</arguments>
-         </configuration>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-release-plugin</artifactId>
+          <version>2.1</version>
+          <configuration>
+            <mavenExecutorId>forked-path</mavenExecutorId>
+            <useReleaseProfile>false</useReleaseProfile>
+            <arguments>-Psonatype-oss-release</arguments>
+          </configuration>
         </plugin>
       </plugins>
     </pluginManagement>
