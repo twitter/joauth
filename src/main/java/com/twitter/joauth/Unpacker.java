@@ -16,6 +16,8 @@ import com.twitter.joauth.keyvalue.*;
 
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -30,7 +32,7 @@ public interface Unpacker {
 
   public UnpackedRequest unpack(Request request, KeyValueHandler kvHandler) throws UnpackerException;
 
-  public UnpackedRequest unpack(Request request, ArrayList<KeyValueHandler> kvHandlers) throws UnpackerException;
+  public UnpackedRequest unpack(Request request, List<KeyValueHandler> kvHandlers) throws UnpackerException;
 
 
   //TODO: callback and checker can be removed. unnecessary indirection, carried over from scala.
@@ -49,14 +51,14 @@ public interface Unpacker {
     static final String HTTPS = "HTTPS";
     private static final Logger log = Logger.getLogger("CustomizableUnpacker");
 
-    private OAuthParams.OAuthParamsHelper helper;
-    private Normalizer normalizer;
-    private KeyValueParser queryParser;
-    private KeyValueParser headerParser;
-    private KeyValueCallback queryParamTransformer;
-    private KeyValueCallback bodyParamTransformer;
-    private KeyValueCallback headerTransformer;
-    private OAuth2Checker shouldAllowOAuth2;
+    private final OAuthParams.OAuthParamsHelper helper;
+    private final Normalizer normalizer;
+    private final KeyValueParser queryParser;
+    private final KeyValueParser headerParser;
+    private final KeyValueCallback queryParamTransformer;
+    private final KeyValueCallback bodyParamTransformer;
+    private final KeyValueCallback headerTransformer;
+    private final OAuth2Checker shouldAllowOAuth2;
 
     public CustomizableUnpacker(
       OAuthParams.OAuthParamsHelper helper,
@@ -125,10 +127,10 @@ public interface Unpacker {
           boolean shouldParse = false;
           boolean oauth2 = false;
 
-          if (authType.toLowerCase().equals(OAuthParams.OAUTH2_HEADER_AUTHTYPE)) {
+          if (authType.equalsIgnoreCase(OAuthParams.OAUTH2_HEADER_AUTHTYPE)) {
             shouldParse = false;
             oauth2 = true;
-          } else if (authType.toLowerCase().equals(OAuthParams.OAUTH1_HEADER_AUTHTYPE)) {
+          } else if (authType.equalsIgnoreCase(OAuthParams.OAUTH1_HEADER_AUTHTYPE)) {
             shouldParse = true;
             oauth2 = false;
           }
@@ -143,8 +145,7 @@ public interface Unpacker {
             // now we'll pass the handler to the headerParser,
             // which splits on commas rather than ampersands,
             // and is more forgiving with whitespace
-            ArrayList<KeyValueHandler> handlers = new ArrayList<KeyValueHandler>(1);
-            handlers.add(quotedHandler);
+            List<KeyValueHandler> handlers = Collections.singletonList(quotedHandler);
             headerParser.parse(authString, handlers);
           } else if (oauth2) {
             nonTransformingHandler.handle(OAuthParams.BEARER_TOKEN, authString);
@@ -153,7 +154,7 @@ public interface Unpacker {
       }
     }
 
-    public OAuthParams.OAuthParamsBuilder parseRequest(Request request, ArrayList<KeyValueHandler> kvHandlers) {
+    public OAuthParams.OAuthParamsBuilder parseRequest(Request request, List<KeyValueHandler> kvHandlers) {
       // use an oAuthParamsBuilder instance to accumulate key/values from
       // the query string, the request body (if the appropriate Content-Type),
       // and the Authorization header, if any.
@@ -167,11 +168,11 @@ public interface Unpacker {
 
         // add our handlers to the passed-in handlers, to which
         // we'll only send non-oauth key/values.
-        ArrayList<KeyValueHandler> queryHandlers = new ArrayList<KeyValueHandler>();
+        ArrayList<KeyValueHandler> queryHandlers = new ArrayList<KeyValueHandler>(kvHandlers.size() + 1);
         queryHandlers.add(queryParamKeyValueHandler(oAuthParamsBuilder.queryHandler));
         queryHandlers.addAll(kvHandlers);
 
-        ArrayList<KeyValueHandler> bodyParamHandlers = new ArrayList<KeyValueHandler>();
+        ArrayList<KeyValueHandler> bodyParamHandlers = new ArrayList<KeyValueHandler>(kvHandlers.size() + 1);
         bodyParamHandlers.add(bodyParamKeyValueHandler(oAuthParamsBuilder.queryHandler));
         bodyParamHandlers.addAll(kvHandlers);
 
@@ -193,7 +194,7 @@ public interface Unpacker {
 
 
     @Override
-    public UnpackedRequest unpack(Request request, ArrayList<KeyValueHandler> kvHandlers) throws UnpackerException {
+    public UnpackedRequest unpack(Request request, List<KeyValueHandler> kvHandlers) throws UnpackerException {
       try {
         OAuthParams.OAuthParamsBuilder oAuthParamsBuilder = parseRequest(request, kvHandlers);
         Request.ParsedRequest parsedRequest = request.parsedRequest(oAuthParamsBuilder.otherParams());
@@ -211,20 +212,20 @@ public interface Unpacker {
       } catch (UnpackerException u) {
         throw u;
       } catch (Throwable t) {
-        t.printStackTrace(); //TODO: log instead?
+        log.log(Level.WARNING, "could not unpack request", t);
         throw new UnpackerException("could not unpack request: " + t, t);
       }
     }
 
     @Override
     public UnpackedRequest unpack(Request request) throws UnpackerException {
-      return unpack(request, new ArrayList<KeyValueHandler>());
+      List<KeyValueHandler> emptyList = Collections.emptyList();
+      return unpack(request, emptyList);
     }
 
     @Override
     public UnpackedRequest unpack(Request request, KeyValueHandler kvHandler) throws UnpackerException {
-      ArrayList<KeyValueHandler> handlers = new ArrayList<KeyValueHandler>();
-      handlers.add(kvHandler);
+      List<KeyValueHandler> handlers = Collections.singletonList(kvHandler);
       return unpack(request, handlers);
     }
 

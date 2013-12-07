@@ -256,8 +256,8 @@ public class OAuthParams {
       return v2Token;
     }
 
-    public ArrayList<Request.Pair> otherParams() {
-      ArrayList<Request.Pair> list = paramsHandler.toList();
+    public List<Request.Pair> otherParams() {
+      List<Request.Pair> list = paramsHandler.toList();
       list.addAll(otherOAuthParamsHandler.toList());
       return list;
     }

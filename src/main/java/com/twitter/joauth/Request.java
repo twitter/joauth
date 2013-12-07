@@ -12,7 +12,8 @@
 
 package com.twitter.joauth;
 
-import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public abstract class Request {
   //TODO use java style getXXX getters
@@ -27,7 +28,7 @@ public abstract class Request {
   abstract public String queryString();
   abstract public String scheme();
 
-  public ParsedRequest parsedRequest(ArrayList<Pair> params) {
+  public ParsedRequest parsedRequest(List<Pair> params) {
     return new ParsedRequest(
       (scheme() == null) ? null : scheme().toUpperCase(),
       host(),
@@ -39,14 +40,13 @@ public abstract class Request {
   }
 
   public static class Pair {
+    public final String key;
+    public final String value;
 
     public Pair(String key, String value) {
       this.key = key;
       this.value = value;
     }
-
-    public String key;
-    public String value;
 
     @Override
     public boolean equals(Object o) {
@@ -83,15 +83,15 @@ public abstract class Request {
     public final int port;
     public final String verb;
     public final String path;
-    public final ArrayList<Pair> params;
+    public final List<Pair> params;
 
-    public ParsedRequest(String scheme, String host, int port, String verb, String path, ArrayList<Pair> params) {
+    public ParsedRequest(String scheme, String host, int port, String verb, String path, List<Pair> params) {
       this.scheme = scheme;
       this.host = host;
       this.port = port;
       this.verb = verb;
       this.path = path;
-      this.params = params;
+      this.params = Collections.unmodifiableList(params);
     }
 
 

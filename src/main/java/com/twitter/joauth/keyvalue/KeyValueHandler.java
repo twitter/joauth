@@ -36,14 +36,14 @@ public interface KeyValueHandler {
    * value pairs, allowing duplicate values for keys.
    */
   public static class DuplicateKeyValueHandler implements KeyValueHandler {
-    ArrayList<Request.Pair> buffer = new ArrayList<Request.Pair>();
+    private final List<Request.Pair> buffer = new ArrayList<Request.Pair>();
 
     @Override
     public void handle(String key, String value) {
      buffer.add(new Request.Pair(key, value));
     }
 
-    public ArrayList<Request.Pair> toList() {
+    public List<Request.Pair> toList() {
       return buffer;
     }
   }
@@ -54,20 +54,20 @@ public interface KeyValueHandler {
    * duplicate values for keys, using the last value encountered
    */
   public static class SingleKeyValueHandler implements KeyValueHandler {
-    HashMap<String, String> kv = new LinkedHashMap<String, String>();
+    private final Map<String, String> kv = new LinkedHashMap<String, String>();
 
     @Override
     public void handle(String key, String value) {
       kv.put(key, value);
     }
 
-    public HashMap<String, String> toMap() {
+    public Map<String, String> toMap() {
       return kv;
     }
 
-    public ArrayList<Request.Pair> toList() {
+    public List<Request.Pair> toList() {
       Iterator<Map.Entry<String, String>> iterator = kv.entrySet().iterator();
-      ArrayList<Request.Pair> list = new ArrayList<Request.Pair>(kv.size());
+      List<Request.Pair> list = new ArrayList<Request.Pair>(kv.size());
 
       while(iterator.hasNext()) {
         Map.Entry<String, String> next = iterator.next();
@@ -79,8 +79,7 @@ public interface KeyValueHandler {
   }
 
   public static class MaybeQuotedValueKeyValueHandler implements KeyValueHandler {
-    private KeyValueHandler underlying;
-    //private static String QUOTED_REGEX = Pattern.compile("^\s*\"(.*)\"\s*$");
+    private final KeyValueHandler underlying;
 
     public MaybeQuotedValueKeyValueHandler(KeyValueHandler underlying) {
       this.underlying = underlying;
@@ -102,7 +101,7 @@ public interface KeyValueHandler {
    * Pass it in to the Unpacker to see what's going on.
    */
   class PrintlnKeyValueHandler implements KeyValueHandler {
-    private String prefix;
+    private final String prefix;
 
     public PrintlnKeyValueHandler(String prefix) {
       this.prefix = prefix;
@@ -110,7 +109,7 @@ public interface KeyValueHandler {
 
     @Override
     public void handle(String key, String value) {
-      System.out.println("%s%s=%s".format(prefix, key, value));
+      System.out.println(String.format("%s%s=%s",prefix, key, value));
     }
   }
 
@@ -192,9 +191,11 @@ public interface KeyValueHandler {
   }
 
 
-/**
- * key is set iff the handler was invoked exactly once with an empty value
- */
+  /**
+   * key is set iff the handler was invoked exactly once with an empty value
+   *
+   * Note: this class is not thead safe
+   */
   public static class OneKeyOnlyKeyValueHandler implements KeyValueHandler {
     private boolean invoked = false;
     private String _key = null;

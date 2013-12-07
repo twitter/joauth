@@ -15,6 +15,7 @@ package com.twitter.joauth;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.List;
 
 /**
  * a Normalizer takes the fields that describe an OAuth 1.0a request, and produces
@@ -33,7 +34,7 @@ public abstract class Normalizer {
     int port,
     String verb,
     String path,
-    ArrayList<Request.Pair> params,
+    List<Request.Pair> params,
     OAuthParams.OAuth1Params oAuth1Params
   );
 
@@ -66,7 +67,7 @@ public abstract class Normalizer {
         int port,
         String verb,
         String path,
-        ArrayList<Request.Pair> params,
+        List<Request.Pair> params,
         OAuthParams.OAuth1Params oAuth1Params
     ) {
 

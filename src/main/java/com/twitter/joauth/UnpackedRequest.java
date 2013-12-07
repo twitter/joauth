@@ -14,6 +14,7 @@ package com.twitter.joauth;
 
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
+import java.util.Map;
 
 public interface UnpackedRequest {
 
@@ -57,7 +58,7 @@ public interface UnpackedRequest {
    */
   public interface OAuthRequest extends UnpackedRequest {
     public String oAuthVersionString();
-    public HashMap<String, String> oAuthParamMap();
+    public Map<String, String> oAuthParamMap();
   }
 
   /**
@@ -66,14 +67,14 @@ public interface UnpackedRequest {
    * since that's all we need for signature validation anyway.
    */
   public static class OAuth1TwoLeggedRequest implements OAuthRequest {
-    private String consumerKey;
-    private String nonce;
-    private Long timestampSecs;
-    private String signature;
-    private String signatureMethod;
-    private String version;
-    private Request.ParsedRequest parsedRequest;
-    private String normalizedRequest;
+    private final String consumerKey;
+    private final String nonce;
+    private final Long timestampSecs;
+    private final String signature;
+    private final String signatureMethod;
+    private final String version;
+    private final Request.ParsedRequest parsedRequest;
+    private final String normalizedRequest;
 
     public String consumerKey() {
       return consumerKey;
@@ -134,7 +135,7 @@ public interface UnpackedRequest {
     }
 
     @Override
-    public HashMap<String, String> oAuthParamMap() {
+    public Map<String, String> oAuthParamMap() {
       HashMap<String, String> map = new HashMap<String, String>();
 
       map.put(OAuthParams.OAUTH_CONSUMER_KEY, consumerKey);
@@ -190,7 +191,7 @@ public interface UnpackedRequest {
   }
 
   public static class OAuth1Request extends OAuth1TwoLeggedRequest {
-    private String token;
+    private final String token;
 
     public OAuth1Request(
       String token,
@@ -208,8 +209,8 @@ public interface UnpackedRequest {
     }
 
     @Override
-    public HashMap<String, String> oAuthParamMap() {
-      HashMap<String, String> map = super.oAuthParamMap();
+    public Map<String, String> oAuthParamMap() {
+      Map<String, String> map = super.oAuthParamMap();
       map.put(OAuthParams.OAUTH_TOKEN, token);
       return map;
     }
@@ -267,7 +268,7 @@ public interface UnpackedRequest {
 
     @Override
     public HashMap<String, String> oAuthParamMap() {
-      HashMap<String, String> map = new HashMap<String, String>();
+      HashMap<String, String> map = new HashMap<String, String>(4);
       map.put(OAuthParams.BEARER_TOKEN, token);
       map.put(OAuthParams.CLIENT_ID, clientId);
       return map;
@@ -315,16 +316,16 @@ public interface UnpackedRequest {
     //TODO: remove MaxTokenLength, this limit is specific to twitter
     private static final int MaxTokenLength = 50;   // This is limited by DB schema
 
-    private void throwNullException(String name) throws MalformedRequest {
+    private void throwMalformedException(String name) throws MalformedRequest {
       throw new MalformedRequest(NO_VALUE_FOR+name);
     }
 
     public void verify(Request.ParsedRequest parsedRequest, OAuthParams.OAuth1Params oAuth1Params) throws MalformedRequest {
-      if (parsedRequest.scheme == null) throwNullException(SCHEME);
-      else if (parsedRequest.host == null) throwNullException(HOST);
-      else if (parsedRequest.port < 0) throwNullException(PORT);
-      else if (parsedRequest.verb == null) throwNullException(VERB);
-      else if (parsedRequest.path == null) throwNullException(PATH);
+      if (parsedRequest.scheme == null) throwMalformedException(SCHEME);
+      else if (parsedRequest.host == null) throwMalformedException(HOST);
+      else if (parsedRequest.port < 0) throwMalformedException(PORT);
+      else if (parsedRequest.verb == null) throwMalformedException(VERB);
+      else if (parsedRequest.path == null) throwMalformedException(PATH);
       else if (oAuth1Params.signatureMethod == null || !oAuth1Params.signatureMethod.equals(OAuthParams.HMAC_SHA1)) {
         throw new MalformedRequest(UNSUPPORTED_METHOD + oAuth1Params.signatureMethod);
       }

@@ -12,6 +12,7 @@
 
 package com.twitter.joauth;
 
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -134,13 +135,19 @@ public interface Verifier {
       String normalizedRequest
     ) {
       if (!validateTimestampSecs(timestampSecs)) {
-        log.info(String.format("bad timestamp -> %s", request.toString()));
+        if (log.isLoggable(Level.FINE)) {
+          log.log(Level.FINE, String.format("bad timestamp -> %s", request.toString()));
+        }
         return VerifierResult.BAD_TIMESTAMP;
       } else if (!validateNonce.validate(nonce)) {
-        log.info(String.format("bad nonce -> %s", request.toString()));
+        if (log.isLoggable(Level.FINE)) {
+          log.log(Level.FINE, String.format("bad nonce -> %s", request.toString()));
+        }
         return VerifierResult.BAD_NONCE;
       } else if (!validateSignature(normalizedRequest, signature, tokenSecret, consumerSecret)) {
-        log.info(String.format("bad signature -> %s", request.toString()));
+        if (log.isLoggable(Level.FINE)) {
+          log.log(Level.FINE, String.format("bad signature -> %s", request.toString()));
+        }
         return VerifierResult.BAD_SIGNATURE;
       } else {
         return VerifierResult.OK;

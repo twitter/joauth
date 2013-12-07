@@ -14,7 +14,7 @@ package com.twitter.joauth.keyvalue;
 
 import com.twitter.joauth.Request;
 
-import java.util.ArrayList;
+import java.util.List;
 
 /**
  * The KeyValueParser trait describes a parser that takes a String and a Seq[KeyValueHandler],
@@ -22,13 +22,13 @@ import java.util.ArrayList;
  */
 public interface KeyValueParser {
 
-  public void parse(String input, ArrayList<KeyValueHandler> handlers);
+  public void parse(String input, List<KeyValueHandler> handlers);
 
 
   /**
    * HeaderKeyValueParser is a KeyValueParser for Authorization headers
    */
-  public final KeyValueParser HeaderKeyValueParser = new  StandardKeyValueParser("\\s*,\\s*", "\\s*=\\s*");
+  public final KeyValueParser HeaderKeyValueParser = new StandardKeyValueParser("\\s*,\\s*", "\\s*=\\s*");
 
   /**
    * QueryKeyValueParser is a KeyValueParser for a query string
@@ -42,8 +42,8 @@ public interface KeyValueParser {
    * regular expressions.
    */
   public static class StandardKeyValueParser implements KeyValueParser {
-    private String delimiter;
-    private String kvDelimiter;
+    private final String delimiter;
+    private final String kvDelimiter;
 
     /*
      TODO: optimize this, no need for regex here
@@ -54,7 +54,7 @@ public interface KeyValueParser {
     }
 
     @Override
-    public void parse(String input, ArrayList<KeyValueHandler> handlers) {
+    public void parse(String input, List<KeyValueHandler> handlers) {
       if (empty(input)) return;
 
       String[] tokens = input.split(delimiter);
@@ -89,15 +89,15 @@ public interface KeyValueParser {
    */
   //TODO: This is not used, remove?
   public static class ConstKeyValueParser implements KeyValueParser {
-    ArrayList<Request.Pair> pairs;
+    private final List<Request.Pair> pairs;
 
-    public ConstKeyValueParser(ArrayList <Request.Pair> pairs) {
+    public ConstKeyValueParser(List <Request.Pair> pairs) {
       this.pairs = pairs;
 
     }
 
     @Override
-    public void parse(String input, ArrayList<KeyValueHandler> handlers) {
+    public void parse(String input, List<KeyValueHandler> handlers) {
       for (Request.Pair pair : pairs) {
         for (KeyValueHandler handler : handlers) {
           handler.handle(pair.key, pair.value);

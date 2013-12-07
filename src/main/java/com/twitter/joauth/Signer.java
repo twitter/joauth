@@ -91,8 +91,8 @@ public abstract class Signer {
    */
   public static class ConstSigner extends Signer {
 
-    private String str;
-    private byte[] bytes;
+    private final String str;
+    private final byte[] bytes;
 
     public ConstSigner(String str, byte[] bytes) {
       this.str = str;

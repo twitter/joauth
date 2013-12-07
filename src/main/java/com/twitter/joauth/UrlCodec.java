@@ -20,6 +20,7 @@ public class UrlCodec {
   private static final String UTF_8 = "UTF-8";
   private static final Charset UTF_8_CHARSET = Charset.forName(UTF_8);
 
+  //TODO: is this necessary? can we just call isUnreserved((char)b) ?
   private static final String PLUS = "+";
   private static final String ENCODED_PLUS = "%20";
   private static final String UNDERSCORE = "_";
