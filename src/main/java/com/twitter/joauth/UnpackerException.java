@@ -25,4 +25,3 @@ public class UnpackerException extends Exception {
     super(message);
   }
 }
-

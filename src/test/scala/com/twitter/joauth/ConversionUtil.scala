@@ -20,6 +20,4 @@ object ConversionUtil {
     }
     hashMap
   }
-
-
 }
