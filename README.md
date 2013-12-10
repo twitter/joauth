@@ -1,6 +1,6 @@
 # JOAuth [![Build Status](https://travis-ci.org/twitter/joauth.png?branch=master)](https://travis-ci.org/twitter/joauth)
 
-A Scala/JVM library for authenticating HTTP Requests using OAuth
+A Java library for authenticating HTTP Requests using OAuth
 
 ## Features
 
@@ -10,9 +10,9 @@ A Scala/JVM library for authenticating HTTP Requests using OAuth
 * Custom callbacks to obtain scheme and path from the request in a non-standard way
 * Configurable timestamp checking
 * Correctly works around various weird URLEncoder bugs in the JVM
-* Written in Scala, with Java bindings
+* Written in Java, with Scala bindings
 
-The Github source repository is [here](http://github.com/9len/joauth/). Patches and contributions are welcome.
+The Github source repository is [here](https://github.com/twitter/joauth/). Patches and contributions are welcome.
 
 ## Non-Features
 
@@ -29,6 +29,8 @@ v3.0.1 and higher - Use maven to build:
     % mvn clean install
 
 **v.1.1.2 is the last version that can be built using scala 2.7.7, and now resides in the scala27 branch. v1.2 and above require scala > 2.8.1. v3.0.1 and above uses maven instead of sbt, and require scala 2.9.2**
+
+**v.6.0.0 require JDK 1.6. Test require scala 2.9.2**
 
 Below v3.0.1 - Use sbt (simple-build-tool) to build:
 
@@ -167,6 +169,7 @@ The Github issue tracker is [here](http://github.com/9len/joauth/issues).
 * Glen Sanford
 * Fiaz Hossain
 * Steven Liu
+* Manoj Cheenath
 
 ## License
 
