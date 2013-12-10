@@ -12,12 +12,12 @@
 
 package com.twitter.joauth
 
-import com.twitter.joauth.keyvalue.UrlEncodingNormalizingTransformer
+import com.twitter.joauth.keyvalue.Transformer
 import com.twitter.joauth.testhelpers.OAuth1TestCases
 import org.specs.SpecificationWithJUnit
 
 class NormalizerSpec extends SpecificationWithJUnit {
-  val normalize = StandardNormalizer
+  val normalize = Normalizer.STANDARD_NORMALIZER
   "Include Port String" should {
     "skip port for 80/HTTP" in { normalize.includePortString(80, "http") must beFalse }
     "skip port for 80/hTtP" in { normalize.includePortString(80, "hTtP") must beFalse }
@@ -30,6 +30,8 @@ class NormalizerSpec extends SpecificationWithJUnit {
     "return port for 3000/HTTP" in { normalize.includePortString(3000, "http") must beTrue }
     "return port for 3000/HTTPS" in { normalize.includePortString(3000, "https") must beTrue }
   }
+
+
   "Normalizer" should {
     "normalize correctly" in {
       OAuth1TestCases().foreach { (testCase) =>
@@ -37,16 +39,19 @@ class NormalizerSpec extends SpecificationWithJUnit {
           for ((post) <- List(true, false)) {
             val verb = if (post) "POST" else "GET"
             "normalize %s/%s".format(post, testCase.testName) in {
-              normalize(
+
+              val result = normalize.normalize(
                 testCase.scheme,
                 testCase.host,
                 testCase.port,
                 verb,
                 testCase.path,
-                testCase.parameters.map { case (k, v) =>
-                  UrlEncodingNormalizingTransformer(k) -> UrlEncodingNormalizingTransformer(v)
-                },
-                testCase.oAuth1Params(post)) must be_==(testCase.normalizedRequest(post, false))
+                ConversionUtil.toArrayList(testCase.parameters.map { case (k, v) =>
+                  new Request.Pair(Transformer.URL_ENCODING_NORMALIZING_TRANSFORMER.transform(k), Transformer.URL_ENCODING_NORMALIZING_TRANSFORMER.transform(v))
+                }),
+                testCase.oAuth1Params(post))
+
+              result must be_==(testCase.normalizedRequest(post, false))
             }
           }
         }

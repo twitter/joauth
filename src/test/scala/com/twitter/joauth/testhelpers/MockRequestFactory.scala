@@ -12,7 +12,7 @@
 
 package com.twitter.joauth.testhelpers
 
-import com.twitter.joauth.UrlEncoder
+import com.twitter.joauth.UrlCodec
 import scala.util.Random
 
 object MockRequestFactory {
@@ -30,7 +30,7 @@ object MockRequestFactory {
 
     def maybeQuote(str: String) = if (quotedHeaderValues) "\"%s\"".format(str) else str
 
-    val encodedSignature = if (signature == null || !urlEncodeSig) signature else UrlEncoder(signature)
+    val encodedSignature = if (signature == null || !urlEncodeSig) signature else UrlCodec.encode(signature)
     val params = oAuth1ParameterMap(token, clientKey, encodedSignature, nonce, timestamp) ++ extraHeaderParams
     val paramString = params.filter(_._2 != null).map { case (k, v) =>
       getRandomWhitespace + k + getRandomWhitespace + "=" + getRandomWhitespace + maybeQuote(v) + getRandomWhitespace
@@ -64,7 +64,7 @@ object MockRequestFactory {
 
   def requestWithAuthHeader(header: String): MockRequest = {
     val request = new MockRequest()
-    request.authHeader = Some(header)
+    request.authHeader = header
     request
   }
 
@@ -88,7 +88,7 @@ object MockRequestFactory {
       request.body = request.queryString
       request.queryString = null
     }
-    request.contentType = Some("application/x-www-form-urlencoded")
+    request.contentType = "application/x-www-form-urlencoded"
     request
   }
 
@@ -97,7 +97,7 @@ object MockRequestFactory {
       request.body = request.queryString
       request.queryString = null
     }
-    request.contentType = Some("application/x-www-form-urlencoded")
+    request.contentType = "application/x-www-form-urlencoded"
     request.method = "POST"
     request
   }

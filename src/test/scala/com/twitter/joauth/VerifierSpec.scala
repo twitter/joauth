@@ -18,8 +18,8 @@ import org.specs.SpecificationWithJUnit
 
 class VerifierSpec extends SpecificationWithJUnit with Mockito {
   val checkNonce = mock[NonceValidator]
-  val signer = new StandardSigner
-  val request = mock[OAuth1Request]
+  val signer = new Signer.StandardSigner
+  val request = mock[UnpackedRequest.OAuth1Request]
 
   val nowSecs = (new Date).getTime / 1000
   // 10 minutes ago
@@ -27,7 +27,7 @@ class VerifierSpec extends SpecificationWithJUnit with Mockito {
   // 10 minutes fromNow
   val farAheadSecs = nowSecs + (10 * 60)
 
-  val verify = new StandardVerifier(signer, 5, 5, checkNonce)
+  val verify = new Verifier.StandardVerifier(signer, 5, 5, checkNonce)
 
   "validateTimestampSec" should {
     "return false for timestamp that is too old" in {
@@ -46,7 +46,7 @@ class VerifierSpec extends SpecificationWithJUnit with Mockito {
     }
   }
   "no timestamp checks" should {
-    val noTimestampCheckingVerify = new StandardVerifier(
+    val noTimestampCheckingVerify = new Verifier.StandardVerifier(
       signer,
       Verifier.NO_TIMESTAMP_CHECK,
       Verifier.NO_TIMESTAMP_CHECK,
@@ -64,54 +64,53 @@ class VerifierSpec extends SpecificationWithJUnit with Mockito {
 
   "validateSignature" should {
     "return false for malformed signature" in {
-      request.signature returns "rEh%2FpUnLF9ZSV8WmIMGARQlM2VQ%3D%0"
-      request.normalizedRequest returns "GET&https%3A%2F%2Fapi.twitter.com%2F1.1%2Fusers%2Flookup.json&oauth_consumer_key%3Dabcd%26oauth_nonce%3Dnonce%26oauth_signature_method%3DHMAC-SHA1%26oauth_timestamp%3D1363119598%26oauth_token%3Dijkl%26oauth_version%3D1.0%26user_id%3D1234567890"
-      verify.validateSignature(request.normalizedRequest, request.signature, "readsecret", "writesecret") must beFalse
+      request.signature() returns "rEh%2FpUnLF9ZSV8WmIMGARQlM2VQ%3D%0"
+      request.normalizedRequest() returns "GET&https%3A%2F%2Fapi.twitter.com%2F1.1%2Fusers%2Flookup.json&oauth_consumer_key%3Dabcd%26oauth_nonce%3Dnonce%26oauth_signature_method%3DHMAC-SHA1%26oauth_timestamp%3D1363119598%26oauth_token%3Dijkl%26oauth_version%3D1.0%26user_id%3D1234567890"
+      verify.validateSignature(request.normalizedRequest(), request.signature(), "readsecret", "writesecret") must beFalse
     }
     "return true for good signature" in {
-      request.signature returns "rEh%2FpUnLF9ZSV8WmIMGARQlM2VQ%3D"
-      request.normalizedRequest returns "GET&https%3A%2F%2Fapi.twitter.com%2F1.1%2Fusers%2Flookup.json&oauth_consumer_key%3Dabcd%26oauth_nonce%3Dnonce%26oauth_signature_method%3DHMAC-SHA1%26oauth_timestamp%3D1363119598%26oauth_token%3Dijkl%26oauth_version%3D1.0%26user_id%3D1234567890"
-      verify.validateSignature(request.normalizedRequest, request.signature, "readsecret", "writesecret") must beTrue
+      request.signature() returns "rEh%2FpUnLF9ZSV8WmIMGARQlM2VQ%3D"
+      request.normalizedRequest() returns "GET&https%3A%2F%2Fapi.twitter.com%2F1.1%2Fusers%2Flookup.json&oauth_consumer_key%3Dabcd%26oauth_nonce%3Dnonce%26oauth_signature_method%3DHMAC-SHA1%26oauth_timestamp%3D1363119598%26oauth_token%3Dijkl%26oauth_version%3D1.0%26user_id%3D1234567890"
+      verify.validateSignature(request.normalizedRequest(), request.signature(), "readsecret", "writesecret") must beTrue
     }
     "return false for bad signature" in {
-      request.signature returns "cNwF13Zo%2FIaX8MT6QdYlJWn%2B4%2F4%3D"
-      request.normalizedRequest returns "GET&https%3A%2F%2Fapi.twitter.com%2F1.1%2Fusers%2Flookup.json&oauth_consumer_key%3Dabcd%26oauth_nonce%3Dnonce%26oauth_signature_method%3DHMAC-SHA1%26oauth_timestamp%3D1363119598%26oauth_token%3Dijkl%26oauth_version%3D1.0%26user_id%3D1234567890"
-      verify.validateSignature(request.normalizedRequest, request.signature, "readsecret", "writesecret") must beFalse
+      request.signature() returns "cNwF13Zo%2FIaX8MT6QdYlJWn%2B4%2F4%3D"
+      request.normalizedRequest() returns "GET&https%3A%2F%2Fapi.twitter.com%2F1.1%2Fusers%2Flookup.json&oauth_consumer_key%3Dabcd%26oauth_nonce%3Dnonce%26oauth_signature_method%3DHMAC-SHA1%26oauth_timestamp%3D1363119598%26oauth_token%3Dijkl%26oauth_version%3D1.0%26user_id%3D1234567890"
+      verify.validateSignature(request.normalizedRequest(), request.signature(), "readsecret", "writesecret") must beFalse
     }
   }
 
   "Verifier" should {
     "return BAD_NONCE for bad nonce" in {
-      val verify = new StandardVerifier(signer, -1, -1, checkNonce)
-      request.nonce returns "nonce"
-      request.timestampSecs returns 1363119598
-      checkNonce.apply("nonce") returns false
-      verify(request, "readsecret", "writesecret") must be_==(VerifierResult.BAD_NONCE)
+      val verify = new Verifier.StandardVerifier(signer, -1, -1, checkNonce)
+      request.nonce() returns "nonce"
+      request.timestampSecs() returns 1363119598
+      checkNonce.validate("nonce") returns false
+      verify.verify(request, "readsecret", "writesecret") must be_==(VerifierResult.BAD_NONCE)
     }
     "return BAD_TIMESTAMP for bad timestamp" in {
-      request.nonce returns "nonce"
-      checkNonce.apply("nonce") returns true
-      request.timestampSecs returns longAgoSecs
-      verify(request, "readsecret", "writesecret") must be_==(VerifierResult.BAD_TIMESTAMP)
+      request.nonce() returns "nonce"
+      checkNonce.validate("nonce") returns true
+      request.timestampSecs() returns longAgoSecs
+      verify.verify(request, "readsecret", "writesecret") must be_==(VerifierResult.BAD_TIMESTAMP)
     }
     "return BAD_SIGNATURE for bad signature" in {
-      val verify = new StandardVerifier(signer, -1, -1, checkNonce)
+      val verify = new Verifier.StandardVerifier(signer, -1, -1, checkNonce)
       request.nonce returns "nonce"
-      checkNonce.apply("nonce") returns true
+      checkNonce.validate("nonce") returns true
       request.timestampSecs returns 1363119598
       request.signature returns "cNwF13Zo%2FIaX8MT6QdYlJWn%2B4%2F4%3D"
       request.normalizedRequest returns "GET&https%3A%2F%2Fapi.twitter.com%2F1.1%2Fusers%2Flookup.json&oauth_consumer_key%3Dabcd%26oauth_nonce%3Dnonce%26oauth_signature_method%3DHMAC-SHA1%26oauth_timestamp%3D1363119598%26oauth_token%3Dijkl%26oauth_version%3D1.0%26user_id%3D1234567890"
-      verify(request, "readsecret", "writesecret") must be_==(VerifierResult.BAD_SIGNATURE)
+      verify.verify(request, "readsecret", "writesecret") must be_==(VerifierResult.BAD_SIGNATURE)
     }
     "return OK for good request" in {
-      val verify = new StandardVerifier(signer, -1, -1, checkNonce)
+      val verify = new Verifier.StandardVerifier(signer, -1, -1, checkNonce)
       request.nonce returns "nonce"
-      checkNonce.apply("nonce") returns true
+      checkNonce.validate("nonce") returns true
       request.timestampSecs returns 1363119598
       request.signature returns "rEh%2FpUnLF9ZSV8WmIMGARQlM2VQ%3D"
       request.normalizedRequest returns "GET&https%3A%2F%2Fapi.twitter.com%2F1.1%2Fusers%2Flookup.json&oauth_consumer_key%3Dabcd%26oauth_nonce%3Dnonce%26oauth_signature_method%3DHMAC-SHA1%26oauth_timestamp%3D1363119598%26oauth_token%3Dijkl%26oauth_version%3D1.0%26user_id%3D1234567890"
-      verify(request, "readsecret", "writesecret") must be_==(VerifierResult.OK)
+      verify.verify(request, "readsecret", "writesecret") must be_==(VerifierResult.OK)
     }
   }
-
 }
