@@ -52,7 +52,7 @@ public abstract class Signer {
   /**
    * the standard implementation of the Signer trait. Though stateless and threadsafe,
    * this is a class rather than an object to allow easy access from Java. Scala codebases
-   * should use the corresponding StandardSigner object instead.
+   * should use the corresponding STANDARD_SIGNER object instead.
    */
   public static class StandardSigner extends Signer {
 

@@ -300,7 +300,7 @@ public class OAuthParams {
   /**
    * Provides the default implementation of the OAuthParamsHelper trait
    * Though stateless and threadsafe, this is a class rather than an object to allow easy
-   * access from Java. Scala codebases should use the corresponding StandardOAuthParamsHelper
+   * access from Java. Scala codebases should use the corresponding STANDARD_OAUTH_PARAMS_HELPER
    * object instead.
    */
   public static class StandardOAuthParamsHelperImpl implements OAuthParamsHelper {
