@@ -16,14 +16,12 @@ import com.twitter.joauth.UrlEncoder
 
 object ParamHelper {
   def toUrlEncodedQueryString(params: Seq[(String, String)]): String = (params.flatMap { (e) =>
-    if (e._1 == null) None
-    else if (e._2 == null) Some(UrlEncoder(e._1))
+    if (e._1 == null || e._2 == null) None
     else Some("%s=%s".format(UrlEncoder(e._1), UrlEncoder(e._2)))
   }).mkString("&")
 
   def toQueryString(params: Seq[(String, String)]): String = (params.flatMap { (e) =>
-    if (e._1 == null) None
-    else if (e._2 == null) Some(e._1)
+    if (e._1 == null || e._2 == null) None
     else Some("%s=%s".format(e._1, e._2))
   }).mkString("&")
 

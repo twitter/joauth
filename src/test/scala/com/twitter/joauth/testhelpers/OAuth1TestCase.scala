@@ -289,8 +289,8 @@ object OAuth1TestCases {
     )
   }
 
-  val oAuthTwoLegged = OAuth1TestCase(
-    "null access token",
+  val oAuthTwoLeggedEmptyToken = OAuth1TestCase(
+    "empty token",
     "https",
     "photos.example.net",
     3000,
@@ -307,6 +307,29 @@ object OAuth1TestCases {
     1191242096,
     "GET&https%3A%2F%2Fphotos.example.net%3A3000%2Fphotos%2Fcreate&oauth_consumer_key%3Ddpf43f3p2l4k3l03%26oauth_nonce%3Dkllo9940pd9333jh%26oauth_signature_method%3DHMAC-SHA1%26oauth_timestamp%3D1191242096%26oauth_token%3D%26oauth_version%3D1.0",
     "POST&https%3A%2F%2Fphotos.example.net%3A3000%2Fphotos%2Fcreate&oauth_consumer_key%3Ddpf43f3p2l4k3l03%26oauth_nonce%3Dkllo9940pd9333jh%26oauth_signature_method%3DHMAC-SHA1%26oauth_timestamp%3D1191242096%26oauth_token%3D%26oauth_version%3D1.0",
+    true,
+    false,
+    None
+  )
+
+  val oAuthTwoLeggedNullToken = OAuth1TestCase(
+    "null token",
+    "https",
+    "photos.example.net",
+    3000,
+    "/photos/create",
+    None,
+    Nil,
+    null,
+    "pfkkdhi9sl3r4s00",
+    "dpf43f3p2l4k3l03",
+    "kd94hf93k423kf44",
+    "tR3+Ty81lMeYAr/Fid0kMTYa/WM=",
+    "wPkvxykrw+BTdCcGqKr+3I+PsiM=",
+    "kllo9940pd9333jh",
+    1191242096,
+    "GET&https%3A%2F%2Fphotos.example.net%3A3000%2Fphotos%2Fcreate&oauth_consumer_key%3Ddpf43f3p2l4k3l03%26oauth_nonce%3Dkllo9940pd9333jh%26oauth_signature_method%3DHMAC-SHA1%26oauth_timestamp%3D1191242096%26oauth_version%3D1.0",
+    "POST&https%3A%2F%2Fphotos.example.net%3A3000%2Fphotos%2Fcreate&oauth_consumer_key%3Ddpf43f3p2l4k3l03%26oauth_nonce%3Dkllo9940pd9333jh%26oauth_signature_method%3DHMAC-SHA1%26oauth_timestamp%3D1191242096%26oauth_version%3D1.0",
     true,
     false,
     None
