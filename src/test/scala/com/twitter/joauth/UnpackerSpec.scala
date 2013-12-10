@@ -196,9 +196,19 @@ class UnpackerSpec extends SpecificationWithJUnit with Mockito {
   "Unpacker for OAuth1 Two Legged" should {
     val kvHandler = smartMock[KeyValueHandler]
     val unpacker = StandardUnpacker()
-    val testCase = OAuth1TestCases.oAuthTwoLegged
 
-    "correctly parse the request" in {
+
+    "correctly parse the request with null token" in {
+      val testCase = OAuth1TestCases.oAuthTwoLeggedNullToken
+      val request = testCase.request(true, false, false)
+      val oAuthParamsBuilder = unpacker.parseRequest(request, Seq(kvHandler))
+      val parsedRequest = request.parsedRequest(oAuthParamsBuilder.otherParams)
+      parsedRequest mustEqual testCase.parsedRequest(false, false)
+      oAuthParamsBuilder.oAuth1Params.toString must be_==(testCase.oAuth1Params(false).toString)
+    }
+
+    "correctly parse the request with empty token" in {
+      val testCase = OAuth1TestCases.oAuthTwoLeggedEmptyToken
       val request = testCase.request(true, false, false)
       val oAuthParamsBuilder = unpacker.parseRequest(request, Seq(kvHandler))
       val parsedRequest = request.parsedRequest(oAuthParamsBuilder.otherParams)
@@ -207,6 +217,7 @@ class UnpackerSpec extends SpecificationWithJUnit with Mockito {
     }
 
     "correctly unpack the request" in {
+      val testCase = OAuth1TestCases.oAuthTwoLeggedNullToken
       val request = testCase.request(true, false, false)
       unpacker(request, Seq(kvHandler)) must be_==(testCase.oAuth1TwoLeggedRequest(false, false))
     }
