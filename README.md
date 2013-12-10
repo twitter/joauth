@@ -10,7 +10,7 @@ A Java library for authenticating HTTP Requests using OAuth
 * Custom callbacks to obtain scheme and path from the request in a non-standard way
 * Configurable timestamp checking
 * Correctly works around various weird URLEncoder bugs in the JVM
-* Written in Java, with Scala bindings
+* Written in Java, with minimal dependencies
 
 The Github source repository is [here](https://github.com/twitter/joauth/). Patches and contributions are welcome.
 
