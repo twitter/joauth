@@ -176,7 +176,7 @@ public class OAuthParams {
           consumerKey = value;
         }
       } else if (OAUTH_TOKEN.equals(key)) {
-        if (notEmpty(value)) {
+        if (value != null) {
           token = value.trim();
         }
       } else if (OAUTH_CONSUMER_KEY.equals(key)) {
@@ -234,21 +234,22 @@ public class OAuthParams {
     }
 
     public boolean isOAuth1TwoLegged() {
-      return token == null &&
-      consumerKey != null &&
-      nonce != null &&
-      timestampStr != null &&
-      signature != null &&
-      signatureMethod != null;
+      return (token == null || "".equals(token)) &&
+        consumerKey != null &&
+        nonce != null &&
+        timestampStr != null &&
+        signature != null &&
+        signatureMethod != null;
     }
 
     public boolean isOAuth1() {
       return token != null &&
-      consumerKey != null &&
-      nonce != null &&
-      timestampStr != null &&
-      signature != null &&
-      signatureMethod != null;
+        !"".equals(token) &&
+        consumerKey != null &&
+        nonce != null &&
+        timestampStr != null &&
+        signature != null &&
+        signatureMethod != null;
       // version is optional, so not included here
     }
 

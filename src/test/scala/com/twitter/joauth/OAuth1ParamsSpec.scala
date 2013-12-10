@@ -147,7 +147,7 @@ class OAuthParamsSpec extends SpecificationWithJUnit with Mockito {
       builder.isOAuth1TwoLegged must beTrue
       builder.isOAuth2 must beFalse
 
-      builder.queryHandler("oauth_token", "")
+      builder.queryHandler.handle("oauth_token", "")
       builder.token mustEqual ""
       builder.isOAuth1 must beFalse
       builder.isOAuth1TwoLegged must beTrue
