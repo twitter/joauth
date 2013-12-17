@@ -208,6 +208,10 @@ public interface UnpackedRequest {
       this.token = token;
     }
 
+    public String token() {
+      return token;
+    }
+
     @Override
     public Map<String, String> oAuthParamMap() {
       Map<String, String> map = super.oAuthParamMap();
@@ -254,6 +258,14 @@ public interface UnpackedRequest {
       this.token = token;
       this.parsedRequest = parsedRequest;
       this.clientId = clientId;
+    }
+
+    public String clientId() {
+      return clientId;
+    }
+
+    public String token() {
+      return token;
     }
 
     @Override
@@ -321,22 +333,22 @@ public interface UnpackedRequest {
     }
 
     public void verify(Request.ParsedRequest parsedRequest, OAuthParams.OAuth1Params oAuth1Params) throws MalformedRequest {
-      if (parsedRequest.scheme == null) throwMalformedException(SCHEME);
-      else if (parsedRequest.host == null) throwMalformedException(HOST);
-      else if (parsedRequest.port < 0) throwMalformedException(PORT);
-      else if (parsedRequest.verb == null) throwMalformedException(VERB);
-      else if (parsedRequest.path == null) throwMalformedException(PATH);
-      else if (oAuth1Params.signatureMethod == null || !oAuth1Params.signatureMethod.equals(OAuthParams.HMAC_SHA1)) {
-        throw new MalformedRequest(UNSUPPORTED_METHOD + oAuth1Params.signatureMethod);
+      if (parsedRequest.scheme() == null) throwMalformedException(SCHEME);
+      else if (parsedRequest.host() == null) throwMalformedException(HOST);
+      else if (parsedRequest.port() < 0) throwMalformedException(PORT);
+      else if (parsedRequest.verb() == null) throwMalformedException(VERB);
+      else if (parsedRequest.path() == null) throwMalformedException(PATH);
+      else if (oAuth1Params.signatureMethod() == null || !oAuth1Params.signatureMethod().equals(OAuthParams.HMAC_SHA1)) {
+        throw new MalformedRequest(UNSUPPORTED_METHOD + oAuth1Params.signatureMethod());
       }
-      else if (oAuth1Params.version != null &&
-          !oAuth1Params.version.equals(OAuthParams.ONE_DOT_OH) &&
-          !oAuth1Params.version.toLowerCase().equals(OAuthParams.ONE_DOT_OH_A)) {
-        throw new MalformedRequest(UNSUPPORTED_VERSION + oAuth1Params.version);
+      else if (oAuth1Params.version() != null &&
+          !oAuth1Params.version().equals(OAuthParams.ONE_DOT_OH) &&
+          !oAuth1Params.version().toLowerCase().equals(OAuthParams.ONE_DOT_OH_A)) {
+        throw new MalformedRequest(UNSUPPORTED_VERSION + oAuth1Params.version());
       }
-      else if (oAuth1Params.token != null &&
-          (oAuth1Params.token.indexOf(' ') > 0 || oAuth1Params.token.length() > MaxTokenLength)) {
-        throw new MalformedRequest(MALFORMED_TOKEN + oAuth1Params.token);
+      else if (oAuth1Params.token() != null &&
+          (oAuth1Params.token().indexOf(' ') > 0 || oAuth1Params.token().length() > MaxTokenLength)) {
+        throw new MalformedRequest(MALFORMED_TOKEN + oAuth1Params.token());
       }
       // we don't check the validity of the OAuthParams object, because it must be
       // fully populated in order for the factory to even be called, and we'd like
@@ -352,13 +364,13 @@ public interface UnpackedRequest {
       verify(parsedRequest, oAuth1Params);
 
       return new OAuth1Request(
-        UrlCodec.decode(oAuth1Params.token), // should never be called when token is None
-        UrlCodec.decode(oAuth1Params.consumerKey),
-        UrlCodec.decode(oAuth1Params.nonce),
-        oAuth1Params.timestampSecs,
-        oAuth1Params.signature,
-        oAuth1Params.signatureMethod,
-        oAuth1Params.version,
+        UrlCodec.decode(oAuth1Params.token()), // should never be called when token is None
+        UrlCodec.decode(oAuth1Params.consumerKey()),
+        UrlCodec.decode(oAuth1Params.nonce()),
+        oAuth1Params.timestampSecs(),
+        oAuth1Params.signature(),
+        oAuth1Params.signatureMethod(),
+        oAuth1Params.version(),
         parsedRequest,
         normalize.normalize(parsedRequest, oAuth1Params)
       );
@@ -374,12 +386,12 @@ public interface UnpackedRequest {
       verify(parsedRequest, oAuth1Params);
 
       return new OAuth1TwoLeggedRequest(
-        UrlCodec.decode(oAuth1Params.consumerKey),
-        UrlCodec.decode(oAuth1Params.nonce),
-        oAuth1Params.timestampSecs,
-        oAuth1Params.signature,
-        oAuth1Params.signatureMethod,
-        oAuth1Params.version,
+        UrlCodec.decode(oAuth1Params.consumerKey()),
+        UrlCodec.decode(oAuth1Params.nonce()),
+        oAuth1Params.timestampSecs(),
+        oAuth1Params.signature(),
+        oAuth1Params.signatureMethod(),
+        oAuth1Params.version(),
         parsedRequest,
         normalize.normalize(parsedRequest, oAuth1Params)
       );

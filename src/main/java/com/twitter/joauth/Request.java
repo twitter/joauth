@@ -15,29 +15,35 @@ package com.twitter.joauth;
 import java.util.Collections;
 import java.util.List;
 
-public abstract class Request {
-  //TODO use java style getXXX getters
+public interface Request {
 
-  abstract public String authHeader();
-  abstract public String body();
-  abstract public String contentType();
-  abstract public String host();
-  abstract public String method();
-  abstract public String path();
-  abstract public int port();
-  abstract public String queryString();
-  abstract public String scheme();
+  public String authHeader();
+  public String body();
+  public String contentType();
+  public String host();
+  public String method();
+  public String path();
+  public int port();
+  public String queryString();
+  public String scheme();
 
-  public ParsedRequest parsedRequest(List<Pair> params) {
-    return new ParsedRequest(
-      (scheme() == null) ? null : scheme().toUpperCase(),
-      host(),
-      port(),
-      (method() == null) ? null : method().toUpperCase(),
-      path(),
-      params
-    );
+  public static interface ParsedRequestFactory {
+    ParsedRequest parsedRequest(Request request, List<Pair> params);
   }
+
+  public final ParsedRequestFactory factory = new ParsedRequestFactory() {
+    @Override
+    public ParsedRequest parsedRequest(Request request, List<Pair> params) {
+      return new ParsedRequest(
+        (request.scheme() == null) ? null : request.scheme().toUpperCase(),
+        request.host(),
+        request.port(),
+        (request.method() == null) ? null : request.method().toUpperCase(),
+        request.path(),
+        params
+      );
+    }
+  };
 
   public static class Pair {
     public final String key;
@@ -78,12 +84,12 @@ public abstract class Request {
   }
 
   public static class ParsedRequest {
-    public final String scheme;
-    public final String host;
-    public final int port;
-    public final String verb;
-    public final String path;
-    public final List<Pair> params;
+    private final String scheme;
+    private final String host;
+    private final int port;
+    private final String verb;
+    private final String path;
+    private final List<Pair> params;
 
     public ParsedRequest(String scheme, String host, int port, String verb, String path, List<Pair> params) {
       this.scheme = scheme;
@@ -94,6 +100,12 @@ public abstract class Request {
       this.params = Collections.unmodifiableList(params);
     }
 
+    public String scheme() { return scheme; }
+    public String host() { return host; }
+    public int port() { return port; }
+    public String verb() { return verb; }
+    public String path() { return path; }
+    public List<Pair> params() { return params; }
 
     @Override
     public String toString() {

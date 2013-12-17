@@ -39,7 +39,15 @@ public abstract class Normalizer {
   );
 
   public String normalize(Request.ParsedRequest req, OAuthParams.OAuth1Params oAuth1Params) {
-    return normalize(req.scheme, req.host, req.port, req.verb, req.path, req.params, oAuth1Params);
+    return normalize(
+      req.scheme(),
+      req.host(),
+      req.port(),
+      req.verb(),
+      req.path(),
+      req.params(),
+      oAuth1Params
+    );
   }
 
   /**

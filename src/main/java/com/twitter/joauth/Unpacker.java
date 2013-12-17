@@ -12,7 +12,9 @@
 
 package com.twitter.joauth;
 
-import com.twitter.joauth.keyvalue.*;
+import com.twitter.joauth.keyvalue.KeyValueHandler;
+import com.twitter.joauth.keyvalue.KeyValueParser;
+import com.twitter.joauth.keyvalue.Transformer;
 
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
@@ -47,8 +49,9 @@ public interface Unpacker {
 
   public static class CustomizableUnpacker implements Unpacker {
 
-    private static final String WWW_FORM_URLENCODED = "application/x-www-form-urlencoded";
-    static final String HTTPS = "HTTPS";
+    public static final String WWW_FORM_URLENCODED = "application/x-www-form-urlencoded";
+    public static final String HTTPS = "HTTPS";
+
     private static final Logger log = Logger.getLogger("CustomizableUnpacker");
 
     private final OAuthParams.OAuthParamsHelper helper;
@@ -197,7 +200,7 @@ public interface Unpacker {
     public UnpackedRequest unpack(Request request, List<KeyValueHandler> kvHandlers) throws UnpackerException {
       try {
         OAuthParams.OAuthParamsBuilder oAuthParamsBuilder = parseRequest(request, kvHandlers);
-        Request.ParsedRequest parsedRequest = request.parsedRequest(oAuthParamsBuilder.otherParams());
+        Request.ParsedRequest parsedRequest = Request.factory.parsedRequest(request, oAuthParamsBuilder.otherParams());
 
         if (oAuthParamsBuilder.isOAuth2()) {
           return getOAuth2Request(request, parsedRequest, oAuthParamsBuilder.oAuth2Token());
@@ -237,8 +240,8 @@ public interface Unpacker {
     if (log.isLoggable(Level.FINE)) {
       log.log(Level.FINE, String.format(
         "building oauth1 request -> path = %s, host = %s, token = %s, consumer key = %s, signature = %s, method = %s",
-        parsedRequest.path, parsedRequest.host, oAuth1Params.token,
-        oAuth1Params.consumerKey, oAuth1Params.signature, oAuth1Params.signatureMethod));
+        parsedRequest.path(), parsedRequest.host(), oAuth1Params.token(),
+        oAuth1Params.consumerKey(), oAuth1Params.signature(), oAuth1Params.signatureMethod()));
     }
 
     return UnpackedRequest.O_AUTH_1_REQUEST_HELPER.buildOAuth1Request(parsedRequest, oAuth1Params, normalizer);
@@ -252,8 +255,8 @@ public interface Unpacker {
     if (log.isLoggable(Level.FINE)) {
       log.log(Level.FINE, String.format(
         "building oauth1 two-legged request -> path = %s, host = %s, consumer key = %s, signature = %s, method = %s",
-        parsedRequest.path, parsedRequest.host, oAuth1Params.consumerKey,
-        oAuth1Params.signature, oAuth1Params.signatureMethod));
+        parsedRequest.path(), parsedRequest.host(), oAuth1Params.consumerKey(),
+        oAuth1Params.signature(), oAuth1Params.signatureMethod()));
     }
 
     return UnpackedRequest.O_AUTH_1_REQUEST_HELPER.buildOAuth1TwoLeggedRequest(parsedRequest, oAuth1Params, normalizer);
@@ -269,7 +272,7 @@ public interface Unpacker {
     // protection against replay and man-in-the-middle attacks.
     if (log.isLoggable(Level.FINE)) {
       log.log(Level.FINE, String.format("building oauth2 request -> path = %s, host = %s, token = %s",
-        parsedRequest.path, parsedRequest.host, token));
+        parsedRequest.path(), parsedRequest.host(), token));
     }
 
     if (shouldAllowOAuth2.shouldAllowOAuth2(request, parsedRequest)) {
