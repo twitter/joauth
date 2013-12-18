@@ -13,6 +13,7 @@
 package com.twitter.joauth;
 
 import com.twitter.joauth.keyvalue.KeyValueHandler;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -57,14 +58,14 @@ public class OAuthParams {
    * The token is optional to allow for OAuth 1.0 two-legged requests.
    */
   public static class OAuth1Params {
-    final String token;
-    final String consumerKey;
-    final String nonce;
-    final Long timestampSecs;
-    final String timestampStr;
-    final String signature;
-    final String signatureMethod;
-    final String version;
+    private final String token;
+    private final String consumerKey;
+    private final String nonce;
+    private final Long timestampSecs;
+    private final String timestampStr;
+    private final String signature;
+    private final String signatureMethod;
+    private final String version;
 
 
     public OAuth1Params(
@@ -86,6 +87,16 @@ public class OAuthParams {
       this.signatureMethod = signatureMethod;
       this.version = version;
     }
+
+    public String token() { return token; }
+    public String consumerKey() { return consumerKey; }
+    public String nonce() { return  nonce; }
+    public Long timestampSecs() { return timestampSecs; }
+    public String timestampStr() { return timestampStr; }
+    public String signature() { return signature; }
+    public String signatureMethod() { return signatureMethod; }
+    public String version() { return version; }
+
 
     public List<Request.Pair> toList(boolean includeSig) {
       ArrayList<Request.Pair> buf = new ArrayList<Request.Pair>();
