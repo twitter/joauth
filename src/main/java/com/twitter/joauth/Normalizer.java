@@ -55,7 +55,7 @@ public abstract class Normalizer {
    * this is a class rather than an object to allow easy access from Java. Scala codebases
    * should use the corresponding STANDARD_NORMALIZER object instead.
    */
-  static class StandardNormalizer extends Normalizer {
+  public static class StandardNormalizer extends Normalizer {
 
     /* TODO: there is no way to clear string builder in java. see what can be done here.
      Not using thread local.
