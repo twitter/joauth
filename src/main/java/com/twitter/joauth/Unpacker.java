@@ -292,7 +292,7 @@ public interface Unpacker {
     public static StandardUnpacker newUnpacker() {
       return new StandardUnpacker(
         OAuthParams.STANDARD_OAUTH_PARAMS_HELPER,
-        Normalizer.STANDARD_NORMALIZER,
+        Normalizer.getStandardNormalizer(),
         KeyValueParser.QueryKeyValueParser,
         KeyValueParser.HeaderKeyValueParser
       );
@@ -301,7 +301,7 @@ public interface Unpacker {
     public static StandardUnpacker newUnpacker(OAuthParams.OAuthParamsHelper helper) {
       return new StandardUnpacker(
         helper,
-        Normalizer.STANDARD_NORMALIZER,
+        Normalizer.getStandardNormalizer(),
         KeyValueParser.QueryKeyValueParser,
         KeyValueParser.HeaderKeyValueParser
       );

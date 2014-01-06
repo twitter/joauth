@@ -26,7 +26,11 @@ public abstract class Normalizer {
   static final String HTTP = "HTTP";
   static final String HTTPS = "HTTPS";
 
-  public static final StandardNormalizer STANDARD_NORMALIZER = new StandardNormalizer();
+  private static final StandardNormalizer STANDARD_NORMALIZER = new StandardNormalizer();
+
+  public static Normalizer getStandardNormalizer() {
+    return STANDARD_NORMALIZER;
+  }
 
   public abstract String normalize(
     String scheme,
