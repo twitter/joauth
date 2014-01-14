@@ -6,7 +6,7 @@
   <groupId>com.twitter</groupId>
   <artifactId>joauth</artifactId>
   <packaging>jar</packaging>
-  <version>6.0.1</version>
+  <version>6.0.2</version>
   <url>http://github.com/twitter/joauth</url>
   <description>A Java library for authenticating HTTP requests using OAuth</description>
   <dependencies>

@@ -66,7 +66,23 @@ public interface UnpackedRequest {
    * scheme, host, port, etc around, we pre-calculate the normalized request,
    * since that's all we need for signature validation anyway.
    */
-  public static class OAuth1TwoLeggedRequest implements OAuthRequest {
+  public static class OAuth1TwoLeggedRequest extends OAuth1RequestBase {
+
+    public OAuth1TwoLeggedRequest(
+      String consumerKey,
+      String nonce,
+      Long timestampSecs,
+      String signature,
+      String signatureMethod,
+      String version,
+      Request.ParsedRequest parsedRequest,
+      String normalizedRequest
+    ) {
+      super(consumerKey, nonce, timestampSecs, signature, signatureMethod, version, parsedRequest, normalizedRequest);
+    }
+  }
+
+  public static class OAuth1RequestBase implements OAuthRequest {
     private final String consumerKey;
     private final String nonce;
     private final Long timestampSecs;
@@ -104,7 +120,7 @@ public interface UnpackedRequest {
       return normalizedRequest;
     }
 
-    public OAuth1TwoLeggedRequest(
+    public OAuth1RequestBase(
       String consumerKey,
       String nonce,
       Long timestampSecs,
@@ -160,7 +176,7 @@ public interface UnpackedRequest {
       if (this == o) return true;
       if (o == null || getClass() != o.getClass()) return false;
 
-      OAuth1TwoLeggedRequest that = (OAuth1TwoLeggedRequest) o;
+      OAuth1RequestBase that = (OAuth1RequestBase) o;
 
       if (consumerKey != null ? !consumerKey.equals(that.consumerKey) : that.consumerKey != null) return false;
       if (nonce != null ? !nonce.equals(that.nonce) : that.nonce != null) return false;
@@ -190,7 +206,7 @@ public interface UnpackedRequest {
     }
   }
 
-  public static class OAuth1Request extends OAuth1TwoLeggedRequest {
+  public static class OAuth1Request extends OAuth1RequestBase {
     private final String token;
 
     public OAuth1Request(
