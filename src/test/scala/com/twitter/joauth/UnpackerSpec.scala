@@ -17,6 +17,7 @@ import com.twitter.joauth.testhelpers.{MockRequestFactory, OAuth1TestCase, OAuth
 import org.specs.SpecificationWithJUnit
 import org.specs.matcher.Matcher
 import org.specs.mock.Mockito
+import com.twitter.joauth.UnpackedRequest.{OAuth1Request, OAuth1TwoLeggedRequest}
 
 class UnpackerSpec extends SpecificationWithJUnit with Mockito {
   "Unpacked for OAuth2 Request" should {
@@ -222,6 +223,13 @@ class UnpackerSpec extends SpecificationWithJUnit with Mockito {
       val testCase = OAuth1TestCases.oAuthTwoLeggedNullToken
       val request = testCase.request(true, false, false)
       unpacker.unpack(request, kvHandler) must be_==(testCase.oAuth1TwoLeggedRequest(false, false))
+    }
+
+    "OAuth1TwoLeggedRequest should not match OAuth1Request" in {
+      val testCase = OAuth1TestCases.oAuthTwoLeggedNullToken
+      val twoLeggRequest = testCase.oAuth1TwoLeggedRequest(false, false)
+      twoLeggRequest.isInstanceOf[OAuth1TwoLeggedRequest] must beTrue
+      twoLeggRequest.isInstanceOf[OAuth1Request] must beFalse
     }
   }
 }
