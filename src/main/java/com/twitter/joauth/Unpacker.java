@@ -46,6 +46,10 @@ public interface Unpacker {
     public boolean shouldAllowOAuth2(Request request, Request.ParsedRequest parsedRequest);
   }
 
+  public static interface OAuthParamsInHeaderChecker {
+    public boolean onlyAllowOAuthParamsInHeader();
+  }
+
 
   public static class CustomizableUnpacker implements Unpacker {
 
@@ -62,6 +66,7 @@ public interface Unpacker {
     private final KeyValueCallback bodyParamTransformer;
     private final KeyValueCallback headerTransformer;
     private final OAuth2Checker shouldAllowOAuth2;
+    private final OAuthParamsInHeaderChecker oAuthParamsChecker;
 
     public CustomizableUnpacker(
       OAuthParams.OAuthParamsHelper helper,
@@ -71,7 +76,8 @@ public interface Unpacker {
       KeyValueCallback queryParamTransformer,
       KeyValueCallback bodyParamTransformer,
       KeyValueCallback headerTransformer,
-      OAuth2Checker shouldAllowOAuth2
+      OAuth2Checker shouldAllowOAuth2,
+      OAuthParamsInHeaderChecker oAuthParamsChecker
     ) {
       this.helper = helper;
       this.normalizer = normalizer;
@@ -81,6 +87,7 @@ public interface Unpacker {
       this.bodyParamTransformer = bodyParamTransformer;
       this.headerTransformer = headerTransformer;
       this.shouldAllowOAuth2 = shouldAllowOAuth2;
+      this.oAuthParamsChecker = oAuthParamsChecker;
     }
 
     private KeyValueHandler createKeyValueHandler(
@@ -161,7 +168,7 @@ public interface Unpacker {
       // use an oAuthParamsBuilder instance to accumulate key/values from
       // the query string, the request body (if the appropriate Content-Type),
       // and the Authorization header, if any.
-      OAuthParams.OAuthParamsBuilder oAuthParamsBuilder = new OAuthParams.OAuthParamsBuilder(helper);
+      OAuthParams.OAuthParamsBuilder oAuthParamsBuilder = new OAuthParams.OAuthParamsBuilder(helper, oAuthParamsChecker.onlyAllowOAuthParamsInHeader());
 
       // parse the header, if present
       parseHeader(request.authHeader(), oAuthParamsBuilder.headerHandler);
@@ -324,13 +331,18 @@ public interface Unpacker {
       }
     };
 
+    final static OAuthParamsInHeaderChecker oAuthParamChecker = new OAuthParamsInHeaderChecker() {
+      @Override
+      public boolean onlyAllowOAuthParamsInHeader() { return false; }
+    };
+
     public StandardUnpacker(
       OAuthParams.OAuthParamsHelper helper,
       Normalizer normalizer,
       KeyValueParser queryParser,
       KeyValueParser headerParser
     ) {
-      super(helper, normalizer, queryParser, headerParser, callback, callback, callback, checker);
+      super(helper, normalizer, queryParser, headerParser, callback, callback, callback, checker, oAuthParamChecker);
     }
   }
 }

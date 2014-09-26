@@ -76,9 +76,10 @@ public interface UnpackedRequest {
       String signatureMethod,
       String version,
       Request.ParsedRequest parsedRequest,
-      String normalizedRequest
+      String normalizedRequest,
+      boolean inParams
     ) {
-      super(consumerKey, nonce, timestampSecs, signature, signatureMethod, version, parsedRequest, normalizedRequest);
+      super(consumerKey, nonce, timestampSecs, signature, signatureMethod, version, parsedRequest, normalizedRequest, inParams);
     }
   }
 
@@ -91,6 +92,7 @@ public interface UnpackedRequest {
     private final String version;
     private final Request.ParsedRequest parsedRequest;
     private final String normalizedRequest;
+    private final boolean inParams;
 
     public String consumerKey() {
       return consumerKey;
@@ -120,6 +122,8 @@ public interface UnpackedRequest {
       return normalizedRequest;
     }
 
+    public boolean inParams() { return inParams; }
+
     public OAuth1RequestBase(
       String consumerKey,
       String nonce,
@@ -128,7 +132,8 @@ public interface UnpackedRequest {
       String signatureMethod,
       String version,
       Request.ParsedRequest parsedRequest,
-      String normalizedRequest
+      String normalizedRequest,
+      boolean inParams
     ) {
       this.consumerKey = consumerKey;
       this.nonce = nonce;
@@ -138,6 +143,7 @@ public interface UnpackedRequest {
       this.version = version;
       this.parsedRequest = parsedRequest;
       this.normalizedRequest = normalizedRequest;
+      this.inParams = inParams;
     }
 
     @Override
@@ -218,9 +224,10 @@ public interface UnpackedRequest {
       String signatureMethod,
       String version,
       Request.ParsedRequest parsedRequest,
-      String normalizedRequest
+      String normalizedRequest,
+      boolean inParams
     ) {
-      super(consumerKey, nonce, timestampSecs, signature, signatureMethod, version, parsedRequest, normalizedRequest);
+      super(consumerKey, nonce, timestampSecs, signature, signatureMethod, version, parsedRequest, normalizedRequest, inParams);
       this.token = token;
     }
 
@@ -388,7 +395,8 @@ public interface UnpackedRequest {
         oAuth1Params.signatureMethod(),
         oAuth1Params.version(),
         parsedRequest,
-        normalize.normalize(parsedRequest, oAuth1Params)
+        normalize.normalize(parsedRequest, oAuth1Params),
+        oAuth1Params.inParams()
       );
     }
 
@@ -409,7 +417,8 @@ public interface UnpackedRequest {
         oAuth1Params.signatureMethod(),
         oAuth1Params.version(),
         parsedRequest,
-        normalize.normalize(parsedRequest, oAuth1Params)
+        normalize.normalize(parsedRequest, oAuth1Params),
+        oAuth1Params.inParams()
       );
     }
   }

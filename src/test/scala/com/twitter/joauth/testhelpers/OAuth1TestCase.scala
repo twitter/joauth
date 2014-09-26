@@ -51,7 +51,9 @@ case class OAuth1TestCase(
     OAuthParams.HMAC_SHA1,
     OAuthParams.ONE_DOT_OH,
     parsedRequest(paramsInRequestBody, authInHeader),
-    normalizedRequest(paramsInRequestBody, authInHeader))
+    normalizedRequest(paramsInRequestBody, authInHeader),
+    false
+  )
 
   def oAuth1TwoLeggedRequest(paramsInRequestBody: Boolean, authInHeader: Boolean) = new UnpackedRequest.OAuth1TwoLeggedRequest(
     consumerKey,
@@ -61,7 +63,9 @@ case class OAuth1TestCase(
     OAuthParams.HMAC_SHA1,
     OAuthParams.ONE_DOT_OH,
     parsedRequest(paramsInRequestBody, authInHeader),
-    normalizedRequest(paramsInRequestBody, authInHeader))
+    normalizedRequest(paramsInRequestBody, authInHeader),
+    false
+  )
 
   def parsedRequest(paramsInRequestBody: Boolean, authInHeader: Boolean) = {
     val params = if (authInHeader) {
@@ -99,7 +103,9 @@ case class OAuth1TestCase(
       timestampSecs.toString,
       signature(paramsInRequestBody),
       OAuthParams.HMAC_SHA1,
-      OAuthParams.ONE_DOT_OH)
+      OAuthParams.ONE_DOT_OH,
+      false
+    )
 
   def normalizedRequest(paramsInRequestBody: Boolean, oAuthInHeader: Boolean) = {
     if (oAuthInHeader) {

@@ -17,7 +17,7 @@ import org.specs.SpecificationWithJUnit
 
 class OAuth1RequestSpec extends SpecificationWithJUnit {
   "OAuth1Request.verify" should {
-    val builder = new OAuthParams.OAuthParamsBuilder(OAuthParams.STANDARD_OAUTH_PARAMS_HELPER)
+    val builder = new OAuthParams.OAuthParamsBuilder(OAuthParams.STANDARD_OAUTH_PARAMS_HELPER, false)
     def pr(scheme: String, host: String, port: Int, verb: String, path: String) =
       new Request.ParsedRequest(scheme, host, port, verb, path, new java.util.ArrayList[Request.Pair])
 

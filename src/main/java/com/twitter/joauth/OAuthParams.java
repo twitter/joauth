@@ -66,6 +66,7 @@ public class OAuthParams {
     private final String signature;
     private final String signatureMethod;
     private final String version;
+    private final boolean inParams;
 
 
     public OAuth1Params(
@@ -76,7 +77,8 @@ public class OAuthParams {
       String timestampStr,
       String signature,
       String signatureMethod,
-      String version
+      String version,
+      boolean inParams
     ) {
       this.token = token;
       this.consumerKey = consumerKey;
@@ -86,6 +88,7 @@ public class OAuthParams {
       this.signature = signature;
       this.signatureMethod = signatureMethod;
       this.version = version;
+      this.inParams = inParams;
     }
 
     public String token() { return token; }
@@ -96,6 +99,7 @@ public class OAuthParams {
     public String signature() { return signature; }
     public String signatureMethod() { return signatureMethod; }
     public String version() { return version; }
+    public boolean inParams() { return inParams; }
 
 
     public List<Request.Pair> toList(boolean includeSig) {
@@ -135,9 +139,11 @@ public class OAuthParams {
   public static class OAuthParamsBuilder {
 
     private OAuthParamsHelper helper;
+    private boolean oAuthParamsInHeaderOnly;
 
-    public OAuthParamsBuilder(OAuthParamsHelper helper) {
+    public OAuthParamsBuilder(OAuthParamsHelper helper, boolean oAuthParamsInHeaderOnly) {
       this.helper = helper;
+      this.oAuthParamsInHeaderOnly = oAuthParamsInHeaderOnly;
     }
 
     //todo: make this final
@@ -150,6 +156,7 @@ public class OAuthParams {
     public String signature;
     public String signatureMethod;
     public String version;
+    public boolean oAuthParamsFoundInParams = false;
 
     private KeyValueHandler.DuplicateKeyValueHandler paramsHandler = new KeyValueHandler.DuplicateKeyValueHandler();
     private KeyValueHandler.SingleKeyValueHandler otherOAuthParamsHandler = new KeyValueHandler.SingleKeyValueHandler();
@@ -157,14 +164,14 @@ public class OAuthParams {
     public KeyValueHandler headerHandler = new KeyValueHandler() {
       @Override
       public void handle(String key, String value) {
-        handleKeyValue(key, value, true);
+        handleKeyValue(key, value, true, true);
       }
     };
 
     public KeyValueHandler queryHandler = new KeyValueHandler() {
       @Override
       public void handle(String key, String value) {
-        handleKeyValue(key, value, false);
+        handleKeyValue(key, value, false, !oAuthParamsInHeaderOnly);
       }
     };
 
@@ -172,7 +179,7 @@ public class OAuthParams {
       return (value != null && !value.equals(""));
     }
 
-    private void handleKeyValue(String key, String value, boolean fromHeader) {
+    private void handleKeyValue(String key, String value, boolean fromHeader, boolean allowOAuthParams) {
 
       // TODO: This needs clean up. replace the if/else with enum/map-lookup
       // Known keys can be in an enum, and parser can be updated to point to these keys, instead of creating a new key string.
@@ -182,43 +189,64 @@ public class OAuthParams {
         if (fromHeader && notEmpty(value)) {
           v2Token = value;
         }
-      } else if (CLIENT_ID.equals(key)) {
+      } else if(CLIENT_ID.equals(key)) {
         if(fromHeader && notEmpty(value)) {
           consumerKey = value;
         }
       } else if (OAUTH_TOKEN.equals(key)) {
-        if (value != null) {
+        if (allowOAuthParams && value != null) {
+          if (!fromHeader) {
+            oAuthParamsFoundInParams = true;
+          }
           token = value.trim();
         }
       } else if (OAUTH_CONSUMER_KEY.equals(key)) {
-        if (notEmpty(value)) {
+        if (allowOAuthParams && notEmpty(value)) {
+          if (!fromHeader) {
+            oAuthParamsFoundInParams = true;
+          }
           consumerKey = value;
         }
       } else if (OAUTH_NONCE.equals(key)) {
-        if (notEmpty(value)) {
+        if (allowOAuthParams && notEmpty(value)) {
+          if (!fromHeader) {
+            oAuthParamsFoundInParams = true;
+          }
           nonce = value;
         }
       } else if (OAUTH_TIMESTAMP.equals(key)) {
         Long timestamp = helper.parseTimestamp(value);
-        if (timestamp != null) {
+        if (allowOAuthParams && timestamp != null) {
+          if (!fromHeader) {
+            oAuthParamsFoundInParams = true;
+          }
           timestampSecs = timestamp;
           timestampStr = value;
         }
       } else if (OAUTH_SIGNATURE.equals(key)) {
-        if (notEmpty(value)) {
+        if (allowOAuthParams && notEmpty(value)) {
+          if (!fromHeader) {
+            oAuthParamsFoundInParams = true;
+          }
           signature = helper.processSignature(value);
         }
       } else if (OAUTH_SIGNATURE_METHOD.equals(key)) {
-        if (notEmpty(value)) {
+        if (allowOAuthParams && notEmpty(value)) {
+          if (!fromHeader) {
+            oAuthParamsFoundInParams = true;
+          }
           signatureMethod = value;
         }
       } else if (OAUTH_VERSION.equals(key)) {
-        if (notEmpty(value)) {
+        if (allowOAuthParams && notEmpty(value)) {
+          if (!fromHeader) {
+            oAuthParamsFoundInParams = true;
+          }
           version = value;
         }
-      } else if (key.startsWith("oauth_")) {
-           // send oauth_prefixed to a uniquekey handler
-           otherOAuthParamsHandler.handle(key, value);
+      } else if (allowOAuthParams && key.startsWith("oauth_")) {
+         // send oauth_prefixed to a uniquekey handler
+         otherOAuthParamsHandler.handle(key, value);
       } else {
         // send other params to the handler, but only if they didn't come from the header
         if (!fromHeader) paramsHandler.handle(key, value);
@@ -284,7 +312,8 @@ public class OAuthParams {
         timestampStr,
         signature,
         signatureMethod,
-        version
+        version,
+        oAuthParamsFoundInParams
       );
     }
   }

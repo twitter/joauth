@@ -17,7 +17,7 @@ import org.specs.SpecificationWithJUnit
 
 class OAuthParamsSpec extends SpecificationWithJUnit with Mockito {
   val helper = smartMock[OAuthParams.OAuthParamsHelper]
-  val builder = new OAuthParams.OAuthParamsBuilder(helper)
+  val builder = new OAuthParams.OAuthParamsBuilder(helper, false)
 
   val emptyList = new java.util.ArrayList[Request.Pair]()
 
@@ -173,6 +173,23 @@ class OAuthParamsSpec extends SpecificationWithJUnit with Mockito {
       builder.otherParams mustEqual toPairList(List("access_token" -> "0", "foo" -> "bar"))
 
       builder.toString mustEqual "Bearer=(unset),oauth_token=1,oauth_consumer_key=2,oauth_nonce=3,oauth_timestamp=foo(->4),oauth_signature=a,oauth_signature_method=6,oauth_version=7"
+    }
+
+    "detect when an oauth param is in the query params" in {
+      builder.headerHandler.handle("oauth_token", "1")
+      builder.oAuthParamsFoundInParams must beFalse
+
+      builder.queryHandler.handle("oauth_token", "1")
+      builder.oAuthParamsFoundInParams must beTrue
+    }
+
+    "prevent oauth params from being in query params if configured to" in {
+      val builder = new OAuthParams.OAuthParamsBuilder(helper, true)
+      builder.queryHandler.handle("oauth_token", "1")
+      builder.token must beNull
+
+      builder.headerHandler.handle("oauth_token", "1")
+      builder.token mustEqual "1"
     }
   }
   "StandardOAuthParamsHelper.parseTimestamp" should {
