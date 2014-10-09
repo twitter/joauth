@@ -1,4 +1,4 @@
-# JOAuth [![Build Status](https://travis-ci.org/twitter/joauth.png?branch=master)](https://travis-ci.org/twitter/joauth)
+# JOAuth [![Build Status](https://travis-ci.org/twitter/joauth.png?branch=master)](https://travis-ci.org/twitter/joauth) [![Coverage Status](https://coveralls.io/repos/twitter/joauth/badge.png)](https://coveralls.io/r/twitter/joauth)
 
 A Java library for authenticating HTTP Requests using OAuth
 

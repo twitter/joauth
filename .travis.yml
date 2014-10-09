@@ -2,3 +2,5 @@ language: scala
 scala:
   - 2.9.2
 script: mvn test
+after_success:
+  - mvn clean cobertura:cobertura coveralls:cobertura
