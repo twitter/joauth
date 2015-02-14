@@ -36,6 +36,10 @@ public class UrlCodec {
   private static final String ENCODED_OPEN_BRACKET = "%5B";
   private static final String ENCODED_CLOSE_BRACKET = "%5D";
 
+  private final static char[] HEX_DIGITS = {
+      '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'
+  };
+
   private static boolean isUnreserved(byte b) {
     return (b >= 'a' && b <= 'z') || (b >= 'A' && b <= 'Z') ||
       (b >= '0' && b <= '9') || b == '.' || b == '-' || b == '_' || b == '~';
@@ -77,9 +81,9 @@ public class UrlCodec {
         } else {
           // turn the Byte into an int into the hex string, but be sure to mask out the unneeded bits
           // to avoid nastiness with converting to a negative int
-          sb.append("%")
-            .append(Integer.toHexString((bite >> 4) & 0xF).toUpperCase())
-            .append(Integer.toHexString(bite & 0xF).toUpperCase());
+          sb.append('%');
+          sb.append(HEX_DIGITS[(bite >> 4) & 0x0F]);
+          sb.append(HEX_DIGITS[bite & 0x0F]);
         }
       }
     }
