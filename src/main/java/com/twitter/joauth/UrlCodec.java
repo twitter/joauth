@@ -105,21 +105,20 @@ public class UrlCodec {
         }
         if (c == '%') {
           if (i + 3 <= length) {
-            // TODO: look into reducing garbage here
-            String spChar = s.substring(i, i + 3).toUpperCase();
-            String toAppend = spChar.toString();
-
-            if (ENCODED_UNDERSCORE.equals(spChar)) {
-              toAppend = UNDERSCORE;
-            } else if (ENCODED_DASH.equals(spChar)) {
-              toAppend = DASH;
-            } else if (ENCODED_TILDE.equals(spChar)) {
-              toAppend = TILDE;
-            } else if (ENCODED_PERIOD.equals(spChar)) {
-              toAppend = PERIOD;
+            if (ENCODED_UNDERSCORE.regionMatches(true, 0, s, i, 3)) {
+              sb.append(UNDERSCORE);
+            } else if (ENCODED_DASH.regionMatches(true, 0, s, i, 3)) {
+              sb.append(DASH);
+            } else if (ENCODED_TILDE.regionMatches(true, 0, s, i, 3)) {
+              sb.append(TILDE);
+            } else if (ENCODED_PERIOD.regionMatches(true, 0, s, i, 3)) {
+              sb.append(PERIOD);
+            } else {
+              for (int j = i; j < i + 3; j++) {
+                sb.append(Character.toUpperCase(s.charAt(j)));
+              }
             }
 
-            sb.append(toAppend);
             i += 2;
           } else {
             sb.append(c);
