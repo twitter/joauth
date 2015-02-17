@@ -105,13 +105,13 @@ public class UrlCodec {
         }
         if (c == '%') {
           if (i + 3 <= length) {
-            if (ENCODED_UNDERSCORE.regionMatches(true, 0, s, i, 3)) {
+            if (ENCODED_UNDERSCORE.regionMatches(true, 1, s, i + 1, 2)) {
               sb.append(UNDERSCORE);
-            } else if (ENCODED_DASH.regionMatches(true, 0, s, i, 3)) {
+            } else if (ENCODED_DASH.regionMatches(true, 1, s, i + 1, 2)) {
               sb.append(DASH);
-            } else if (ENCODED_TILDE.regionMatches(true, 0, s, i, 3)) {
+            } else if (ENCODED_TILDE.regionMatches(true, 1, s, i + 1, 2)) {
               sb.append(TILDE);
-            } else if (ENCODED_PERIOD.regionMatches(true, 0, s, i, 3)) {
+            } else if (ENCODED_PERIOD.regionMatches(true, 1, s, i + 1, 2)) {
               sb.append(PERIOD);
             } else {
               for (int j = i; j < i + 3; j++) {
