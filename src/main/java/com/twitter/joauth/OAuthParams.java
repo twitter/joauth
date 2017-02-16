@@ -42,6 +42,7 @@ public class OAuthParams {
   public static final String UNSET = "(unset)";
 
   public static final String HMAC_SHA1 = "HMAC-SHA1";
+  public static final String HMAC_SHA256 = "HMAC-SHA256";
   public static final String ONE_DOT_OH = "1.0";
   public static final String ONE_DOT_OH_A = "1.0a";
 
