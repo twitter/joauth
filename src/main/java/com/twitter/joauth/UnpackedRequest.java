@@ -341,8 +341,8 @@ public interface UnpackedRequest {
     private static final String UNSUPPORTED_VERSION = "unsupported oauth version: ";
     private static final String MALFORMED_TOKEN = "malformed oauth token: ";
 
-    //TODO: remove MaxTokenLength, this limit is specific to twitter
-    private static final int MaxTokenLength = 50;   // This is limited by DB schema
+    // For security reasons MaxTokenLength was increased from 50 to 100 instead of being completely removed
+    private static final int MaxTokenLength = 100;
 
     private void throwMalformedException(String name) throws MalformedRequest {
       throw new MalformedRequest(NO_VALUE_FOR+name);
