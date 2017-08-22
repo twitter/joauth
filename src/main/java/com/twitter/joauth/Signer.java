@@ -29,13 +29,29 @@ public abstract class Signer {
   /**
    * produce an encoded signature string
    */
-  public abstract String getString(String str, String tokenSecret, String consumerSecret)
+  public String getString(String str, String tokenSecret, String consumerSecret)
+    throws InvalidKeyException, NoSuchAlgorithmException {
+    return getString(str, OAuthParams.HMAC_SHA1, tokenSecret, consumerSecret);
+  }
+
+  /**
+   * produce an encoded signature string
+   */
+  public abstract String getString(String str, String signatureMethod, String tokenSecret, String consumerSecret)
     throws InvalidKeyException, NoSuchAlgorithmException;
 
   /**
    * produce a signature as a byte array
    */
-  public abstract byte[] getBytes(String str, String tokenSecret, String consumerSecret)
+  public byte[] getBytes(String str, String tokenSecret, String consumerSecret)
+    throws NoSuchAlgorithmException, InvalidKeyException {
+    return getBytes(str, OAuthParams.HMAC_SHA1, tokenSecret, consumerSecret);
+  }
+
+  /**
+   * produce a signature as a byte array
+   */
+  public abstract byte[] getBytes(String str, String signatureMethod, String tokenSecret, String consumerSecret)
     throws NoSuchAlgorithmException, InvalidKeyException;
 
   /**
@@ -59,23 +75,25 @@ public abstract class Signer {
     private static final Charset UTF_8 = Charset.forName("UTF-8");
     private static final String AND = "&"; //TODO: move to Normalizer
     private static final String HMACSHA1 = "HmacSHA1";
+    private static final String HMACSHA256 = "HmacSHA256";
 
     @Override
-    public String getString(String str, String tokenSecret, String consumerSecret)
+    public String getString(String str, String signatureMethod, String tokenSecret, String consumerSecret)
       throws InvalidKeyException, NoSuchAlgorithmException {
 
-      return UrlCodec.encode(Base64Util.encode(getBytes(str, tokenSecret, consumerSecret)));
+      return UrlCodec.encode(Base64Util.encode(getBytes(str, signatureMethod, tokenSecret, consumerSecret)));
     }
 
     @Override
-    public byte[] getBytes(String str, String tokenSecret, String consumerSecret)
+    public byte[] getBytes(String str, String signatureMethod, String tokenSecret, String consumerSecret)
       throws NoSuchAlgorithmException, InvalidKeyException {
 
+      String algorithm = getSignerAlgorithm(signatureMethod);
       String key = consumerSecret + AND + tokenSecret;
-      SecretKeySpec signingKey = new SecretKeySpec(key.getBytes(StandardSigner.UTF_8), HMACSHA1);
+      SecretKeySpec signingKey = new SecretKeySpec(key.getBytes(UTF_8), algorithm);
 
       //TODO: Mac looks thread safe, if not consider synchronizing this
-      Mac mac = Mac.getInstance(HMACSHA1);
+      Mac mac = Mac.getInstance(algorithm);
       mac.init(signingKey);
       return mac.doFinal(str.getBytes(UTF_8));
     }
@@ -83,6 +101,10 @@ public abstract class Signer {
     @Override
     public byte[] toBytes(String signature) throws UnsupportedEncodingException {
       return Base64Util.decode(UrlCodec.decode(signature).trim());
+    }
+
+    String getSignerAlgorithm(String signatureMethod) {
+      return OAuthParams.HMAC_SHA256.equals(signatureMethod) ? HMACSHA256 : HMACSHA1;
     }
   }
 
@@ -100,12 +122,12 @@ public abstract class Signer {
     }
 
     @Override
-    public byte[] getBytes(String str, String tokenSecret, String consumerSecret) {
+    public byte[] getBytes(String str, String signatureMethod, String tokenSecret, String consumerSecret) {
       return bytes;
     }
 
     @Override
-    public String getString(String str, String tokenSecret, String consumerSecret) {
+    public String getString(String str, String signatureMethod, String tokenSecret, String consumerSecret) {
       return str;
     }
 

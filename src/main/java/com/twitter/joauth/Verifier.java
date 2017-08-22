@@ -108,6 +108,7 @@ public interface Verifier {
         "",
         consumerSecret,
         request.signature(),
+        request.signatureMethod(),
         request.normalizedRequest()
       );
     }
@@ -121,6 +122,7 @@ public interface Verifier {
         tokenSecret,
         consumerSecret,
         request.signature(),
+        request.signatureMethod(),
         request.normalizedRequest()
       );
     }
@@ -132,6 +134,7 @@ public interface Verifier {
       String tokenSecret,
       String consumerSecret,
       String signature,
+      String signatureMethod,
       String normalizedRequest
     ) {
       if (!validateTimestampSecs(timestampSecs)) {
@@ -144,7 +147,7 @@ public interface Verifier {
           log.log(Level.FINE, String.format("bad nonce -> %s", request.toString()));
         }
         return VerifierResult.BAD_NONCE;
-      } else if (!validateSignature(normalizedRequest, signature, tokenSecret, consumerSecret)) {
+      } else if (!validateSignature(normalizedRequest, signature, signatureMethod, tokenSecret, consumerSecret)) {
         if (log.isLoggable(Level.FINE)) {
           log.log(Level.FINE, String.format("bad signature -> %s", request.toString()));
         }
@@ -164,12 +167,13 @@ public interface Verifier {
     boolean validateSignature(
       String normalizedRequest,
       String signature,
+      String signatureMethod,
       String tokenSecret,
       String consumerSecret
     ) {
       try {
         return Base64Util.equals(UrlCodec.decode(signature).trim(),
-            signer.getBytes(normalizedRequest, tokenSecret, consumerSecret));
+            signer.getBytes(normalizedRequest, signatureMethod, tokenSecret, consumerSecret));
       } catch (Exception e) {
         return false;
       }

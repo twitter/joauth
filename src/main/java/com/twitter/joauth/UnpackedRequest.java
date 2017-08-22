@@ -354,7 +354,9 @@ public interface UnpackedRequest {
       else if (parsedRequest.port() < 0) throwMalformedException(PORT);
       else if (parsedRequest.verb() == null) throwMalformedException(VERB);
       else if (parsedRequest.path() == null) throwMalformedException(PATH);
-      else if (oAuth1Params.signatureMethod() == null || !oAuth1Params.signatureMethod().equals(OAuthParams.HMAC_SHA1)) {
+      else if (oAuth1Params.signatureMethod() == null ||
+          !oAuth1Params.signatureMethod().equals(OAuthParams.HMAC_SHA1) &&
+          !oAuth1Params.signatureMethod().equals(OAuthParams.HMAC_SHA256)) {
         throw new MalformedRequest(UNSUPPORTED_METHOD + oAuth1Params.signatureMethod());
       }
       else if (oAuth1Params.version() != null &&
