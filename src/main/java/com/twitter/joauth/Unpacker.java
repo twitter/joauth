@@ -52,6 +52,10 @@ public interface Unpacker {
     public static final String WWW_FORM_URLENCODED = "application/x-www-form-urlencoded";
     public static final String HTTPS = "HTTPS";
 
+    // Keeping the old maxTokenLength value as default one
+    // Previously it was defined in OAuth1RequestHelper
+    public static final int DEFAULT_MAX_TOKEN_LENGTH = 50;
+
     private static final Logger log = Logger.getLogger("CustomizableUnpacker");
 
     private final OAuthParams.OAuthParamsHelper helper;
@@ -62,6 +66,7 @@ public interface Unpacker {
     private final KeyValueCallback bodyParamTransformer;
     private final KeyValueCallback headerTransformer;
     private final OAuth2Checker shouldAllowOAuth2;
+    private final int maxTokenLength;
 
     public CustomizableUnpacker(
       OAuthParams.OAuthParamsHelper helper,
@@ -71,7 +76,8 @@ public interface Unpacker {
       KeyValueCallback queryParamTransformer,
       KeyValueCallback bodyParamTransformer,
       KeyValueCallback headerTransformer,
-      OAuth2Checker shouldAllowOAuth2
+      OAuth2Checker shouldAllowOAuth2,
+      int maxTokenLength
     ) {
       this.helper = helper;
       this.normalizer = normalizer;
@@ -81,6 +87,29 @@ public interface Unpacker {
       this.bodyParamTransformer = bodyParamTransformer;
       this.headerTransformer = headerTransformer;
       this.shouldAllowOAuth2 = shouldAllowOAuth2;
+      this.maxTokenLength = maxTokenLength;
+    }
+
+    public CustomizableUnpacker(
+        OAuthParams.OAuthParamsHelper helper,
+        Normalizer normalizer,
+        KeyValueParser queryParser,
+        KeyValueParser headerParser,
+        KeyValueCallback queryParamTransformer,
+        KeyValueCallback bodyParamTransformer,
+        KeyValueCallback headerTransformer,
+        OAuth2Checker shouldAllowOAuth2
+    ) {
+      this(
+          helper,
+          normalizer,
+          queryParser,
+          headerParser,
+          queryParamTransformer,
+          bodyParamTransformer,
+          headerTransformer,
+          shouldAllowOAuth2,
+          DEFAULT_MAX_TOKEN_LENGTH);
     }
 
     private KeyValueHandler createKeyValueHandler(
@@ -244,7 +273,7 @@ public interface Unpacker {
         oAuth1Params.consumerKey(), oAuth1Params.signature(), oAuth1Params.signatureMethod()));
     }
 
-    return UnpackedRequest.O_AUTH_1_REQUEST_HELPER.buildOAuth1Request(parsedRequest, oAuth1Params, normalizer);
+    return UnpackedRequest.O_AUTH_1_REQUEST_HELPER.buildOAuth1Request(parsedRequest, oAuth1Params, normalizer, maxTokenLength);
   }
 
   public UnpackedRequest.OAuth1TwoLeggedRequest getOAuth1TwoLeggedRequest(
@@ -259,7 +288,7 @@ public interface Unpacker {
         oAuth1Params.signature(), oAuth1Params.signatureMethod()));
     }
 
-    return UnpackedRequest.O_AUTH_1_REQUEST_HELPER.buildOAuth1TwoLeggedRequest(parsedRequest, oAuth1Params, normalizer);
+    return UnpackedRequest.O_AUTH_1_REQUEST_HELPER.buildOAuth1TwoLeggedRequest(parsedRequest, oAuth1Params, normalizer, maxTokenLength);
   }
 
   public UnpackedRequest.OAuth2Request getOAuth2Request(

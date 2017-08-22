@@ -341,14 +341,15 @@ public interface UnpackedRequest {
     private static final String UNSUPPORTED_VERSION = "unsupported oauth version: ";
     private static final String MALFORMED_TOKEN = "malformed oauth token: ";
 
-    // For security reasons MaxTokenLength was increased from 50 to 100 instead of being completely removed
-    private static final int MaxTokenLength = 100;
-
     private void throwMalformedException(String name) throws MalformedRequest {
       throw new MalformedRequest(NO_VALUE_FOR+name);
     }
 
-    public void verify(Request.ParsedRequest parsedRequest, OAuthParams.OAuth1Params oAuth1Params) throws MalformedRequest {
+    public void verify(
+        Request.ParsedRequest parsedRequest,
+        OAuthParams.OAuth1Params oAuth1Params,
+        int maxtokenLength
+        ) throws MalformedRequest {
       if (parsedRequest.scheme() == null) throwMalformedException(SCHEME);
       else if (parsedRequest.host() == null) throwMalformedException(HOST);
       else if (parsedRequest.port() < 0) throwMalformedException(PORT);
@@ -365,7 +366,7 @@ public interface UnpackedRequest {
         throw new MalformedRequest(UNSUPPORTED_VERSION + oAuth1Params.version());
       }
       else if (oAuth1Params.token() != null &&
-          (oAuth1Params.token().indexOf(' ') > 0 || oAuth1Params.token().length() > MaxTokenLength)) {
+          (oAuth1Params.token().indexOf(' ') > 0 || oAuth1Params.token().length() > maxtokenLength)) {
         throw new MalformedRequest(MALFORMED_TOKEN + oAuth1Params.token());
       }
       // we don't check the validity of the OAuthParams object, because it must be
@@ -376,10 +377,11 @@ public interface UnpackedRequest {
     public OAuth1Request buildOAuth1Request(
       Request.ParsedRequest parsedRequest,
       OAuthParams.OAuth1Params oAuth1Params,
-      Normalizer normalize
+      Normalizer normalize,
+      int maxTokenLength
     ) throws MalformedRequest, UnsupportedEncodingException {
 
-      verify(parsedRequest, oAuth1Params);
+      verify(parsedRequest, oAuth1Params, maxTokenLength);
 
       return new OAuth1Request(
         UrlCodec.decode(oAuth1Params.token()), // should never be called when token is None
@@ -398,10 +400,11 @@ public interface UnpackedRequest {
     public OAuth1TwoLeggedRequest buildOAuth1TwoLeggedRequest(
       Request.ParsedRequest parsedRequest,
       OAuthParams.OAuth1Params oAuth1Params,
-      Normalizer normalize
+      Normalizer normalize,
+      int maxTokenLength
     ) throws MalformedRequest, UnsupportedEncodingException {
 
-      verify(parsedRequest, oAuth1Params);
+      verify(parsedRequest, oAuth1Params, maxTokenLength);
 
       return new OAuth1TwoLeggedRequest(
         UrlCodec.decode(oAuth1Params.consumerKey()),
