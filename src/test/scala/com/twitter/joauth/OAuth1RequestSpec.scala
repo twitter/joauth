@@ -46,12 +46,12 @@ class OAuth1RequestSpec extends SpecificationWithJUnit {
     }
     "not throw on supported HMAC-SHA1 signature method" in {
       builder.queryHandler.handle("oauth_signature_method", "HMAC-SHA1")
-      UnpackedRequest.O_AUTH_1_REQUEST_HELPER.verify(pr("1", "2", 3, "4", "5"), builder.oAuth1Params) 
+      UnpackedRequest.O_AUTH_1_REQUEST_HELPER.verify(pr("1", "2", 3, "4", "5"), builder.oAuth1Params, DEFAULT_MAX_TOKEN_LENGTH)
       1 must be_==(1)
     }
     "not throw on supported HMAC-SHA256 signature method" in {
       builder.queryHandler.handle("oauth_signature_method", "HMAC-SHA256")
-      UnpackedRequest.O_AUTH_1_REQUEST_HELPER.verify(pr("1", "2", 3, "4", "5"), builder.oAuth1Params) 
+      UnpackedRequest.O_AUTH_1_REQUEST_HELPER.verify(pr("1", "2", 3, "4", "5"), builder.oAuth1Params, DEFAULT_MAX_TOKEN_LENGTH)
       1 must be_==(1)
     }
     "throw on unsupported oauth version" in {
