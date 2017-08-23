@@ -348,7 +348,7 @@ public interface UnpackedRequest {
     public void verify(
         Request.ParsedRequest parsedRequest,
         OAuthParams.OAuth1Params oAuth1Params,
-        int maxtokenLength
+        int maxTokenLength
         ) throws MalformedRequest {
       if (parsedRequest.scheme() == null) throwMalformedException(SCHEME);
       else if (parsedRequest.host() == null) throwMalformedException(HOST);
@@ -366,7 +366,7 @@ public interface UnpackedRequest {
         throw new MalformedRequest(UNSUPPORTED_VERSION + oAuth1Params.version());
       }
       else if (oAuth1Params.token() != null &&
-          (oAuth1Params.token().indexOf(' ') > 0 || oAuth1Params.token().length() > maxtokenLength)) {
+          (oAuth1Params.token().indexOf(' ') > 0 || oAuth1Params.token().length() > maxTokenLength)) {
         throw new MalformedRequest(MALFORMED_TOKEN + oAuth1Params.token());
       }
       // we don't check the validity of the OAuthParams object, because it must be
