@@ -56,24 +56,37 @@ public class UrlCodec {
     }
 
     StringBuilder sb = null;
-
-    int startingIndex = 0;
-    boolean hasReservedChars = false;
+    int j = 0;
 
     // scan through to see where we have to start % encoding, if at all
-    while (startingIndex < s.length() && !hasReservedChars) {
-      if (!isUnreserved(s.charAt(startingIndex))) {
-        hasReservedChars = true;
+    int startingIndex = 0;
+    while (j < s.length()) {
+      if (!isUnreserved(s.charAt(j))) {
+        startingIndex = j;
+        break;
       } else {
-        startingIndex += 1;
+        j++;
       }
     }
 
-    if (hasReservedChars && startingIndex < s.length()) {
-      sb = new StringBuilder(s.length() + 40);
-      sb.append(s.substring(0, startingIndex));
+    // scan through to see where we have to end % encoding, if at all
+    int endingIndex = startingIndex;
+    while (j < s.length()) {
+      if (!isUnreserved(s.charAt(j))) {
+        j += Character.charCount(s.codePointAt(j));
+        endingIndex = j;
+      } else {
+        j++;
+      }
+    }
 
-      byte[] byteArray = s.substring(startingIndex).getBytes(UTF_8_CHARSET);
+    if (startingIndex < endingIndex) {
+      // allocate a string builder with padding for % encoding
+      sb = new StringBuilder(s.length() + 40);
+      // append prefix (no encoding required)
+      sb.append(s, 0, startingIndex);
+
+      byte[] byteArray = s.substring(startingIndex, endingIndex).getBytes(UTF_8_CHARSET);
       for (int i = 0; i < byteArray.length; i++) {
         byte bite = byteArray[i];
         if (isUnreserved(bite)) {
@@ -86,6 +99,9 @@ public class UrlCodec {
           sb.append(HEX_DIGITS[bite & 0x0F]);
         }
       }
+
+      // append postfix (no encoding required)
+      sb.append(s, endingIndex, s.length());
     }
 
     return (sb == null) ? s : sb.toString();
@@ -105,7 +121,7 @@ public class UrlCodec {
       if (c == '%' || c == '+' || c == ',' || c == '[' || c == ']') {
         if (sb == null) {
           sb = new StringBuilder(s.length() + 40); //use length
-          sb.append(s.substring(0, i));
+          sb.append(s, 0, i);
         }
         if (c == '%') {
           if (i + 3 <= length) {
