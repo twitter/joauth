@@ -154,7 +154,7 @@ The tests are completely self contained, and can be run using Maven:
 
 ## Reporting problems
 
-The Github issue tracker is [here](http://github.com/9len/joauth/issues).
+The Github issue tracker is [here](https://github.com/9len/joauth/issues).
 
 ## Contributors
 
@@ -175,5 +175,5 @@ The Github issue tracker is [here](http://github.com/9len/joauth/issues).
 
 Copyright 2010-2013 Twitter, Inc.
 
-Licensed under the Apache License, Version 2.0: http://www.apache.org/licenses/LICENSE-2.0
+Licensed under the Apache License, Version 2.0: https://www.apache.org/licenses/LICENSE-2.0
 

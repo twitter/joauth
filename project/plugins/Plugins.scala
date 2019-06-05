@@ -8,11 +8,11 @@ class Plugins(info: ProjectInfo) extends PluginDefinition(info) {
   def isInternal = isSBTOpenTwitter || isSBTTwitter
 
   override def repositories = if (isSBTOpenTwitter) {
-    Set("twitter.artifactory" at "http://artifactory.local.twitter.com/open-source/")
+    Set("twitter.artifactory" at "https://artifactory.local.twitter.com/open-source/")
   } else if (isSBTTwitter) {
-    Set("twitter.artifactory" at "http://artifactory.local.twitter.com/repo/")
+    Set("twitter.artifactory" at "https://artifactory.local.twitter.com/repo/")
   } else {
-    super.repositories ++ Seq("twitter.com" at "http://maven.twttr.com/")
+    super.repositories ++ Seq("twitter.com" at "https://maven.twttr.com/")
   }
 
   override def ivyRepositories =
