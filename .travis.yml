@@ -5,3 +5,7 @@ scala:
 script: mvn test
 after_success:
   - mvn clean cobertura:cobertura coveralls:cobertura
+
+cache:
+  directories:
+  - $HOME/.m2
